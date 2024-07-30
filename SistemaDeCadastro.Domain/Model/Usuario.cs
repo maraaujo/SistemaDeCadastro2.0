@@ -5,6 +5,9 @@ namespace SistemaDeCadastro.Domain.Model
 {
     public class Usuario :IdentityUser
     {
+       
         public Usuario() : base() { }
+        
+
     }
 }

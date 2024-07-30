@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace SistemaDeCadastro.Data.Interface
+
+namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IIdosoFuncionarioRepository
+    public interface IMedicamentoIdosoDoencaRepository
     {
-        Task GetFuncionariByIdoso(int id);
     }
 }

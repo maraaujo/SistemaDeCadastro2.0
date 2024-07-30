@@ -4,7 +4,7 @@ using SistemaDeCadastro.Domain.Model;
 
 namespace SistemaDeCadastro.Domain.Context
 {
-    public class SistemaDeCadastroContext : IdentityDbContext
+    public class SistemaDeCadastroContext : IdentityDbContext<Usuario>
     {
         public SistemaDeCadastroContext(DbContextOptions<SistemaDeCadastroContext> options)
         : base(options)
@@ -91,31 +91,36 @@ namespace SistemaDeCadastro.Domain.Context
             modelBuilder.Entity<Funcionario>(entity =>
             {
                 entity.ToTable("funcionario");
+
                 entity.Property(e => e.Id)
-                .HasColumnName("Id");
+                    .HasColumnName("Id");
 
                 entity.Property(e => e.Nome)
-                .HasMaxLength(45)
-               .HasColumnName("Nome");
+                    .HasMaxLength(45)
+                    .HasColumnName("Nome");
 
-               entity.Property(e => e.Sobrenome)
-              .HasMaxLength(45)
-              .HasColumnName("Sobrenome");
+                entity.Property(e => e.Sobrenome)
+                    .HasMaxLength(45)
+                    .HasColumnName("Sobrenome");
 
-               entity.Property(e => e.Documento)
-              .HasMaxLength(45)
-              .HasColumnName("Documento");
+                entity.Property(e => e.Documento)
+                    .HasMaxLength(45)
+                    .HasColumnName("Documento");
+
                 entity.Property(e => e.Email)
-             .HasMaxLength(255)
-             .HasColumnName("email");
+                    .HasMaxLength(255)
+                    .HasColumnName("email");
+
                 entity.Property(e => e.Senha)
-             .HasMaxLength(45)
-             .HasColumnName("senha");
+                    .HasMaxLength(45)
+                    .HasColumnName("senha");
+
+                entity.Property(e => e.DepartamentoId)
+                    .HasColumnName("Departamento_ID");
 
                 entity.HasOne(d => d.Departamento)
-                    .WithMany(d => d.Funcionarios)
+                    .WithMany(p => p.Funcionarios)
                     .HasForeignKey(d => d.DepartamentoId);
-                 
             });
 
             modelBuilder.Entity<Departamento>(entity =>

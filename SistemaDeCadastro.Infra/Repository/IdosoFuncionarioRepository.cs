@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using SistemaDeCadastro.Domain.Context;
 using SistemaDeCadastro.Domain.Model;
-using SistemaDeCadastro.Data.Interface;
+using SistemaDeCadastro.Infra.Interface;
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class IdosoFuncionarioRepository : BaseRepository<IdosoFuncionario>, IIdosoFuncionarioRepository
     {

@@ -2,12 +2,13 @@
 using SistemaDeCadastro.Data.Interface;
 using SistemaDeCadastro.Domain.Context;
 using SistemaDeCadastro.Domain.Model;
+using SistemaDeCadastro.Infra.Interface;
 
 
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
-    public class IdosoRepository : BaseRepository<Idoso>,  IIdosoRepository //interface
+    public class IdosoRepository : BaseRepository<Idoso>, IIdosoRepository //interface
     {
         private readonly SistemaDeCadastroContext context;
 

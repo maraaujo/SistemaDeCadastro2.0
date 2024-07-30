@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SistemaDeCadastro.Data.Interface
+namespace SistemaDeCadastro.Infra.Interface
 {
     public interface IBaseRepository<T>
     {

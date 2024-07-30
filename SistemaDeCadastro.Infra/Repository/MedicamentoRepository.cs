@@ -2,7 +2,7 @@
 using SistemaDeCadastro.Domain.Model;
 
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class MedicamentoRepository : BaseRepository<Medicamento>
     {

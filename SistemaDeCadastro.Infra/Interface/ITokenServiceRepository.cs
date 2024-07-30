@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SistemaDeCadastro.Data.Interface
+namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IIdosoDoencaRepository : IBaseRepository<IdosoDoenca>
+    public interface ITokenServiceRepository
     {
+        string GenerationToken(Usuario usuario);
     }
 }

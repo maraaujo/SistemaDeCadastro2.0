@@ -1,7 +1,7 @@
 ﻿
 using SistemaDeCadastro.Domain.Model;
 
-namespace SistemaDeCadastro.Data.Interface
+namespace SistemaDeCadastro.Infra.Interface
 {
     public interface IIdosoRepository : IBaseRepository<Idoso>
     {     

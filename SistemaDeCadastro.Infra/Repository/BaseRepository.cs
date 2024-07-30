@@ -7,7 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class BaseRepository<T> where T : class
     {

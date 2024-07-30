@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SistemaDeCadastro.Data.Interface;
+using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Domain.Context;
 using SistemaDeCadastro.Domain.Model;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class IdosoDoencaRepository : BaseRepository<IdosoDoenca>, IIdosoDoencaRepository
     {

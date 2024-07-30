@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SistemaDeCadastro.Data.Interface
+namespace SistemaDeCadastro.Domain.DataTransferObject
 {
-    public interface IMedicamentoIdosoDoencaRepository
+    public class DepartamentoDTO
     {
+        public string Nome { get; set; }
     }
 }

@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.Context;
-using SistemaDeCadastro.Data.Interface;
+using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Domain.Model;
 using System.Runtime.CompilerServices;
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class MedicamentoIdosoDoencaRepository : BaseRepository<MedicamentoIdosoDoenca>, IMedicamentoIdosoDoencaRepository
     {

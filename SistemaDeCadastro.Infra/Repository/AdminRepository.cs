@@ -8,9 +8,10 @@ using SistemaDeCadastro.Domain.Model;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
+using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Data.Interface;
 
-namespace SistemaDeCadastro.Data.Repository
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class AdminRepository : BaseRepository<Idoso>, IAdminRepository
     {

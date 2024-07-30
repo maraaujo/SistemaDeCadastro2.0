@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using SistemaDeCadastro.Domain.Model;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Model;
 
-namespace SistemaDeCadastro.Domain.Profiles
+namespace SistemaDeCadastro.Data.Profiles
 {
 
      public class UsuarioProfile : Profile

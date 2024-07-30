@@ -8,7 +8,7 @@ using SistemaDeCadastro.Domain.Model;
 
 
 namespace SistemaDeCadastro.Controllers
-{    
+{
     [ApiController]
     [Route("[controller]")]
     public class AdminController : ControllerBase
@@ -16,30 +16,53 @@ namespace SistemaDeCadastro.Controllers
         private readonly IIdosoApp idosoApp;
         private IConfiguration config;
         private readonly IAdminApp adminApp;
-        private IMapper mapper;
-        private UserManager<Usuario> userManager;
+        private IUsuarioApp iusuarioApp;
+        
 
-        public AdminController(IConfiguration _config, IIdosoApp _idosoApp, IAdminApp _adminApp, IMapper _mapper)
+        public AdminController(IConfiguration _config, IIdosoApp _idosoApp, IAdminApp _adminApp, 
+            IMapper _mapper, UserManager<Usuario> _userManager, IUsuarioApp _iusuarioApp)
         {
             this.config = _config;
             this.idosoApp = _idosoApp;
             this.adminApp = _adminApp;
-            this.mapper = _mapper;
+            this.iusuarioApp = _iusuarioApp;
         }
 
-        [HttpPost("CadastrarFuncionario")]
+        [HttpPost("CadastrarUsuario")]
         public async Task<IActionResult> CadastrarUsuario(UsuarioDTO usuario)
         {
-           Usuario createUsuario = mapper.Map<Usuario>(usuario);
-           var resultado = await userManager.CreateAsync(createUsuario, usuario.Password);
-            if (resultado.Succeeded)
+            ApiResponseDTO ret = new ApiResponseDTO();
+            try
             {
-                return Ok(resultado + "Usuario Cadastrado com Sucesso!");
+                ret.Data = await iusuarioApp.Cadastrar(usuario);
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception("falha ao cadastrar um usuario");
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
             }
+            
+            return Ok(ret + "Usuario cadastrado com sucesso!");
+            
+        }
+        [HttpPost("LoginUsuario")]
+        public async Task<IActionResult> Login(LoginUsuarioDto usuario)
+        {
+            ApiResponseDTO ret = new ApiResponseDTO();
+            try
+            {
+              var token =  await iusuarioApp.Login(usuario);
+                return Ok(token);
+               
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
+            
+            return Ok(ret + "Usuario cadastrado com sucesso!");
+            
         }
 
         [HttpGet("GetIdoso")]

@@ -2,10 +2,9 @@
 using Azure;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Data.Interface;
-using SistemaDeCadastro.Data.Repository;
-using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Model;
 using System.Runtime.InteropServices;
+using SistemaDeCadastro.Infra.Interface;
 namespace SistemaDeCadastro.APP
 {
     public class IdosoApp : IIdosoApp

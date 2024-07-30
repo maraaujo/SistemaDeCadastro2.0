@@ -1,8 +1,8 @@
 ﻿using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Data.Interface;
-using SistemaDeCadastro.Data.Repository;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Model;
+using SistemaDeCadastro.Infra.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;

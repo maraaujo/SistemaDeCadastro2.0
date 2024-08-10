@@ -69,19 +69,17 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             catch (Exception ex)
             {
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 
                 Console.WriteLine($"Erro durante login");
 
                 Console.WriteLine($"Erro durante login: {ex.Message}");
 
-=======
+
                 Console.WriteLine($"Erro durante login: {ex.Message}");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
+
                 Console.WriteLine($"Erro durante login: {ex.Message}");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                 throw;
             }
         }

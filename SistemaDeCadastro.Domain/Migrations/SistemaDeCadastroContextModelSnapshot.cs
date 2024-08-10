@@ -242,16 +242,14 @@ namespace SistemaDeCadastro.Domain.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("DepartamentoId")
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                         .HasColumnType("int")
-                        .HasColumnName("Departamento_ID");
-=======
+                        .HasColumnName("Departamento_ID")
+
+                        .HasColumnType("int")
+
                         .HasColumnType("int");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
-                        .HasColumnType("int");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
 
                     b.Property<string>("Documento")
                         .IsRequired()
@@ -299,18 +297,11 @@ namespace SistemaDeCadastro.Domain.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                     b.Property<string>("CodigoBarras")
                         .IsRequired()
                         .HasMaxLength(45)
                         .HasColumnType("varchar(45)")
                         .HasColumnName("CodigoBarras");
-
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
                     b.Property<string>("Cpf")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -318,15 +309,13 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnName("Cpf");
 
                     b.Property<DateTime>("DataDeNascimento")
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                         .HasColumnType("timestamp")
-=======
+
                         .HasColumnType("timestamp(0) without time zone")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
+
                         .HasColumnType("timestamp(0) without time zone")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                         .HasColumnName("DataDeNascimento");
 
                     b.Property<string>("Nome")
@@ -334,35 +323,24 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnType("varchar(45)")
                         .HasColumnName("Nome");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                     b.Property<string>("RestricoesAlimentares")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)")
                         .HasColumnName("RestricoesAlimentares");
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
                     b.Property<string>("Sobrenome")
                         .HasMaxLength(45)
                         .HasColumnType("varchar(45)")
                         .HasColumnName("Sobrenome");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                     b.Property<string>("TipoSanguineo")
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("varchar(3)")
                         .HasColumnName("TipoSanguineo");
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                     b.HasKey("Id");
 
                     b.ToTable("idoso", (string)null);
@@ -431,26 +409,20 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("Descricao");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                     b.Property<string>("Laboratorio")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)")
                         .HasColumnName("Laboratorio");
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)")
                         .HasColumnName("Nome");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                     b.Property<string>("UnidadeMedida")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -461,10 +433,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("Valor");
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
                     b.HasKey("Id");
 
                     b.ToTable("medicamento", (string)null);
@@ -504,8 +472,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.ToTable("medicamento_idoso_doenca", (string)null);
                 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Ministracao", b =>
                 {
                     b.Property<string>("Id")
@@ -537,10 +503,7 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.ToTable("ministracao", (string)null);
                 });
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Usuario", b =>
                 {
                     b.Property<string>("Id")
@@ -699,49 +662,39 @@ namespace SistemaDeCadastro.Domain.Migrations
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.IdosoFuncionario", b =>
                 {
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                     b.HasOne("SistemaDeCadastro.Domain.Model.Funcionario", "Funcionario")
-=======
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Funcionario", "Funcionarios")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Funcionario", "Funcionarios")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
+                  
+
                         .WithMany("Idosos")
                         .HasForeignKey("FuncionarioID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                     b.HasOne("SistemaDeCadastro.Domain.Model.Idoso", "Idoso")
-=======
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Idoso", "Idosos")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Idoso", "Idosos")
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
+                  
+
                         .WithMany("Funcionarios")
                         .HasForeignKey("IdosoID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                     b.Navigation("Funcionario");
 
                     b.Navigation("Idoso");
-=======
+
                     b.Navigation("Funcionarios");
 
                     b.Navigation("Idosos");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
+
                     b.Navigation("Funcionarios");
 
                     b.Navigation("Idosos");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                 });
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.MedicamentoIdosoDoenca", b =>
@@ -771,8 +724,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.Navigation("Medicamentos");
                 });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Ministracao", b =>
                 {
                     b.HasOne("SistemaDeCadastro.Domain.Model.Idoso", "Idoso")
@@ -792,10 +743,7 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.Navigation("Medicamento");
                 });
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Departamento", b =>
                 {
                     b.Navigation("Funcionarios");
@@ -822,27 +770,18 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.Navigation("IdosoDoencas");
 
                     b.Navigation("MedicamentoIdosoDoencas");
-<<<<<<< HEAD
-<<<<<<< HEAD
 
                     b.Navigation("Ministracoes");
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                 });
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Medicamento", b =>
                 {
                     b.Navigation("MedicamentoIdosoDoencas");
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 
                     b.Navigation("Ministracoes");
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
                 });
 #pragma warning restore 612, 618
         }

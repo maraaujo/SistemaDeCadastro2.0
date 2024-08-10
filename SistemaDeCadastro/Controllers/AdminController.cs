@@ -28,8 +28,7 @@ namespace SistemaDeCadastro.Controllers
             this.iusuarioApp = _iusuarioApp;
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         [HttpGet]
         [Authorize]
         public IActionResult Get()
@@ -37,10 +36,7 @@ namespace SistemaDeCadastro.Controllers
             return Ok("Acesso permitido!");
         }
 
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
         [HttpPost("CadastrarUsuario")]
         public async Task<IActionResult> CadastrarUsuario(UsuarioDTO usuario)
         {

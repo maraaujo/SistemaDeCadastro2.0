@@ -101,17 +101,16 @@ namespace SistemaDeCadastro.Domain.Context
             {
                 entity.ToTable("funcionario");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
+
                 entity.Property(e => e.Id).HasColumnName("Id");
-=======
+
                 entity.Property(e => e.Id)
                     .HasColumnName("Id");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
+
                 entity.Property(e => e.Id)
                     .HasColumnName("Id");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
 
                 entity.Property(e => e.Nome)
                     .HasMaxLength(45)
@@ -133,17 +132,16 @@ namespace SistemaDeCadastro.Domain.Context
                     .HasMaxLength(45)
                     .HasColumnName("senha");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
+
                 entity.Property(e => e.DepartamentoId).HasColumnName("Departamento_ID");
-=======
+
                 entity.Property(e => e.DepartamentoId)
                     .HasColumnName("Departamento_ID");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
-=======
+
                 entity.Property(e => e.DepartamentoId)
                     .HasColumnName("Departamento_ID");
->>>>>>> dade35f4f33f7f2cc72204845271dbd3c91a527a
+
 
                 entity.HasOne(d => d.Departamento)
                     .WithMany(p => p.Funcionarios)

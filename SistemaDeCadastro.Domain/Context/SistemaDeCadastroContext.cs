@@ -100,17 +100,8 @@ namespace SistemaDeCadastro.Domain.Context
             modelBuilder.Entity<Funcionario>(entity =>
             {
                 entity.ToTable("funcionario");
-
-
-
-                entity.Property(e => e.Id).HasColumnName("Id");
-
                 entity.Property(e => e.Id)
-                    .HasColumnName("Id");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("Id");
-
+                .HasColumnName("Id");
 
                 entity.Property(e => e.Nome)
                     .HasMaxLength(45)
@@ -132,16 +123,8 @@ namespace SistemaDeCadastro.Domain.Context
                     .HasMaxLength(45)
                     .HasColumnName("senha");
 
-
-
-                entity.Property(e => e.DepartamentoId).HasColumnName("Departamento_ID");
-
                 entity.Property(e => e.DepartamentoId)
                     .HasColumnName("Departamento_ID");
-
-                entity.Property(e => e.DepartamentoId)
-                    .HasColumnName("Departamento_ID");
-
 
                 entity.HasOne(d => d.Departamento)
                     .WithMany(p => p.Funcionarios)

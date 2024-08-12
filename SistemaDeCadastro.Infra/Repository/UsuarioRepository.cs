@@ -70,13 +70,7 @@ namespace SistemaDeCadastro.Infra.Repository
             catch (Exception ex)
             {
 
-
                 Console.WriteLine($"Erro durante login");
-
-                Console.WriteLine($"Erro durante login: {ex.Message}");
-
-
-                Console.WriteLine($"Erro durante login: {ex.Message}");
 
                 Console.WriteLine($"Erro durante login: {ex.Message}");
 

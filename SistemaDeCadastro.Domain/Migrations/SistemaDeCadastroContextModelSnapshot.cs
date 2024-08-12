@@ -242,14 +242,8 @@ namespace SistemaDeCadastro.Domain.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("DepartamentoId")
-
                         .HasColumnType("int")
-                        .HasColumnName("Departamento_ID")
-
-                        .HasColumnType("int")
-
-                        .HasColumnType("int");
-
+                        .HasColumnName("Departamento_ID");
 
                     b.Property<string>("Documento")
                         .IsRequired()
@@ -302,6 +296,7 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasMaxLength(45)
                         .HasColumnType("varchar(45)")
                         .HasColumnName("CodigoBarras");
+
                     b.Property<string>("Cpf")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -309,13 +304,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnName("Cpf");
 
                     b.Property<DateTime>("DataDeNascimento")
-
-                        .HasColumnType("timestamp")
-
-                        .HasColumnType("timestamp(0) without time zone")
-
-                        .HasColumnType("timestamp(0) without time zone")
-
                         .HasColumnName("DataDeNascimento");
 
                     b.Property<string>("Nome")
@@ -339,7 +327,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("varchar(3)")
                         .HasColumnName("TipoSanguineo");
-
 
                     b.HasKey("Id");
 
@@ -415,13 +402,11 @@ namespace SistemaDeCadastro.Domain.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("Laboratorio");
 
-
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)")
                         .HasColumnName("Nome");
-
 
                     b.Property<string>("UnidadeMedida")
                         .IsRequired()
@@ -502,7 +487,6 @@ namespace SistemaDeCadastro.Domain.Migrations
 
                     b.ToTable("ministracao", (string)null);
                 });
-
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Usuario", b =>
                 {
@@ -662,38 +646,16 @@ namespace SistemaDeCadastro.Domain.Migrations
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.IdosoFuncionario", b =>
                 {
-
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Funcionario", "Funcionario")
-
-                  
-
                         .WithMany("Idosos")
                         .HasForeignKey("FuncionarioID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-
-                    b.HasOne("SistemaDeCadastro.Domain.Model.Idoso", "Idoso")
-
-                  
 
                         .WithMany("Funcionarios")
                         .HasForeignKey("IdosoID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-
-                    b.Navigation("Funcionario");
-
-                    b.Navigation("Idoso");
-
-                    b.Navigation("Funcionarios");
-
-                    b.Navigation("Idosos");
-
-                    b.Navigation("Funcionarios");
-
-                    b.Navigation("Idosos");
 
                 });
 
@@ -743,7 +705,6 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.Navigation("Medicamento");
                 });
 
-
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Departamento", b =>
                 {
                     b.Navigation("Funcionarios");
@@ -772,16 +733,13 @@ namespace SistemaDeCadastro.Domain.Migrations
                     b.Navigation("MedicamentoIdosoDoencas");
 
                     b.Navigation("Ministracoes");
-
                 });
 
             modelBuilder.Entity("SistemaDeCadastro.Domain.Model.Medicamento", b =>
                 {
                     b.Navigation("MedicamentoIdosoDoencas");
 
-
                     b.Navigation("Ministracoes");
-
                 });
 #pragma warning restore 612, 618
         }

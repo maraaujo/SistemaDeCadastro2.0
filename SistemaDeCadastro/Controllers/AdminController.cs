@@ -28,14 +28,12 @@ namespace SistemaDeCadastro.Controllers
             this.iusuarioApp = _iusuarioApp;
         }
 
-
         [HttpGet]
         [Authorize]
         public IActionResult Get()
         {
             return Ok("Acesso permitido!");
         }
-
 
         [HttpPost("CadastrarUsuario")]
         public async Task<IActionResult> CadastrarUsuario(UsuarioDTO usuario)

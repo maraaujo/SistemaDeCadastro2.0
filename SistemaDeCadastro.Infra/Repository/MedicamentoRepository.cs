@@ -4,15 +4,18 @@ using Microsoft.Identity.Client;
 using SistemaDeCadastro.Domain.Context;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Model;
+using SistemaDeCadastro.Infra.Interface;
 using System.Runtime.CompilerServices;
 
 
 namespace SistemaDeCadastro.Infra.Repository
 {
-    public class MedicamentoRepository : BaseRepository<Medicamento>
+    public class MedicamentoRepository : BaseRepository<Medicamento>, IMedicamentoRepository
     {
+        private readonly SistemaDeCadastroContext _context;
         public MedicamentoRepository(SistemaDeCadastroContext context) : base(context)
         {
+            this._context = context;
         }
 
         public async Task<List<Medicamento>> GetAllMedicamentos()
@@ -27,26 +30,14 @@ namespace SistemaDeCadastro.Infra.Repository
                 throw new Exception($"Erro ao buscar informações: {ex.Message}");
             }
         }
-        public async Task CreateMedicmaento(Medicamento medicamento)
-        {
-            await this.Create(medicamento);
-        }
+      
+
         public async Task<List<Medicamento>> GetMedicamentoById(int id)
         {
           return  await this.FindBy(c => c.Cod == id);  
         }
 
-        public async Task UpdateMedicamento(Medicamento updateMedicamento)
-        {
-            try
-            {
-                await this.Update(updateMedicamento);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Erro ao salvar informações : {ex.Message}");
-            }
-        }
+      
         //associar medicmaento às morbidades e posologias
         public async Task<List<MedicamentoPosologiaDTO>> GetMorbidadePosologiaPorMedicamento( int medicamentoId)
         {
@@ -60,14 +51,15 @@ namespace SistemaDeCadastro.Infra.Repository
                                  MedicamentoNome = medi.Nome,
                                  PosologiaDataInicial = poso.DataInicial,
                                  PosologiaDataFinal = poso.DataFinal,
-                                 PosologiaDose = poso.Dose
+                                 PosologiaDose = poso.Dose,
+                                 
                              }).ToListAsync();
 
             return med;
 
         }
 
-        public async Task<List<Medicamento>> GetMedicamentoPorLAboratorio( int laboratorioId)
+        public async Task<List<Medicamento>> GetMedicamentoPorLaboratorio( int laboratorioId)
         {
             var med = await (from medi in this._context.Medicamentos
                              join lab in this._context.Laboratorios
@@ -84,6 +76,6 @@ namespace SistemaDeCadastro.Infra.Repository
         }
         //buscar medicamento por nome, laboratorio
 
-        
+      
     }
 }

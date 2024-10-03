@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,5 +14,6 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public DateTime PosologiaDataInicial { get; set; }
         public DateTime? PosologiaDataFinal { get; set; }
         public string PosologiaDose { get; set; }
+        public string ViasAplicar { get; set; }
     }
 }

@@ -11,7 +11,9 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
     {
         public int Cod { get; set; }
         public string Nome { get; set; }
-
-        public List<MedicamentoMorbidade> MedicamentosMorbidades { get; set; }
+        public int LaboratorioCod { get; set; }
+        public  int MorbidadeCod { get; set; }
+        public MorbidadeDTO Morbidade { get; set; }
+       
     }
 }

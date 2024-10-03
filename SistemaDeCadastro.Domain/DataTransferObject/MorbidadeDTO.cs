@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Domain.DataTransferObject
 {
-    public class DepartamentoDTO
+    public class MorbidadeDTO
     {
+        public int Cod { get; set; }
         public string Nome { get; set; }
+        public int PessoaCod { get; set; }
+        
     }
 }

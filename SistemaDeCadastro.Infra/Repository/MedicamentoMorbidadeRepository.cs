@@ -1,42 +1,37 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.Context;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SistemaDeCadastro.Infra.Interface;
+
 
 namespace SistemaDeCadastro.Infra.Repository
 {
-    public class MedicamentoMorbidadeRepository : BaseRepository<MedicamentoMorbidade>
+    public class MedicamentoMorbidadeRepository : BaseRepository<MedicamentoRepository>, IMedicamentoMorbidadeRepository
     {
-        SistemaDeCadastroContext _context;
+        private readonly SistemaDeCadastroContext _context;
         public MedicamentoMorbidadeRepository(SistemaDeCadastroContext context) : base(context)
         {
-            _context = context;
+            this._context = context;
         }
 
-        public async Task<List<Medicamento>> GetMedicamentosPorMorbidade(int morbidadeId)
+        public async Task<List<MedicamentoMorbidadeDTO>> GetMedicmaentoByMorbidade(int code)
         {
-            return await _context.MedicamentoMorbidades.
-                Where(c => c.MorbidadeCod == morbidadeId)
-                .Include(m => m.Medicamento)
-                .Select(m => m.Medicamento)
-                .ToListAsync();
-
+            var morb = await (from mediMorb in this._context.MedicamentoMorbidades
+                              join medi in this._context.Medicamentos
+                              on mediMorb.MedicamentoCod equals medi.Cod
+                              join morbi in this._context.Morbidades
+                              on mediMorb.MorbidadeCod equals morbi.Cod
+                              where morbi.Cod == code
+                              select new MedicamentoMorbidadeDTO()
+                              {
+                                  NomeMedicamento = medi.Nome,
+                                  NomeMorbidade = morbi.Nome,
+                                  MedicamentoCod = medi.Cod,
+                                  MorbidadeCod = morbi.Cod
+                              }
+                              ).ToListAsync();
+            return morb; 
         }
-
-        public async Task<List<Morbidade>> GetMorbidadePorMedicamento(int medicamentoId)
-        {
-            return await _context.MedicamentoMorbidades.
-               Where(c => c.MedicamentoCod == medicamentoId)
-               .Include(m => m.Morbidade)
-               .Select(m => m.Morbidade)
-               .ToListAsync();
-        } 
-        //
-       
     }
 }
-

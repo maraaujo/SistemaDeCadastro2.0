@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IIdosoDoencaRepository : IBaseRepository<IdosoDoenca>
+    public interface IMorbidadaRepository : IBaseRepository<Morbidade>
     {
+        Task<List<Morbidade>> GetMorbidadeById(int code);
     }
 }

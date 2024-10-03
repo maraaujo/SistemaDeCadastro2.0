@@ -7,25 +7,25 @@ namespace SistemaDeCadastro.Domain.Context
     public class SistemaDeCadastroContext : IdentityDbContext<Usuario>
     {
         public SistemaDeCadastroContext(DbContextOptions<SistemaDeCadastroContext> options)
-        : base(options)
+            : base(options)
         {
         }
 
-        public virtual DbSet<Idoso> Idosos {  get; set; }
-        public virtual DbSet<Familia> Familias { get; set; }
-        public virtual DbSet<Funcionario> Funcionarios { get; set; }
-        public virtual DbSet<Departamento> Departamentos { get; set;}
-        public virtual DbSet<Medicamento> Medicamentos { get; set;}
-        public virtual DbSet<Doenca> Doenca { get; set; }
-        public  virtual DbSet<MedicamentoIdosoDoenca> MedicamentoIdosoDoencas { get; set; }
-        public virtual DbSet<IdosoDoenca> IdososDoenca { get; set; }
-        public virtual DbSet<IdosoFuncionario> IdosoFuncionarios { get; set; }
+        public virtual DbSet<Pessoa> Pessoas { get; set; }
+        public virtual DbSet<TipoPessoa> TiposPessoa { get; set; }
+        public virtual DbSet<PessoaTipoPessoa> PessoaTipoPessoas { get; set; }
+        public virtual DbSet<Laboratorio> Laboratorios { get; set; }
+        public virtual DbSet<Medicamento> Medicamentos { get; set; }
+        public virtual DbSet<Morbidade> Morbidades { get; set; }
+        public virtual DbSet<Vias> Vias { get; set; }
+        public virtual DbSet<Posologia> Posologias { get; set; }
+        public virtual DbSet<MedicamentoMorbidade> MedicamentoMorbidades { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var conn = "Host=localhost;Database=sistemadecadastro;Username=root;Password=irmaos03;Convert Zero Datetime=True";
+                var conn = "Host=localhost;Database=mydb;Username=root;Password=irmaos03;Convert Zero Datetime=True";
                 var serverVersion = ServerVersion.AutoDetect(conn);
                 optionsBuilder.UseMySql(conn, serverVersion);
             }
@@ -34,185 +34,133 @@ namespace SistemaDeCadastro.Domain.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Idoso>(entity =>
+
+            modelBuilder.Entity<Pessoa>(entity =>
             {
-                entity.ToTable("idoso");
-                entity.Property(e => e.Id)
-                .HasColumnName("Id");
+                entity.ToTable("Pessoa");
+                entity.HasKey(e => e.Cod);
 
-                entity.Property(e => e.Nome)
-                .HasMaxLength(45)
-                .HasColumnName("Nome");
+                entity.Property(e => e.Cod).HasColumnName("cod");
+                entity.Property(e => e.Nome).HasMaxLength(45).HasColumnName("nome");
+                entity.Property(e => e.Cpf).HasMaxLength(45).HasColumnName("cpf");
+                entity.Property(e => e.TipoSanguineo).HasMaxLength(5).HasColumnName("tipo_sanguineo");
+                entity.Property(e => e.Endereco).HasMaxLength(45).HasColumnName("endereco");
+                entity.Property(e => e.DataObito).HasMaxLength(45).HasColumnName("data_obito");
 
-                entity.Property(e => e.Sobrenome)
-                .HasMaxLength(45)
-                .HasColumnName("Sobrenome");
-
-                entity.Property(e => e.DataDeNascimento)
-               .HasColumnType("timestamp(0) without time zone")
-               .HasColumnName("DataDeNascimento");
-
-                entity.Property(e => e.Cpf)
-                    .IsRequired()
-                    .HasMaxLength(255)
-                    .HasColumnName("Cpf");
-
-               
+                entity.HasOne(e => e.PessoasPai)
+                    .WithMany(p => p.PessoasFilhos)
+                    .HasForeignKey(e => e.PessoaCod)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
-            modelBuilder.Entity<Familia>(entity =>
+            modelBuilder.Entity<TipoPessoa>(entity =>
             {
-                entity.ToTable( "familia"); 
-                entity.Property(e => e.Id)  
-                .HasColumnName("Id");
+                entity.ToTable("Tipo_Pessoa");
+                entity.HasKey(e => e.Cod);
 
-                entity.Property(e => e.Nome)
-                 .HasMaxLength(45)
-                .HasColumnName("Nome");
-
-                entity.Property(e => e.Sobrenome)
-               .HasMaxLength(45)
-               .HasColumnName("Sobrenome");
-
-                entity.Property(e => e.Numero)
-                .HasMaxLength(45)
-                .HasColumnName("Numero");
-
-                entity.Property(e => e.Endereco)
-                .HasMaxLength(45)
-                .HasColumnName("Endereco");
-
-                //perguntar Felipe
-                entity.HasOne(d => d.Idoso)
-                .WithMany(p => p.Familias)
-                .HasForeignKey(d => d.IdosoId);
+                entity.Property(e => e.Cod).HasColumnName("cod");
+                entity.Property(e => e.Nome).HasMaxLength(55).HasColumnName("nome");
             });
 
-            modelBuilder.Entity<Funcionario>(entity =>
+            modelBuilder.Entity<PessoaTipoPessoa>(entity =>
             {
-                entity.ToTable("funcionario");
+                entity.ToTable("Pessoa_TipoPessoa");
+                entity.HasKey(e => new { e.Cod, e.CodPessoa, e.CodTipoPessoa });
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("Id");
+                entity.HasOne(e => e.Pessoa)
+                    .WithMany(p => p.PessoaTipoPessoas)
+                    .HasForeignKey(e => new { e.CodPessoa })
+                    .OnDelete(DeleteBehavior.NoAction);
 
-                entity.Property(e => e.Nome)
-                    .HasMaxLength(45)
-                    .HasColumnName("Nome");
-
-                entity.Property(e => e.Sobrenome)
-                    .HasMaxLength(45)
-                    .HasColumnName("Sobrenome");
-
-                entity.Property(e => e.Documento)
-                    .HasMaxLength(45)
-                    .HasColumnName("Documento");
-
-                entity.Property(e => e.Email)
-                    .HasMaxLength(255)
-                    .HasColumnName("email");
-
-                entity.Property(e => e.Senha)
-                    .HasMaxLength(45)
-                    .HasColumnName("senha");
-
-                entity.Property(e => e.DepartamentoId)
-                    .HasColumnName("Departamento_ID");
-
-                entity.HasOne(d => d.Departamento)
-                    .WithMany(p => p.Funcionarios)
-                    .HasForeignKey(d => d.DepartamentoId);
+                entity.HasOne(e => e.TipoPessoa)
+                    .WithMany(t => t.PessoaTipoPessoas)
+                    .HasForeignKey(e => e.CodTipoPessoa)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
-            modelBuilder.Entity<Departamento>(entity =>
+            modelBuilder.Entity<Laboratorio>(entity =>
             {
-                entity.ToTable("Departamento");
-                entity.Property(e=>e.Id)
-                .HasColumnName("Id");
+                entity.ToTable("Laboratorio");
+                entity.HasKey(e => e.Cod);
 
-                entity.Property(e => e.Nome)
-                 .HasMaxLength(45)
-                 .HasColumnName("Nome");
+                entity.Property(e => e.Cod).HasColumnName("cod");
+                entity.Property(e => e.Nome).HasMaxLength(45).HasColumnName("nome");
             });
 
             modelBuilder.Entity<Medicamento>(entity =>
             {
-                entity.ToTable("medicamento");
-                entity.Property(e=>e.Id) 
-                .HasColumnName("Id");
+                entity.ToTable("Medicamento");
+                entity.HasKey(e => e.Cod);
 
-                entity.Property(e => e.Nome)
-                .HasMaxLength(255)
-                .HasColumnName("Nome");
+                entity.Property(e => e.Cod).HasColumnName("cod");
+                entity.Property(e => e.Nome).HasMaxLength(255).HasColumnName("nome");
 
-                entity.Property(e => e.Descricao)
-                .HasMaxLength(255)
-                .HasColumnName("Descricao");
-
+                entity.HasOne(e => e.Laboratorio)
+                    .WithMany(l => l.Medicamentos)
+                    .HasForeignKey(e => e.LaboratorioCod)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
-            modelBuilder.Entity<Doenca>(entity => {
-                entity.ToTable("doenca");
-                entity.Property(e=>e.Id) 
-                .HasColumnName("Id");
-
-                entity.Property(e =>e.Nome)
-                .HasMaxLength(45)
-                 .HasColumnName("Nome");
-            });
-
-            modelBuilder.Entity<IdosoFuncionario>(entity =>
+            modelBuilder.Entity<Morbidade>(entity =>
             {
-                entity.ToTable("Idoso_Funcionario");
-                entity.Property(e => e.Id)
-               .HasColumnName("Id");
+                entity.ToTable("Morbidade");
+                entity.HasKey(e => e.Cod);
 
-                entity.HasOne(d => d.Idosos)
-                .WithMany(d => d.Funcionarios)
-                .HasForeignKey(d => d.IdosoID);
-
-                //um idoso tem varios funcioanrio e a chave estrangeira é o IdosoId
-
-                entity.HasOne(d => d.Funcionarios)
-                .WithMany(p => p.Idosos)
-                .HasForeignKey(d => d.FuncionarioID);
-                //um funcionairo possui vários idosos e tem a chave estrangeira FuncionarioID
+                entity.HasOne(e => e.Pessoa)
+                    .WithMany(p => p.Morbidades)
+                    .HasForeignKey(e => e.PessoaCod)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
-            modelBuilder.Entity<MedicamentoIdosoDoenca>(entity =>
+
+            modelBuilder.Entity<Vias>(entity =>
             {
-                entity.ToTable("medicamento_idoso_doenca");
-                entity.Property(e => e.Id)
-               .HasColumnName("Id");
+                entity.ToTable("Vias");
+                entity.HasKey(e => e.Cod);
 
-                entity.Property(e => e.MedicamentoDosagem)
-                .HasColumnName("Medicamento_Dosagem");
-
-                entity.HasOne(d => d.Medicamentos)
-                .WithMany(d => d.MedicamentoIdosoDoencas)
-                .HasForeignKey(d => d.MedicamentoId);
-                //Tem um medicamento que possui várias doencas FK MedicamentoId
-
-                entity.HasOne(d => d.Idoso)
-               .WithMany(d => d.MedicamentoIdosoDoencas)
-               .HasForeignKey(d => d.IdosoId);
-
-                entity.HasOne(d => d.Doencas)
-            .WithMany(d => d.MedicamentoIdosoDoencas)
-            .HasForeignKey(d => d.DoencaId);
+                entity.Property(e => e.Cod).HasColumnName("cod");
+                entity.Property(e => e.Nome).HasMaxLength(45).HasColumnName("nome");
             });
-            modelBuilder.Entity<IdosoDoenca>(entity =>
+
+            modelBuilder.Entity<Posologia>(entity =>
             {
-                entity.ToTable("idoso_doenca");
-                entity.Property(e => e.Id)
-               .HasColumnName("Id");
+                entity.ToTable("Posologia");
+                entity.HasKey(e => e.Cod);
 
-                entity.HasOne(d => d.Doencas)
-                  .WithMany(d => d.IdosoDoencas)
-                  .HasForeignKey(d => d.DoencaId);
+                entity.Property(e => e.DataInicial).HasColumnName("data_inicial");
+                entity.Property(e => e.Dose).HasMaxLength(45).HasColumnName("dose");
+                entity.Property(e => e.DataFinal).HasColumnName("data_final");
+                entity.Property(e => e.Intervalo).HasColumnName("intervalo");
 
-                entity.HasOne(d => d.Idosos)
-                 .WithMany(d => d.IdosoDoencas)
-                 .HasForeignKey(d => d.IdosoId);
+                entity.HasOne(e => e.Pessoa)
+                    .WithMany(p => p.Posologias)
+                    .HasForeignKey(e => e.PessoaCod)
+                    .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(e => e.Medicamento)
+                    .WithMany(m => m.Posologias)
+                    .HasForeignKey(e => e.MedicamentoCod)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Vias)
+                    .WithMany(v => v.Posologias)
+                    .HasForeignKey(e => e.ViasCod)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<MedicamentoMorbidade>(entity =>
+            {
+                entity.ToTable("Medicamento_Morbidade");
+                entity.HasKey(e => new { e.MedicamentoCod, e.MorbidadeCod });
+
+                entity.HasOne(e => e.Medicamento)
+                    .WithMany(m => m.MedicamentoMorbidades)
+                    .HasForeignKey(e => e.MedicamentoCod)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Morbidade)
+                    .WithMany(m => m.MedicamentoMorbidades)
+                    .HasForeignKey(e => e.MorbidadeCod)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

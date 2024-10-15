@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Domain.Model
 {
-    public class Pessoa
+    public class Pessoa : IEntity<Long>
     {
         public int Cod { get; set; }
         public string Nome { get; set; }

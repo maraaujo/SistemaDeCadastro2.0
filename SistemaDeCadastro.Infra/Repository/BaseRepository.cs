@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SistemaDeCadastro.Domain.Context;
-using SistemaDeCadastro.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +9,9 @@ namespace SistemaDeCadastro.Infra.Repository
 {
     public class BaseRepository<T> where T : class
     {
-        public SistemaDeCadastroContext _context { get; set; }
+        public dynamic _context { get; set; }
 
-        public BaseRepository(SistemaDeCadastroContext context)
+        public BaseRepository(dynamic context)
         {
             this._context = context;
         }

@@ -34,37 +34,37 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 Morbidade morb = null;
-                if (med.MorbidadeCod == 0 )
+                if (med.MorbidadeCod == 0)
                 {
                     morb = new Morbidade()
                     {
                         Nome = med.Morbidade.Nome,
-                        Cod = med.Morbidade.Cod,
-                        //perrguntar o que fazer com a propriedade PessoaCod
+                        Cod = med.Morbidade.Cod, // Verifique se Cod é gerado automaticamente
+                                                 // Decidir o que fazer com a propriedade PessoaCod
                     };
-                    await _morbidadeRepository.Create(morb); 
+                    await _morbidadeRepository.Create(morb);
+                    med.MorbidadeCod = morb.Cod; // Atualiza o MorbidadeCod com o novo código
                 }
+
                 Medicamento medicamento = new()
                 {
-                    Cod = med.Cod,
+                    Cod = med.Cod, // Verificar se Cod já foi gerado ou deve ser gerado aqui
                     Nome = med.Nome,
                     LaboratorioCod = med.LaboratorioCod,
                 };
-                await this._medicamentoRepository.Create(medicamento);
+                await _medicamentoRepository.Create(medicamento);
 
                 MedicamentoMorbidade medicamentoMorbidade = new()
                 {
-                     MorbidadeCod =med.MorbidadeCod != 0 ? med.MorbidadeCod : morb.Cod,
-                    MedicamentoCod =med.Cod
+                    MorbidadeCod = med.MorbidadeCod != 0 ? med.MorbidadeCod : morb.Cod,
+                    MedicamentoCod = medicamento.Cod // Usar o Cod do medicamento criado
                 };
-                await this._medicamentoMorbidadeRepository.Create(medicamentoMorbidade);
-
+                await _medicamentoMorbidadeRepository.Create(medicamentoMorbidade);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Erro: {ex.Message}");
             }
-
         }
 
         public async Task Update(Medicamento medicamento)

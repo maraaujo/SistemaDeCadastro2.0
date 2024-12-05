@@ -3,12 +3,6 @@ using SistemaDeCadastro.Domain.Context;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Model;
 using SistemaDeCadastro.Infra.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Repository
 {

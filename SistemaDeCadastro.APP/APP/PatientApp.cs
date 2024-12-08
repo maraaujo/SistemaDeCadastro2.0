@@ -9,14 +9,18 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientApp : IPatientApp
     {
         private readonly IPatientRepository _patientRepository; 
-        
-        public PatientApp(IPatientRepository patientRepository)
+        private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;   
+        public PatientApp(IPatientRepository patientRepository, IMedicinePatientIllnessRepository medicinePatientIllnessRepository)
         {
             this._patientRepository = patientRepository;
+            this._medicinePatientIllnessRepository = medicinePatientIllnessRepository;
         }
 
         public async Task<List<Patient>> GetPatientById(long id)
             => await _patientRepository.GetPatientById(id);
+        public async Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter)
+            => await _patientRepository.FilterPatient(filter);
+
 
         public async Task<ApiResponse> CreatePatient(PatientDTO patient)
         {
@@ -25,7 +29,7 @@ namespace SistemaDeCadastro.APP.APP
 
             try
             {
-                Patient newPatient = new(); 
+                Patient newPatient = new();
                 newPatient.Id = patient.Id;
                 newPatient.Name = patient.Name;
                 newPatient.Document = patient.Document;
@@ -44,13 +48,13 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> UpdatePatient(PatientDTO patient) 
+        public async Task<ApiResponse> UpdatePatient(PatientDTO patient)
         {
             ApiResponse ret = new();
             try
             {
-              Patient updatedPatient = (await _patientRepository.GetPatientById(patient.Id)).FirstOrDefault();
-                
+                Patient updatedPatient = (await _patientRepository.GetPatientById(patient.Id)).FirstOrDefault();
+
                 if (updatedPatient != null)
                 {
                     updatedPatient.Name = patient.Name;
@@ -61,7 +65,7 @@ namespace SistemaDeCadastro.APP.APP
                 }
                 await this._patientRepository.UpdatePatient(updatedPatient);
             }
-            catch (Exception err) 
+            catch (Exception err)
             {
                 ret.ErrorMessage = err.Message;
                 ret.Success = false;
@@ -69,7 +73,7 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> DeletePatient(PatientDTO patient) 
+        public async Task<ApiResponse> DeletePatient(PatientDTO patient)
         {
             ApiResponse ret = new();
 
@@ -86,8 +90,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
-        public async Task GetPatientByAny(string patient) => 
+        public async Task GetPatientByAny(string patient) =>
             await this._patientRepository.GetPatientByAny(patient);
-           
+
     }
 }
+       
+

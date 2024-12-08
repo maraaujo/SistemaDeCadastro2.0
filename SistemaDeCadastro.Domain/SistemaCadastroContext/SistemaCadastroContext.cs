@@ -31,7 +31,6 @@ public partial class SistemaCadastroContext : DbContext
     public virtual DbSet<PatientIllness> PatientIllnesses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseNpgsql("Host=35.198.34.142;Database=tlcentral_dev;Username=tlpgsql;Password=f254afd0b0fb9ed7f66d142367981c37");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -48,7 +47,7 @@ public partial class SistemaCadastroContext : DbContext
             entity.ToTable("Blood_Type", "ngts");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.Nome).HasMaxLength(4);
+            entity.Property(e => e.Name).HasMaxLength(4);
         });
 
         modelBuilder.Entity<Illness>(entity =>

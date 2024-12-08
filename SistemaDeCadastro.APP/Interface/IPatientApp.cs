@@ -10,5 +10,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> UpdatePatient(PatientDTO patient);
         Task<ApiResponse> DeletePatient(PatientDTO patient);
         Task GetPatientByAny(string patient);
+        Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
     }
 }

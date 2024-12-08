@@ -1,4 +1,5 @@
-﻿using SistemaDeCadastro.Domain.Models.Stage;
+﻿using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Models.Stage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task UpdatePatient(Patient patient);
         Task DeletePatient(Patient patient);
         Task GetPatientByAny(string patient);
+        Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
     }
 }

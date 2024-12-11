@@ -30,4 +30,9 @@
     <ProjectReference Include="..\SistemaDeCadastro.Infra\SistemaDeCadastro.Infra.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="APP\" />
+    <Folder Include="Interface\" />
+  </ItemGroup>
+
 </Project>

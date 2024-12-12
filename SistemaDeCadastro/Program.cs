@@ -9,7 +9,7 @@ using SistemaDeCadastro.Infra.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração de CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policyBuilder =>
@@ -20,17 +20,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-// String de conexão (recomenda-se usar appsettings.json)
+
 var connectionString = builder.Configuration.GetConnectionString("SistemaCadastro");
 
-// Registro do contexto DbContext - REGISTRAR PRIMEIRO
+
 builder.Services.AddDbContext<SistemaCadastroContext>(options =>
 {
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-    options.LogTo(Console.WriteLine, LogLevel.Information); // Habilita logs de queries
+    options.UseNpgsql(connectionString); 
+    options.LogTo(Console.WriteLine, LogLevel.Information); 
 });
 
-// Registro de repositórios e serviços - REGISTRAR DEPOIS DO DbContext
+builder.Services.AddScoped<SistemaCadastroContext>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
 builder.Services.AddScoped<IMedicinePatientIllnessRepository, MedicinePatientIllnessRepository>();
@@ -42,14 +42,12 @@ builder.Services.AddScoped<IMedicinePatientIllnessHistoricApp, MedicinePatientIl
 builder.Services.AddScoped<IMedicinePatientIllnessHistoricRepository, MedicinePatientIllnessHistoricRepository>();
 builder.Services.AddScoped<IBloodTypeApp, BloodTypeApp>();
 builder.Services.AddScoped<IBloodTypeRepository, BloodTypeRepository>();
-builder.Services.AddScoped<IPatientIllnessApp, PatientIllnessApp>();
-builder.Services.AddScoped<IPatientIllnessRepository, PatientIllnessRepository>();
 
-// AutoMapper e Controllers
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddControllers();
 
-// Swagger
+// Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -67,5 +65,5 @@ app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
 
+app.Run();

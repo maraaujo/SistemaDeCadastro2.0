@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemaDeCadastro.Domain", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemaDeCadastro.APP", "SistemaDeCadastro.APP\SistemaDeCadastro.APP.csproj", "{05608D78-6B62-4E00-8326-DEED6CA3294B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaDeCadastro.Infra", "SistemaDeCadastro.Infra\SistemaDeCadastro.Infra.csproj", "{F333BA6F-8C28-415C-8B0D-249EC8889499}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemaDeCadastro.Infra", "SistemaDeCadastro.Infra\SistemaDeCadastro.Infra.csproj", "{F333BA6F-8C28-415C-8B0D-249EC8889499}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemadeCadastro.Test", "SistemadeCadastro.Test\SistemadeCadastro.Test.csproj", "{77197FAE-0123-4DC3-9149-0FF507E420A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F333BA6F-8C28-415C-8B0D-249EC8889499}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F333BA6F-8C28-415C-8B0D-249EC8889499}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F333BA6F-8C28-415C-8B0D-249EC8889499}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77197FAE-0123-4DC3-9149-0FF507E420A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77197FAE-0123-4DC3-9149-0FF507E420A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77197FAE-0123-4DC3-9149-0FF507E420A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77197FAE-0123-4DC3-9149-0FF507E420A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

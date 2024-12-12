@@ -28,7 +28,7 @@ public partial class SistemaCadastroContext : DbContext
 
     public virtual DbSet<Patient> Patients { get; set; }
 
-    public virtual DbSet<PatientIllness> PatientIllnesses { get; set; }
+    
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("Host=35.198.34.142;Database=tlcentral_dev;Username=tlpgsql;Password=f254afd0b0fb9ed7f66d142367981c37");
@@ -81,18 +81,28 @@ public partial class SistemaCadastroContext : DbContext
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.Dosage).HasMaxLength(255);
             entity.Property(e => e.IdMedicine).HasColumnName("Id_Medicine");
-            entity.Property(e => e.IdPatientIllness).HasColumnName("Id_Patient_Illness");
+            entity.Property(e => e.IdIllness).HasColumnName("Id_Illness"); 
+            entity.Property(e => e.IdPatient).HasColumnName("Id_Patient");
 
-            entity.HasOne(d => d.IdMedicineNavigation).WithMany(p => p.MedicinePatientIllnesses)
+            entity.HasOne(d => d.IdMedicineNavigation)
+                .WithMany(p => p.MedicinePatientIllnesses)
                 .HasForeignKey(d => d.IdMedicine)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_medicine");
 
-            entity.HasOne(d => d.IdPatientIllnessNavigation).WithMany(p => p.MedicinePatientIllnesses)
-                .HasForeignKey(d => d.IdPatientIllness)
+            entity.HasOne(d => d.IdIllnessNavigation) 
+                .WithMany(p => p.MedicinePatientIllnesses)
+                .HasForeignKey(d => d.IdIllness)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_patient_illness");
+                .HasConstraintName("fk_illness");
+
+            entity.HasOne(d => d.IdPatientNavigation)
+                .WithMany(p => p.MedicinePatientIllnesses)
+                .HasForeignKey(d => d.IdPatient)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_patient");
         });
+
 
         modelBuilder.Entity<MedicinePatientIllnessHistoric>(entity =>
         {
@@ -131,28 +141,7 @@ public partial class SistemaCadastroContext : DbContext
                 .HasConstraintName("fk_patient_blood_type");
         });
 
-        modelBuilder.Entity<PatientIllness>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("Patient_Illness_pkey");
-
-            entity.ToTable("Patient_Illness", "ngts");
-
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.IdIlleness).HasColumnName("Id_Illeness");
-            entity.Property(e => e.IdPatient).HasColumnName("Id_Patient");
-
-            entity.HasOne(d => d.IdIllenessNavigation).WithMany(p => p.PatientIllnesses)
-                .HasForeignKey(d => d.IdIlleness)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_illness");
-
-            entity.HasOne(d => d.IdPatientNavigation).WithMany(p => p.PatientIllnesses)
-                .HasForeignKey(d => d.IdPatient)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_patient");
-        });
-
-        OnModelCreatingPartial(modelBuilder);
+       
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

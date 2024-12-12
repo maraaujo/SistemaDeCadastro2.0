@@ -12,7 +12,7 @@ namespace SistemaDeCadastro.Infra.Repository
 {
     public class MedicinePatientIllnessRepository : BaseRepository<MedicinePatientIllness>, IMedicinePatientIllnessRepository
     {
-        public MedicinePatientIllnessRepository(Domain.SistemaCadastroContext.SistemaCadastroContext context)
+        public MedicinePatientIllnessRepository(SistemaCadastroContext context)
             : base(context)
         {
         }

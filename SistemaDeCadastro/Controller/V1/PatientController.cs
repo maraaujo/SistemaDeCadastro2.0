@@ -8,7 +8,7 @@ using SistemaDeCadastro.Domain.Models.Stage;
 namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/[controller]")]
     public class PatientController : ControllerBase
     {
         private IConfiguration _configuration;
@@ -32,8 +32,8 @@ namespace SistemaDeCadastro.Controller.V1
             await _patientApp.GetPatientByAny(patient);
             return Ok();
         }
-        [HttpPost("subscriptions")]
-        public async Task<IActionResult> GetSubscriptions(PatientFilterDTO filter)
+        [HttpGet("GetPatientFilter")]
+        public async Task<IActionResult> GetPatientFilter(PatientFilterDTO filter)
         {
             ApiResponse response = new ApiResponse();
 
@@ -50,8 +50,25 @@ namespace SistemaDeCadastro.Controller.V1
 
             return Ok(response);
         }
+        [HttpGet("GetPatientDetails")]
+        public async Task<IActionResult> DetailsPatient()
+        {
+            ApiResponse response = new ApiResponse();
+            try
+            {
+                response.Data = await this._patientApp.DetailsPatient();
+                response.Success = true;
+            }
+            catch (Exception err)
+            {
+                response.Success = false;
+                response.Message = err.Message;
+            }
+
+            return Ok(response);
+        }
         [HttpPost("Createpatient")]
-        public async Task<IActionResult> CreatePatient(PatientDTO patient)
+        public async Task<IActionResult> CreatePatient(CreatepatientDTO patient)
         {
             var ret = await _patientApp.CreatePatient(patient);
             return Ok(ret);

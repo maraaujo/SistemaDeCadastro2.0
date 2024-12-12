@@ -28,7 +28,6 @@ namespace SistemaDeCadastro.APP.APP
             {
                 MedicinePatientIllness updateMedicinePatientIllness = 
                     (await this._medicinePatientIllnessRepository.GetMedicinePatientIllnessesById(medicinePatientIllness.Id)).FirstOrDefault();
-                updateMedicinePatientIllness.IdPatientIllness = medicinePatientIllness.IdPatientIllness;
                 updateMedicinePatientIllness.IdMedicine = medicinePatientIllness.IdMedicine;
                 updateMedicinePatientIllness.Dosage = medicinePatientIllness.Dosage;
                 updateMedicinePatientIllness.Time = medicinePatientIllness.Time;
@@ -49,7 +48,6 @@ namespace SistemaDeCadastro.APP.APP
             {
                 MedicinePatientIllness newMedicinePatientIllness = new();
                 newMedicinePatientIllness.Id = medicinePatientIllness.Id;
-                newMedicinePatientIllness.IdPatientIllness = medicinePatientIllness.IdPatientIllness;
                 newMedicinePatientIllness.IdMedicine = medicinePatientIllness.IdMedicine;
                 newMedicinePatientIllness.Dosage = medicinePatientIllness.Dosage;
                 newMedicinePatientIllness.Time = medicinePatientIllness.Time;

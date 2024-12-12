@@ -19,5 +19,5 @@ public partial class Patient
 
     public virtual BloodType IdBloodTypeNavigation { get; set; } = null!;
 
-    public virtual ICollection<PatientIllness> PatientIllnesses { get; set; } = new List<PatientIllness>();
+    public virtual ICollection<MedicinePatientIllness> MedicinePatientIllnesses { get; set; } = new List<MedicinePatientIllness>();
 }

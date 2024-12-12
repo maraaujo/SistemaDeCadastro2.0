@@ -10,7 +10,8 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
     {
         public long Id { get; set; }
 
-        public long IdPatientIllness { get; set; }
+        public long idPatient { get; set; }
+        public long IdIllness { get; set; }
 
         public long IdMedicine { get; set; }
 

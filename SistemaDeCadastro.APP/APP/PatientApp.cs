@@ -9,11 +9,15 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientApp : IPatientApp
     {
         private readonly IPatientRepository _patientRepository; 
+        
         private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;   
-        public PatientApp(IPatientRepository patientRepository, IMedicinePatientIllnessRepository medicinePatientIllnessRepository)
+        public PatientApp(IPatientRepository patientRepository,
+            IMedicinePatientIllnessRepository medicinePatientIllnessRepository
+            )
         {
             this._patientRepository = patientRepository;
             this._medicinePatientIllnessRepository = medicinePatientIllnessRepository;
+            
         }
 
         public async Task<List<Patient>> GetPatientById(long id)
@@ -21,23 +25,44 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter)
             => await _patientRepository.FilterPatient(filter);
 
+        public async Task<List<DetailsPatientDTO>> DetailsPatient()=>
+            await _patientRepository.DetailsPatient();
 
-        public async Task<ApiResponse> CreatePatient(PatientDTO patient)
+        public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)
         {
 
             ApiResponse ret = new();
-
+           
             try
             {
-                Patient newPatient = new();
-                newPatient.Id = patient.Id;
-                newPatient.Name = patient.Name;
-                newPatient.Document = patient.Document;
-                newPatient.Responsible = patient.Responsible;
-                newPatient.Phone = patient.Phone;
-                newPatient.IdBloodType = patient.IdBloodType;
-                await this._patientRepository.CreatePatient(newPatient);
-
+                Patient newPatient = null;
+                if (patient.Id == 0)
+                {
+                    newPatient = new Patient
+                    {
+                        Id = patient.Id,
+                        Name = patient.Name,
+                        IdBloodType = patient.BooldType,
+                        Phone = patient.Phone,
+                        Responsible = patient.Responsible,
+                    };
+                    await this._patientRepository.CreatePatient(newPatient);
+                    foreach (var illness in patient.MedicinePatientIllnesses)
+                    {
+                        if (illness.IdIllness != 0)
+                        {
+                            var medicinePatientIllness = new MedicinePatientIllness
+                            {
+                                IdIllness = illness.IdIllness,
+                                IdPatient = newPatient.Id, 
+                                IdMedicine = illness.IdMedicine,
+                                Dosage = illness.Dosage,
+                                Time = illness.Time
+                            };
+                            await this._medicinePatientIllnessRepository.CreateMedicinePatientIllness(medicinePatientIllness);
+                        }
+                    }
+                }
             }
             catch (Exception err)
             {
@@ -64,6 +89,7 @@ namespace SistemaDeCadastro.APP.APP
                     updatedPatient.IdBloodType = patient.IdBloodType;
                 }
                 await this._patientRepository.UpdatePatient(updatedPatient);
+              
             }
             catch (Exception err)
             {

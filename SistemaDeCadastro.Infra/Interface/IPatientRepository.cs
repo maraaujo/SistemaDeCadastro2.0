@@ -16,5 +16,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task DeletePatient(Patient patient);
         Task GetPatientByAny(string patient);
         Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
+        Task<List<DetailsPatientDTO>> DetailsPatient();
     }
 }

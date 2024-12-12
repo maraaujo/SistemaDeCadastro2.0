@@ -11,7 +11,7 @@ namespace SistemaDeCadastro.Infra.Repository
 {
     public class BloodTypeRepository : BaseRepository<BloodType>, IBloodTypeRepository
     {
-        public BloodTypeRepository(Domain.SistemaCadastroContext.SistemaCadastroContext context) 
+        public BloodTypeRepository(SistemaCadastroContext context) 
             : base(context)
         {
         }

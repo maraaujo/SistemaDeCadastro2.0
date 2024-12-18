@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SistemaDeCadastro.Infra.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
-    public class BaseRepository<T> where T : class
+    public class BaseRepository<T> where T : class, IBaseRepository<T>
     {
         private readonly DbContext _context;
 
@@ -38,6 +39,12 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        } 
+        public async Task DeleteRange(T entity)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            _context.Set<T>().RemoveRange(entity);
             await _context.SaveChangesAsync();
         }
 

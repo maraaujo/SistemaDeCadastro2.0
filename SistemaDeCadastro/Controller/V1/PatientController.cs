@@ -80,10 +80,10 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpDelete("DeletePatient")]
-        public async Task<IActionResult> DeletePatient(PatientDTO patient)
+        [HttpGet("DeletePatient/{idPatient}")]
+        public async Task<IActionResult> DeletePatient(long idPatient)
         {
-            var ret = _patientApp.DeletePatient(patient);
+            var ret = await _patientApp.DeletePatient(idPatient);
             return Ok(ret);
         }
         

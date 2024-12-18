@@ -1,4 +1,5 @@
-﻿using SistemaDeCadastro.APP.Interface;
+﻿using Microsoft.Data.SqlClient;
+using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
@@ -53,7 +54,7 @@ namespace SistemaDeCadastro.APP.APP
                         {
                             var medicinePatientIllness = new MedicinePatientIllness
                             {
-                                IdIllness = illness.IdIllness,
+                               IdIllness = illness.IdIllness,
                                 IdPatient = newPatient.Id, 
                                 IdMedicine = illness.IdMedicine,
                                 Dosage = illness.Dosage,
@@ -99,17 +100,27 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> DeletePatient(PatientDTO patient)
+        public async Task<ApiResponse> DeletePatient(long id)
         {
             ApiResponse ret = new();
-
+            SqlTransaction tran = .BeginTransaction();
             try
             {
-                Patient deletePatient = (await _patientRepository.GetPatientById(patient.Id)).FirstOrDefault();
+                
+                MedicinePatientIllness deletemedicinePatientIllness = await _medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id).FirstOrDefault();
+                //var list = await this._medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id);
+                await this._medicinePatientIllnessRepository.DeleteRange(id);
+                    
+                //IMPLEMENTAR DELETE RANGE 
+
+                Patient deletePatient = (await _patientRepository.GetPatientById(id)).FirstOrDefault();
                 await this._patientRepository.DeletePatient(deletePatient);
+                tran.Commit();
             }
             catch (Exception err)
             {
+                tran.Rollback();
+                
                 ret.ErrorMessage = err.Message;
                 ret.Success = false;
             }

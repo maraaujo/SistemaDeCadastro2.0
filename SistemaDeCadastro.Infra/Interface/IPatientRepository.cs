@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IPatientRepository
+    public interface IPatientRepository : IBaseRepository<Patient>
     {
         Task<List<Patient>> GetPatientById(long id);
         Task CreatePatient(Patient patient);

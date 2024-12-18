@@ -12,7 +12,7 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;
         private readonly SistemaCadastroContext _context;
-        public PatientRepository(SistemaCadastroContext context 
+        public PatientRepository(SistemaCadastroContext context
            )
             : base(context)
         {
@@ -30,7 +30,7 @@ namespace SistemaDeCadastro.Infra.Repository
                            join ill in _context.Illnesses on mpi.IdIllness equals ill.Id
                            join me in _context.Medicines on mpi.IdMedicine equals me.Id
                            join mpih in _context.MedicinePatientIllnessHistorics on mpi.Id equals mpih.IdMedicinePatientIllness
-              
+
                            select new
                            {
                                p,
@@ -50,7 +50,7 @@ namespace SistemaDeCadastro.Infra.Repository
 
                 }).ToListAsync();
 
-                return result;
+                return null;
             }
             catch (Exception err)
             {
@@ -63,19 +63,19 @@ namespace SistemaDeCadastro.Infra.Repository
         public async Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter)
         {
             var ret = (from pa in _context.Patients
-                          join mePa in _context.MedicinePatientIllnesses
-                              on pa.Id equals mePa.IdPatient
-                          join ill in _context.Illnesses on mePa.IdIllness equals ill.Id
-                          join me in _context.Medicines
-                              on mePa.IdMedicine equals me.Id
-                          select new
-                          {
-                                    pa,
-                                    ill,
-                                    mePa,
-                                    me,
-                                });
-            
+                       join mePa in _context.MedicinePatientIllnesses
+                           on pa.Id equals mePa.Id
+                       join ill in _context.Illnesses on mePa.Id equals ill.Id
+                       join me in _context.Medicines
+                           on mePa.IdMedicine equals me.Id
+                       select new
+                       {
+                           pa,
+                           ill,
+                           mePa,
+                           me,
+                       });
+
             if (!string.IsNullOrEmpty(filter.Name))
             {
                 ret = ret.Where(c => c.pa.Name.Contains(filter.Name));
@@ -114,12 +114,12 @@ namespace SistemaDeCadastro.Infra.Repository
 
             return result;
         }
-      
+
         public async Task<List<Patient>> GetPatientById(long id)
         {
             return await this.FindBy(c => c.Id == id);
         }
-        public async Task CreatePatient (Patient patient)
+        public async Task CreatePatient(Patient patient)
         {
             await this.Create(patient);
         }
@@ -129,7 +129,7 @@ namespace SistemaDeCadastro.Infra.Repository
             await this.Update(patient);
         }
 
-        public async Task DeletePatient (Patient patient)
+        public async Task DeletePatient(Patient patient)
         {
             await this.Delete(patient);
         }

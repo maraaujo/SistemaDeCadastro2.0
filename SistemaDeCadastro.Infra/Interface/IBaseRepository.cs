@@ -13,6 +13,7 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<T>> FindBy(Expression<Func<T, bool>> expression);
         Task<List<T>> GetAll();
         Task Delete(T entity);
+        Task DeleteRange(T entity);
         Task Update(T entity);
     }
 }

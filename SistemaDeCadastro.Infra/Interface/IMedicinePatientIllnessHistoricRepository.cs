@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IMedicinePatientIllnessHistoricRepository
+    public interface IMedicinePatientIllnessHistoricRepository: IBaseRepository<MedicinePatientIllnessHistoric>
     {
         Task CreateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoric medicinePatientIllnessHistoric);
         Task UpdateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoric medicinePatientIllnessHistoric);

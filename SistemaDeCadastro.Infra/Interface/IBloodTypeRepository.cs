@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IBloodTypeRepository
+    public interface IBloodTypeRepository : IBaseRepository<BloodType>
     {
         Task<List<BloodType>> GetBloodTypeById(long id);
         Task<List<BloodType>> FindAll();

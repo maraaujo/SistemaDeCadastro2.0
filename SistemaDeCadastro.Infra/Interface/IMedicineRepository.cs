@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IMedicineRepository
+    public interface IMedicineRepository : IBaseRepository<Medicine>
     {
         Task<List<Medicine>> GetMedicineById(long ind);
         Task GetMedicineByAnyValorString(string medicine);

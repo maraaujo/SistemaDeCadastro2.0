@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
-    public interface IIllnessRepository
+    public interface IIllnessRepository : IBaseRepository<Illness>
     {
         Task<List<Illness>> GetIllnessById(long id);
         Task<List<Illness>> GetAllIllness();

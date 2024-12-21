@@ -11,5 +11,6 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long Id { get; set; }
 
         public long IdMedicinePatientIllness { get; set; }
+        public DateTime LastTime { get; set; }
     }
 }

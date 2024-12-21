@@ -25,5 +25,21 @@ namespace SistemadeCadastro.Test
             Assert.Equal("Felipe Campelo", result.First().Name);
 
         }
+        [Fact]
+        public async Task GetMedicinesToMinisterTest()
+        {
+            //Arrange
+            using var context = TestDbContextFactory.CreateDbContext();
+            var patientApp = new PatientApp(new PatientRepository(context), null);
+
+            //Act
+
+            var ret = await patientApp.GetMedicinesToMinister();
+
+            //Assert 
+            Assert.NotNull(ret);
+            
+
+        }
     }
 }

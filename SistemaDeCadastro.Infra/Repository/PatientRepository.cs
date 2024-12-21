@@ -16,11 +16,10 @@ namespace SistemaDeCadastro.Infra.Repository
            )
             : base(context)
         {
+            this._context = context;
         }
         public async Task<List<DetailsPatientDTO>> DetailsPatient()
         {
-
-
             try
             {
 
@@ -136,6 +135,25 @@ namespace SistemaDeCadastro.Infra.Repository
         public async Task GetPatientByAny(string patient)
         {
             await this.Any(c => c.Name == patient);
+        }
+
+        public async Task<List<MedicinePatientIllnessDTO>> GetMedicinesToMinister()
+        {
+
+
+            var data = await this._context.MedicinePatientIllnesses.Select(c => new MedicinePatientIllnessDTO
+            {
+                Patient = c.Patient.Name,
+                Medicine = c.Medicine.Name,
+                Illness = c.Illness.Name,
+                Time = c.Time,
+                MedicineHistoric = c.MedicinePatientIllnessHistorics.Select(d => new MedicinePatientHistoricDTO
+                {
+                    ID = d.Id,
+                    LastTime = d.LastTime,
+                }).ToList()
+            }).ToListAsync();
+            return data;
         }
 
     }

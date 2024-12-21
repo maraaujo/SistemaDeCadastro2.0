@@ -16,11 +16,11 @@ public partial class MedicinePatientIllness
 
     public long IdIllness { get; set; }
 
-    public virtual Illness IdIllnessNavigation { get; set; } = null!;
+    public virtual Illness Illness { get; set; } = null!;
 
-    public virtual Patient IdPatientNavigation { get; set; } = null!;
+    public virtual Patient Patient { get; set; } = null!;
 
-    public virtual Medicine IdMedicineNavigation { get; set; } = null!;
+    public virtual Medicine Medicine { get; set; } = null!;
 
     public virtual ICollection<MedicinePatientIllnessHistoric> MedicinePatientIllnessHistorics { get; set; } = new List<MedicinePatientIllnessHistoric>();
 }

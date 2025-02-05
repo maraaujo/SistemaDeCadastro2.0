@@ -17,5 +17,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task GetPatientByAny(string patient);
         Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
         Task<List<DetailsPatientDTO>> DetailsPatient();
+        Task<List<MedicinePatientIllnessDTO>> GetMedicinesToMinister();
     }
 }

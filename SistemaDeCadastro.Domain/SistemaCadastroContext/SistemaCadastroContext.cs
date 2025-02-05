@@ -84,19 +84,19 @@ public partial class SistemaCadastroContext : DbContext
             entity.Property(e => e.IdIllness).HasColumnName("Id_Illness"); 
             entity.Property(e => e.IdPatient).HasColumnName("Id_Patient");
 
-            entity.HasOne(d => d.IdMedicineNavigation)
+            entity.HasOne(d => d.Medicine)
                 .WithMany(p => p.MedicinePatientIllnesses)
                 .HasForeignKey(d => d.IdMedicine)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_medicine");
 
-            entity.HasOne(d => d.IdIllnessNavigation) 
+            entity.HasOne(d => d.Illness) 
                 .WithMany(p => p.MedicinePatientIllnesses)
                 .HasForeignKey(d => d.IdIllness)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_illness");
 
-            entity.HasOne(d => d.IdPatientNavigation)
+            entity.HasOne(d => d.Patient)
                 .WithMany(p => p.MedicinePatientIllnesses)
                 .HasForeignKey(d => d.IdPatient)
                 .OnDelete(DeleteBehavior.ClientSetNull)

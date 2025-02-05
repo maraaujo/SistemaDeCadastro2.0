@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
-    public class BaseRepository<T> where T : class, IBaseRepository<T>
+    public class BaseRepository<T>: IBaseRepository<T> where T : class
     {
         private readonly DbContext _context;
 
@@ -41,10 +41,10 @@ namespace SistemaDeCadastro.Infra.Repository
             _context.Set<T>().Remove(entity);
             await _context.SaveChangesAsync();
         } 
-        public async Task DeleteRange(T entity)
+        public async Task DeleteRange(IEnumerable<T> entities)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            _context.Set<T>().RemoveRange(entity);
+            if (entities == null) throw new ArgumentNullException(nameof(entities));
+            _context.Set<T>().RemoveRange(entities);
             await _context.SaveChangesAsync();
         }
 

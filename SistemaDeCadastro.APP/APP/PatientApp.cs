@@ -11,13 +11,9 @@ namespace SistemaDeCadastro.APP.APP
 {
     public class PatientApp : IPatientApp
     {
-        private readonly IPatientRepository _patientRepository; 
-        
-        private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;   
-        private readonly IMedicinePatientIllnessHistoricRepository _medicinePatientIllnessHistoricRepository;
-        private PatientRepository patientRepository;
-        private object value;
+        private readonly IPatientRepository _patientRepository;
 
+        private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;
         public PatientApp(IPatientRepository patientRepository,
             IMedicinePatientIllnessRepository medicinePatientIllnessRepository,
             IMedicinePatientIllnessHistoricRepository medicinePatientIllnessHistoricRepository
@@ -25,7 +21,6 @@ namespace SistemaDeCadastro.APP.APP
         {
             this._patientRepository = patientRepository;
             this._medicinePatientIllnessRepository = medicinePatientIllnessRepository;
-            this._medicinePatientIllnessHistoricRepository = medicinePatientIllnessHistoricRepository;
             
         }
 
@@ -40,14 +35,42 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter)
             => await _patientRepository.FilterPatient(filter);
 
-        public async Task<List<DetailsPatientDTO>> DetailsPatient()=>
+        public async Task<List<DetailsPatientDTO>> DetailsPatient() =>
             await _patientRepository.DetailsPatient();
+
+        public async Task<ApiResponse> GetMedicinesToMinister()
+        {
+            ApiResponse ret = new();
+            //trazer todos os pacientes, horários, com sus respectivas doenças
+            //medicamentos, dosagens e proximos horários
+            try
+            {
+                //lista de opaciente com historico 
+                var data = await this._patientRepository.GetMedicinesToMinister();
+                //em cima dessa lista preencher a dto
+                //foreach (var item in data)
+                //{
+                //    item.NextMedicineTime = item.MedicineHistoric.OrderByDescending(c => c.LastTime).First().LastTime;
+                //    item.NextMedicineTime.AddHours(item.Time);
+
+                //}
+                ret.Data = data;
+                return ret;
+
+            }
+            catch (Exception err)
+            {
+
+                throw;
+            }
+            return ret;
+        }
 
         public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)
         {
 
             ApiResponse ret = new();
-           
+
             try
             {
                 Patient newPatient = null;
@@ -68,8 +91,8 @@ namespace SistemaDeCadastro.APP.APP
                         {
                             var medicinePatientIllness = new MedicinePatientIllness
                             {
-                               IdIllness = illness.IdIllness,
-                                IdPatient = newPatient.Id, 
+                                IdIllness = illness.IdIllness,
+                                IdPatient = newPatient.Id,
                                 IdMedicine = illness.IdMedicine,
                                 Dosage = illness.Dosage,
                                 Time = illness.Time,
@@ -130,8 +153,8 @@ namespace SistemaDeCadastro.APP.APP
                     updatePatient.Phone = patient.Phone;
                     updatePatient.IdBloodType = patient.IdBloodType;
                 }
-                await this._patientRepository.UpdatePatient(updatePatient);
-              
+                await this._patientRepository.UpdatePatient(updatedPatient);
+
             }
             catch (Exception err)
             {
@@ -144,24 +167,20 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> DeletePatient(long id)
         {
             ApiResponse ret = new();
-            //SqlTransaction tran = .BeginTransaction();
+
             try
             {
-                
-                //MedicinePatientIllness deletemedicinePatientIllness = await _medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id).FirstOrDefault();
-                ////var list = await this._medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id);
-                //await this._medicinePatientIllnessRepository.DeleteRange(id);
-                    
-                //IMPLEMENTAR DELETE RANGE 
+
+                var toDcelete = (await _medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id)).ToList();
+                await this._medicinePatientIllnessRepository.DeleteRange(toDcelete);
+
 
                 Patient deletePatient = (await _patientRepository.GetPatientById(id)).FirstOrDefault();
                 await this._patientRepository.DeletePatient(deletePatient);
-                //tran.Commit();
+
             }
             catch (Exception err)
             {
-                //tran.Rollback();
-                
                 ret.ErrorMessage = err.Message;
                 ret.Success = false;
             }
@@ -174,5 +193,4 @@ namespace SistemaDeCadastro.APP.APP
     }
 }
 
-       
 

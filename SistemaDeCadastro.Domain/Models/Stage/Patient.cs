@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaDeCadastro.Domain.Models.Stage;
 
-public partial class Patient
+public class Patient
 {
     public long Id { get; set; }
 

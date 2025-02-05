@@ -13,6 +13,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task GetPatientByAny(string patient);
         Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
         Task<List<DetailsPatientDTO>> DetailsPatient();
+        Task<ApiResponse> GetMedicinesToMinister();
 
 
     }

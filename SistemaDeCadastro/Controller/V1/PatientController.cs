@@ -85,7 +85,14 @@ namespace SistemaDeCadastro.Controller.V1
         {
             var ret = await _patientApp.DeletePatient(idPatient);
             return Ok(ret);
+
+            // ctrl + M + F = C M F = CADE MEU FILE
         }
-        
+        [HttpGet("GetMedicinesToMinister")]
+       public async Task<IActionResult> GetMedicinesToMinister()
+        {
+            var ret = await _patientApp.GetMedicinesToMinister();   
+            return Ok(ret);
+        }
     }
 }

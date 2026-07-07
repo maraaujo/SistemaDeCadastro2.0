@@ -122,6 +122,22 @@ namespace SistemaDeCadastro.Infra.Repository
             return await FindBy(c => c.Id == id);
         }
 
+        public async Task<Patient?> GetByIdWithRelations(long id)
+        {
+            return await _context.Patients
+                .Include(p => p.BloodType)
+                .Include(p => p.Responsibles)
+                .Include(p => p.PatientClinicalConditions)
+                    .ThenInclude(pcc => pcc.ClinicalCondition)
+                .Include(p => p.PatientIllnesses)
+                    .ThenInclude(pi => pi.Illness)
+                .Include(p => p.PatientEmployees)
+                    .ThenInclude(pe => pe.Employee)
+                .Include(p => p.Appointments)
+                .Include(p => p.CareServices)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task CreatePatient(Patient patient)
         {
             await Create(patient);
@@ -142,24 +158,6 @@ namespace SistemaDeCadastro.Infra.Repository
             await Any(c => c.Name == patient);
         }
 
-        public async Task<List<MedicinePatientIllnessDTO>> GetMedicinesToMinister()
-        {
-            var data = await _context.MedicinePatientClinicalConditions
-                .Select(c => new MedicinePatientIllnessDTO
-                {
-                    Patient = c.PatientClinicalCondition.Patient.Name,
-                    Medicine = c.Medicine.Name,
-                    Illness = c.PatientClinicalCondition.ClinicalCondition.Name,
-
-                    // No DER novo, Time foi substituído por Frequency.
-                    // Como o DTO antigo ainda usa Time, deixei sem preencher.
-                    // Podemos depois ajustar o DTO para Frequency.
-
-                    MedicineHistoric = new List<MedicinePatientHistoricDTO>()
-                })
-                .ToListAsync();
-
-            return data;
-        }
+        // Note: medicine/minister flow moved to MedicinePatientClinicalCondition; remove old methods from interface.
     }
 }

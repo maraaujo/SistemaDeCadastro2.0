@@ -51,6 +51,8 @@ builder.Services.AddScoped<IMedicinePatientIllnessHistoricApp, MedicinePatientIl
 builder.Services.AddScoped<IMedicinePatientIllnessHistoricRepository, MedicinePatientIllnessHistoricRepository>();
 builder.Services.AddScoped<IBloodTypeApp, BloodTypeApp>();
 builder.Services.AddScoped<IBloodTypeRepository, BloodTypeRepository>();
+// Register generic base repository so any model can get a CRUD repository via IBaseRepository<T>
+builder.Services.AddScoped(typeof(SistemaDeCadastro.Infra.Interface.IBaseRepository<>), typeof(SistemaDeCadastro.Infra.Repository.BaseRepository<>));
 
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

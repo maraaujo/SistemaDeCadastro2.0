@@ -1,10 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
-using SistemaDeCadastro.APP.Interface;
+﻿using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-using SistemaDeCadastro.Infra.Repository;
-using System.Security.AccessControl;
 
 
 namespace SistemaDeCadastro.APP.APP
@@ -12,21 +9,34 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientApp : IPatientApp
     {
         private readonly IPatientRepository _patientRepository;
-        private readonly IMedicinePatientIllnessHistoricRepository _medicinePatientIllnessHistoricRepository;
-        private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;
-        public PatientApp(IPatientRepository patientRepository,
-            IMedicinePatientIllnessRepository medicinePatientIllnessRepository,
-            IMedicinePatientIllnessHistoricRepository medicinePatientIllnessHistoricRepository
+        private readonly IResponsibleRepository _responsibleRepository;
+        private readonly IPatientEmployeeRepository _patientEmployeeRepository;
+        private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
+        private readonly IPatientIllnessRepository _patientIllnessRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly ICareServiceRepository _careServiceRepository;
+        private readonly IPaymentRepository _paymentRepository;
+        public PatientApp(
+            IPatientRepository patientRepository,
+            IResponsibleRepository responsibleRepository,
+            IPatientEmployeeRepository patientEmployeeRepository,
+            IPatientClinicalConditionRepository patientClinicalConditionRepository,
+            IPatientIllnessRepository patientIllnessRepository,
+            IAppointmentRepository appointmentRepository,
+            ICareServiceRepository careServiceRepository,
+            IPaymentRepository paymentRepository,
+            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository
             )
         {
             this._patientRepository = patientRepository;
-            this._medicinePatientIllnessRepository = medicinePatientIllnessRepository;
-            this._medicinePatientIllnessHistoricRepository = medicinePatientIllnessHistoricRepository;
-        }
-
-        public PatientApp(PatientRepository patientRepository, object value)
-        {
-            
+            this._responsibleRepository = responsibleRepository;
+            this._patientEmployeeRepository = patientEmployeeRepository;
+            this._patientClinicalConditionRepository = patientClinicalConditionRepository;
+            this._patientIllnessRepository = patientIllnessRepository;
+            this._appointmentRepository = appointmentRepository;
+            this._careServiceRepository = careServiceRepository;
+            this._paymentRepository = paymentRepository;
+            this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
 
         public async Task<List<Patient>> GetPatientById(long id)
@@ -37,94 +47,33 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<List<DetailsPatientDTO>> DetailsPatient() =>
             await _patientRepository.DetailsPatient();
 
-        public async Task<ApiResponse> GetMedicinesToMinister()
-        {
-            ApiResponse ret = new();
-            //trazer todos os pacientes, horários, com sus respectivas doenças
-            //medicamentos, dosagens e proximos horários
-            try
-            {
-                //lista de opaciente com historico 
-                var data = await this._patientRepository.GetMedicinesToMinister();
-                //em cima dessa lista preencher a dto
-                //foreach (var item in data)
-                //{
-                //    item.NextMedicineTime = item.MedicineHistoric.OrderByDescending(c => c.LastTime).First().LastTime;
-                //    item.NextMedicineTime.AddHours(item.Time);
-
-                //}
-                ret.Data = data;
-                return ret;
-
-            }
-            catch (Exception err)
-            {
-
-                throw;
-            }
-            return ret;
-        }
-
         public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)
         {
-
             ApiResponse ret = new();
-
             try
             {
-                Patient newPatient = null;
                 if (patient.Id == 0)
                 {
-                    newPatient = new Patient
+                    var newPatient = new Patient
                     {
-                        Id = patient.Id,
                         Name = patient.Name,
-                        BloodTypeId = patient.BooldType,
+                        Document = patient.Document,
                         Phone = patient.Phone,
-                  
+                        BloodTypeId = patient.BooldType,
+                        CreatedAt = DateTime.UtcNow
                     };
-                    await this._patientRepository.CreatePatient(newPatient);
-                    foreach (var illness in patient.MedicinePatientIllnesses)
+
+                    await _patientRepository.CreatePatient(newPatient);
+
+                    if (!string.IsNullOrWhiteSpace(patient.Responsible))
                     {
-                        if (illness.IdIllness != 0)
+                        var responsible = new Responsible
                         {
-                            var medicinePatientIllness = new MedicinePatientIllness
-                            {
-                                IdIllness = illness.IdIllness,
-                                IdPatient = newPatient.Id,
-                                IdMedicine = illness.IdMedicine,
-                                Dosage = illness.Dosage,
-                                Time = illness.Time,
-                            };
-                            await this._medicinePatientIllnessRepository.CreateMedicinePatientIllness(medicinePatientIllness);
-
-                        }
+                            PatientId = newPatient.Id,
+                            Name = patient.Responsible
+                        };
+                        await _responsibleRepository.Create(responsible);
                     }
-                }
-            }
-            catch (Exception err)
-            {
-                ret.ErrorMessage = err.Message;
-                ret.Success = false;
-            }
-
-            return ret;
-        }
-
-        public async Task<ApiResponse> CreateNewDosageInterval(MedicinePatientIllnessHistoricDTO historicDTO)
-        {
-            ApiResponse ret = new();
-            try
-            {
-                if (historicDTO.IdMedicinePatientIllness != 0)
-                {
-                    var medicinePatientIllnessHistoric = new MedicinePatientIllnessHistoric
-                    {
-                        Id = historicDTO.Id,
-                        IdMedicinePatientIllness = historicDTO.IdMedicinePatientIllness,
-                        LastTime = historicDTO.LastTime,
-                    };
-                    await this._medicinePatientIllnessHistoricRepository.Create(medicinePatientIllnessHistoric);
                 }
             }
             catch (Exception err)
@@ -142,17 +91,21 @@ namespace SistemaDeCadastro.APP.APP
             ApiResponse ret = new();
             try
             {
-                Patient updatePatient = (await this._patientRepository.GetPatientById(patient.Id)).FirstOrDefault();
-
-                if (updatePatient.Id != 0)
+                var updatePatient = await this._patientRepository.GetByIdWithRelations(patient.Id);
+                if (updatePatient != null)
                 {
-                    updatePatient.Name = patient.Name;
-                    updatePatient.Document = patient.Document;
-         
-                    updatePatient.Phone = patient.Phone;
-                    updatePatient.BloodTypeId = patient.IdBloodType;
+                    updatePatient.Name = patient.Name ?? updatePatient.Name;
+                    updatePatient.Document = patient.Document ?? updatePatient.Document;
+                    updatePatient.Phone = patient.Phone ?? updatePatient.Phone;
+                    updatePatient.BloodTypeId = patient.IdBloodType != 0 ? patient.IdBloodType : updatePatient.BloodTypeId;
+                    // optional fields if provided in DTO
+                    if (patient.BirthDate != null) updatePatient.BirthDate = patient.BirthDate.Value;
+                    if (!string.IsNullOrWhiteSpace(patient.Gender)) updatePatient.Gender = patient.Gender;
+                    if (!string.IsNullOrWhiteSpace(patient.Cpf)) updatePatient.Cpf = patient.Cpf;
+                    if (!string.IsNullOrWhiteSpace(patient.Observations)) updatePatient.Observations = patient.Observations;
+
+                    await this._patientRepository.Update(updatePatient);
                 }
-                await this._patientRepository.Update(updatePatient);
 
             }
             catch (Exception err)
@@ -169,13 +122,46 @@ namespace SistemaDeCadastro.APP.APP
 
             try
             {
+                // Delete care services directly linked to patient
+                var careServices = await _careServiceRepository.FindBy(c => c.PatientId == id);
+                if (careServices.Any()) await _careServiceRepository.DeleteRange(careServices);
 
-                var toDcelete = (await _medicinePatientIllnessRepository.FindBy(c => c.IdPatient == id)).ToList();
-                await this._medicinePatientIllnessRepository.DeleteRange(toDcelete);
+                // Find appointments for patient and delete related payments and care services
+                var appointments = await _appointmentRepository.FindBy(a => a.PatientId == id);
+                foreach (var ap in appointments)
+                {
+                    var payments = await _paymentRepository.FindBy(p => p.AppointmentId == ap.Id);
+                    if (payments.Any()) await _paymentRepository.DeleteRange(payments);
 
+                    var services = await _careServiceRepository.FindBy(c => c.AppointmentId == ap.Id);
+                    if (services.Any()) await _careServiceRepository.DeleteRange(services);
+                }
+                if (appointments.Any()) await _appointmentRepository.DeleteRange(appointments);
 
-                Patient deletePatient = (await _patientRepository.GetPatientById(id)).FirstOrDefault();
-                await this._patientRepository.DeletePatient(deletePatient);
+                // Delete patient employees
+                var patientEmployees = await _patient_employeeRepository.FindBy(pe => pe.PatientId == id);
+                if (patientEmployees.Any()) await _patient_employeeRepository.DeleteRange(patientEmployees);
+
+                // Delete patient clinical conditions and related medicine entries
+                var patientClinicalConditions = await _patientClinicalConditionRepository.FindBy(pcc => pcc.PatientId == id);
+                foreach (var pcc in patientClinicalConditions)
+                {
+                    var meds = await _medicinePatientClinicalConditionRepository.FindBy(m => m.PatientClinicalConditionId == pcc.Id);
+                    if (meds.Any()) await _medicinePatientClinicalConditionRepository.DeleteRange(meds);
+                }
+                if (patientClinicalConditions.Any()) await _patientClinicalConditionRepository.DeleteRange(patientClinicalConditions);
+
+                // Delete patient illnesses
+                var patientIllnesses = await _patientIllnessRepository.FindBy(pi => pi.PatientId == id);
+                if (patientIllnesses.Any()) await _patientIllnessRepository.DeleteRange(patientIllnesses);
+
+                // Delete responsibles
+                var responsibles = await _responsibleRepository.FindBy(r => r.PatientId == id);
+                if (responsibles.Any()) await _repository.DeleteRange(responsibles);
+
+                // Finally delete patient
+                var deletePatient = (await _patientRepository.FindBy(p => p.Id == id)).FirstOrDefault();
+                if (deletePatient != null) await _patientRepository.DeletePatient(deletePatient);
 
             }
             catch (Exception err)

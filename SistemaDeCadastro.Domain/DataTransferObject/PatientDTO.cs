@@ -19,5 +19,9 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public string? Phone { get; set; }
 
         public long IdBloodType { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public string? Gender { get; set; }
+        public string? Cpf { get; set; }
+        public string? Observations { get; set; }
     }
 }

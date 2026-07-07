@@ -67,7 +67,7 @@ namespace SistemaDeCadastro.Controller.V1
 
             return Ok(response);
         }
-        [HttpPost("Createpatient")]
+        [HttpPost("CreatePatient")]
         public async Task<IActionResult> CreatePatient(CreatepatientDTO patient)
         {
             var ret = await _patientApp.CreatePatient(patient);
@@ -89,9 +89,9 @@ namespace SistemaDeCadastro.Controller.V1
             // ctrl + M + F = C M F = CADE MEU FILE
         }
         [HttpGet("GetMedicinesToMinister")]
-       public async Task<IActionResult> GetMedicinesToMinister()
+        public async Task<IActionResult> GetMedicinesToMinister()
         {
-            var ret = await _patientApp.GetMedicinesToMinister();   
+            var ret = await _patientApp.GetMedicinesToMinister();
             return Ok(ret);
         }
     }

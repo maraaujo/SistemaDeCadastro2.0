@@ -12,7 +12,7 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientApp : IPatientApp
     {
         private readonly IPatientRepository _patientRepository;
-
+        private readonly IMedicinePatientIllnessHistoricRepository _medicinePatientIllnessHistoricRepository;
         private readonly IMedicinePatientIllnessRepository _medicinePatientIllnessRepository;
         public PatientApp(IPatientRepository patientRepository,
             IMedicinePatientIllnessRepository medicinePatientIllnessRepository,
@@ -21,13 +21,12 @@ namespace SistemaDeCadastro.APP.APP
         {
             this._patientRepository = patientRepository;
             this._medicinePatientIllnessRepository = medicinePatientIllnessRepository;
-            
+            this._medicinePatientIllnessHistoricRepository = medicinePatientIllnessHistoricRepository;
         }
 
         public PatientApp(PatientRepository patientRepository, object value)
         {
-            this.patientRepository = patientRepository;
-            this.value = value;
+            
         }
 
         public async Task<List<Patient>> GetPatientById(long id)
@@ -80,9 +79,9 @@ namespace SistemaDeCadastro.APP.APP
                     {
                         Id = patient.Id,
                         Name = patient.Name,
-                        IdBloodType = patient.BooldType,
+                        BloodTypeId = patient.BooldType,
                         Phone = patient.Phone,
-                        Responsible = patient.Responsible,
+                  
                     };
                     await this._patientRepository.CreatePatient(newPatient);
                     foreach (var illness in patient.MedicinePatientIllnesses)
@@ -98,7 +97,7 @@ namespace SistemaDeCadastro.APP.APP
                                 Time = illness.Time,
                             };
                             await this._medicinePatientIllnessRepository.CreateMedicinePatientIllness(medicinePatientIllness);
-                           
+
                         }
                     }
                 }
@@ -136,24 +135,24 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
-            
-        
+
+
         public async Task<ApiResponse> UpdatePatient(PatientDTO patient)
         {
             ApiResponse ret = new();
-        try
-        {
+            try
+            {
                 Patient updatePatient = (await this._patientRepository.GetPatientById(patient.Id)).FirstOrDefault();
 
                 if (updatePatient.Id != 0)
                 {
                     updatePatient.Name = patient.Name;
                     updatePatient.Document = patient.Document;
-                    updatePatient.Responsible = patient.Responsible;
+         
                     updatePatient.Phone = patient.Phone;
-                    updatePatient.IdBloodType = patient.IdBloodType;
+                    updatePatient.BloodTypeId = patient.IdBloodType;
                 }
-                await this._patientRepository.UpdatePatient(updatedPatient);
+                await this._patientRepository.Update(updatePatient);
 
             }
             catch (Exception err)

@@ -1,25 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.SistemaCadastroContext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SistemadeCadastro.Test
 {
-    public class TestDbContextFactory
+    public static class TestDbContextFactory
     {
-        public static SistemaCadastroContext CreateDbContext()
+        public static SistemaDeCadastroContext CreateDbContext()
         {
-            var options = new DbContextOptionsBuilder<SistemaCadastroContext>()
-           .UseNpgsql("Host=localhost;Port=5432;Database=sistema_de_cadastro_test;Username=seu_usuario;Password=sua_senha;")
-           .Options;
+            var optionsBuilder = new DbContextOptionsBuilder<SistemaDeCadastroContext>();
 
-            var context = new SistemaCadastroContext(options);
+            optionsBuilder.UseMySql(
+               "server=127.0.0.1;port=3306;database=sistema_cadastro_tcc;user=sistema_user;password=irmaos03;",
+                new MySqlServerVersion(new Version(8, 0, 46))
+            );
 
-            context.Database.EnsureCreated();
-            return context;
+            return new SistemaDeCadastroContext(optionsBuilder.Options);
         }
     }
 }

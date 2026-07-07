@@ -7,6 +7,7 @@ using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Infra.Repository;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -21,16 +22,24 @@ builder.Services.AddCors(options =>
 });
 
 
-var connectionString = builder.Configuration.GetConnectionString("SistemaCadastro");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-
-builder.Services.AddDbContext<SistemaCadastroContext>(options =>
+if (string.IsNullOrWhiteSpace(connectionString))
 {
-    options.UseNpgsql(connectionString); 
-    options.LogTo(Console.WriteLine, LogLevel.Information); 
+    throw new InvalidOperationException("Connection string 'DefaultConnection' não encontrada.");
+}
+
+builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
+{
+    options.UseMySql(
+        connectionString,
+        new MySqlServerVersion(new Version(8, 0, 46))
+    );
+
+    options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-builder.Services.AddScoped<SistemaCadastroContext>();
+builder.Services.AddScoped<SistemaDeCadastroContext>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
 builder.Services.AddScoped<IMedicinePatientIllnessRepository, MedicinePatientIllnessRepository>();

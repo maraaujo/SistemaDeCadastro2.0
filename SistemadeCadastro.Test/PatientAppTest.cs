@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+
+
 using SistemaDeCadastro.APP.APP;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Repository;
-
 namespace SistemadeCadastro.Test
 {
     public class PatientAppTest
     {
         private readonly PatientApp _patientApp;
+     
         [Fact]
         public async Task GetPatientById()
         {
@@ -68,9 +70,9 @@ namespace SistemadeCadastro.Test
             {
                 Name = "João",
                 Document = "123456",
-                Responsible = "Old Responsible",
+ 
                 Phone = "123456789",
-                IdBloodType = 1
+                BloodTypeId = 1
             }; 
             context.Patients.Add(existingPatient);
             await context.SaveChangesAsync();
@@ -106,9 +108,9 @@ namespace SistemadeCadastro.Test
             {
                 Name = "John Doe",
                 Document = "123456",
-                Responsible = "Jane Doe",
+        
                 Phone = "123456789",
-                IdBloodType = 1
+                BloodTypeId = 1
             };
             context.Patients.Add(patient);
             await context.SaveChangesAsync();

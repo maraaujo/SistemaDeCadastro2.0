@@ -7,7 +7,11 @@ public partial class Illness
 {
     public long Id { get; set; }
 
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
-    public virtual ICollection<MedicinePatientIllness> MedicinePatientIllnesses { get; set; } = new List<MedicinePatientIllness>();
+    public string Description { get; set; }
+
+    public string Cid { get; set; }
+
+    public virtual ICollection<PatientIllness> PatientIllnesses { get; set; }
 }

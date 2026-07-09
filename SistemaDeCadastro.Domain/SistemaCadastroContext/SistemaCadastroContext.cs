@@ -432,11 +432,13 @@ public partial class SistemaDeCadastroContext : DbContext
 
             entity.Property(e => e.PrescribedDosage)
                 .HasColumnName("dosagem_prescrita")
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired();
 
             entity.Property(e => e.Frequency)
                 .HasColumnName("frequencia")
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired();
 
             entity.Property(e => e.StartDate)
                 .HasColumnName("data_inicio")
@@ -448,7 +450,15 @@ public partial class SistemaDeCadastroContext : DbContext
 
             entity.Property(e => e.Observations)
                 .HasColumnName("observacoes")
-                .HasColumnType("text");
+                .HasColumnType("text")
+                .IsRequired();
+
+            entity.Property(e => e.AdministrationTime)
+                .HasColumnName("horario_administracao")
+                .HasColumnType("time");
+
+            entity.Property(e => e.ResponsibleEmployeeId)
+                .HasColumnName("id_funcionario_responsavel");
 
             entity.HasOne(e => e.Medicine)
                 .WithMany(e => e.PatientClinicalConditionMedicines)
@@ -458,6 +468,11 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.HasOne(e => e.PatientClinicalCondition)
                 .WithMany(e => e.Medicines)
                 .HasForeignKey(e => e.PatientClinicalConditionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ResponsibleEmployee)
+                .WithMany()
+                .HasForeignKey(e => e.ResponsibleEmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

@@ -14,7 +14,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
         Task<List<DetailsPatientDTO>> DetailsPatient();
 
-
+        Task<List<MedicineReminderDTO>> GetMedicineReminders();
 
     }
 }

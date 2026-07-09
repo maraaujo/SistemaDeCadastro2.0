@@ -38,19 +38,30 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
 
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
+//app
+builder.Services.AddScoped<IPatientApp, PatientApp>();
 
+//repositorys
 builder.Services.AddScoped<SistemaDeCadastroContext>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
-builder.Services.AddScoped<IPatientApp, PatientApp>();
-builder.Services.AddScoped<IMedicinePatientIllnessRepository, MedicinePatientIllnessRepository>();
-builder.Services.AddScoped<IMedicinePatientIllnessApp, MedicinePatientIllnessApp>();
-builder.Services.AddScoped<IIllnessRepository, IllnessRepository>();
-builder.Services.AddScoped<IMedicineApp, MedicineApp>();
-builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
-builder.Services.AddScoped<IMedicinePatientIllnessHistoricApp, MedicinePatientIllnessHistoricApp>();
-builder.Services.AddScoped<IMedicinePatientIllnessHistoricRepository, MedicinePatientIllnessHistoricRepository>();
-builder.Services.AddScoped<IBloodTypeApp, BloodTypeApp>();
+builder.Services.AddScoped<IResponsibleRepository, ResponsibleRepository>();
 builder.Services.AddScoped<IBloodTypeRepository, BloodTypeRepository>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IClinicalConditionRepository, ClinicalConditionRepository>();
+builder.Services.AddScoped<IPatientClinicalConditionRepository, PatientClinicalConditionRepository>();
+builder.Services.AddScoped<IIllnessRepository, IllnessRepository>();
+builder.Services.AddScoped<IPatientIllnessRepository, PatientIllnessRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+builder.Services.AddScoped<IMedicinePatientClinicalConditionRepository, MedicinePatientClinicalConditionRepository>();
+builder.Services.AddScoped<IPatientEmployeeRepository, PatientEmployeeRepository>();
+builder.Services.AddScoped<ILoginAccountRepository, LoginAccountRepository>();
+builder.Services.AddScoped<IAvailablePermissionRepository, AvailablePermissionRepository>();
+builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+builder.Services.AddScoped<IAccessLogRepository, AccessLogRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<ICareServiceRepository, CareServiceRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 // Register generic base repository so any model can get a CRUD repository via IBaseRepository<T>
 builder.Services.AddScoped(typeof(SistemaDeCadastro.Infra.Interface.IBaseRepository<>), typeof(SistemaDeCadastro.Infra.Repository.BaseRepository<>));
 

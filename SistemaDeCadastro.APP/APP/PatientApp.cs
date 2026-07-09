@@ -36,7 +36,7 @@ namespace SistemaDeCadastro.APP.APP
             this._appointmentRepository = appointmentRepository;
             this._careServiceRepository = careServiceRepository;
             this._paymentRepository = paymentRepository;
-            this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
+           // this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
 
         public async Task<List<Patient>> GetPatientById(long id)
@@ -46,7 +46,8 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<List<DetailsPatientDTO>> DetailsPatient() =>
             await _patientRepository.DetailsPatient();
-
+        public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
+            await _patientRepository.GetMedicineReminders();
         public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)
         {
             ApiResponse ret = new();
@@ -139,16 +140,16 @@ namespace SistemaDeCadastro.APP.APP
                 if (appointments.Any()) await _appointmentRepository.DeleteRange(appointments);
 
                 // Delete patient employees
-                var patientEmployees = await _patient_employeeRepository.FindBy(pe => pe.PatientId == id);
-                if (patientEmployees.Any()) await _patient_employeeRepository.DeleteRange(patientEmployees);
+                //var patientEmployees = await _patient_employeeRepository.FindBy(pe => pe.PatientId == id);
+                //if (patientEmployees.Any()) await _patient_employeeRepository.DeleteRange(patientEmployees);
 
                 // Delete patient clinical conditions and related medicine entries
                 var patientClinicalConditions = await _patientClinicalConditionRepository.FindBy(pcc => pcc.PatientId == id);
-                foreach (var pcc in patientClinicalConditions)
-                {
-                    var meds = await _medicinePatientClinicalConditionRepository.FindBy(m => m.PatientClinicalConditionId == pcc.Id);
-                    if (meds.Any()) await _medicinePatientClinicalConditionRepository.DeleteRange(meds);
-                }
+                //foreach (var pcc in patientClinicalConditions)
+                //{
+                //    var meds = await _medicinePatientClinicalConditionRepository.FindBy(m => m.PatientClinicalConditionId == pcc.Id);
+                //    if (meds.Any()) await _medicinePatientClinicalConditionRepository.DeleteRange(meds);
+                //}
                 if (patientClinicalConditions.Any()) await _patientClinicalConditionRepository.DeleteRange(patientClinicalConditions);
 
                 // Delete patient illnesses
@@ -157,7 +158,7 @@ namespace SistemaDeCadastro.APP.APP
 
                 // Delete responsibles
                 var responsibles = await _responsibleRepository.FindBy(r => r.PatientId == id);
-                if (responsibles.Any()) await _repository.DeleteRange(responsibles);
+                if (responsibles.Any()) await _responsibleRepository.DeleteRange(responsibles);
 
                 // Finally delete patient
                 var deletePatient = (await _patientRepository.FindBy(p => p.Id == id)).FirstOrDefault();

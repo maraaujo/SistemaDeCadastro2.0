@@ -19,6 +19,12 @@ namespace SistemaDeCadastro.Controller.V1
             this._configuration = configuration;
             this._patientApp = patientApp;
         }
+        [HttpGet("GetPatientsReminders")]
+        public async Task<IActionResult> GetPatientsReminders()
+        {
+            var ret = await _patientApp.GetMedicineReminders();
+            return Ok(ret);
+        }
 
         [HttpGet("GetPatientById")]
         public async Task<IActionResult> GetPatientById(long id)
@@ -88,11 +94,11 @@ namespace SistemaDeCadastro.Controller.V1
 
             // ctrl + M + F = C M F = CADE MEU FILE
         }
-        [HttpGet("GetMedicinesToMinister")]
-        public async Task<IActionResult> GetMedicinesToMinister()
-        {
-            var ret = await _patientApp.GetMedicinesToMinister();
-            return Ok(ret);
-        }
+        //[HttpGet("GetMedicinesToMinister")]
+        //public async Task<IActionResult> GetMedicinesToMinister()
+        //{
+        //    var ret = await _patientApp.GetMedicinesToMinister();
+        //    return Ok(ret);
+        //}
     }
 }

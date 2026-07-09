@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaDeCadastro.Domain.Models.Stage
 {
@@ -16,7 +13,14 @@ namespace SistemaDeCadastro.Domain.Models.Stage
 
         public string PrescribedDosage { get; set; }
 
+        [Column("frequencia")]
         public string Frequency { get; set; }
+
+        [Column("horario_administracao")]
+        public TimeSpan? AdministrationTime { get; set; }
+
+        [Column("id_funcionario_responsavel")]
+        public long? ResponsibleEmployeeId { get; set; }
 
         public DateTime? StartDate { get; set; }
 
@@ -27,5 +31,7 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public virtual Medicine Medicine { get; set; }
 
         public virtual PatientClinicalCondition PatientClinicalCondition { get; set; }
+
+        public virtual Employee? ResponsibleEmployee { get; set; }
     }
 }

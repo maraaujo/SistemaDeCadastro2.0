@@ -35,11 +35,7 @@ namespace SistemaDeCadastro.Infra.Repository
                         Name = p.Name,
                         IllnessName = cc.Name,
                         MedicineName = med.Name,
-                        Dosage = mpcc.PrescribedDosage,
-
-                        // No DER novo não temos mais Time nem histórico LastTime.
-                        // Mantive sem preencher para evitar erro de compilação.
-                        // Se quiser, podemos depois trocar Time por Frequency.
+                        Dosage = mpcc.PrescribedDosage
                     }
                 ).ToListAsync();
 
@@ -108,10 +104,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 Illness = c.ClinicalCondition.Name,
                 Medicine = c.Medicine.Name,
                 Dosage = c.MedicinePatientClinicalCondition.PrescribedDosage,
-                Responsible = c.Responsible != null ? c.Responsible.Name : null,
-
-                // No DER novo não existe mais Time.
-                // Se o DTO ainda tiver Time, ele ficará com valor padrão 0.
+                Responsible = c.Responsible != null ? c.Responsible.Name : null
             }).ToListAsync();
 
             return result;
@@ -137,6 +130,103 @@ namespace SistemaDeCadastro.Infra.Repository
                 .Include(p => p.CareServices)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
+        public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
+        {
+            var result = new List<MedicineReminderDTO>();
+
+            var now = DateTime.Now;
+            var today = now.Date;
+
+            var connection = _context.Database.GetDbConnection();
+            var shouldCloseConnection = connection.State != System.Data.ConnectionState.Open;
+
+            if (shouldCloseConnection)
+                await connection.OpenAsync();
+
+            try
+            {
+                using var command = connection.CreateCommand();
+
+                command.CommandText = @"
+            SELECT 
+                p.id_acolhido AS PatientId,
+                p.nome AS PatientName,
+                med.nome AS MedicineName,
+                mpcc.dosagem_prescrita AS Dosage,
+                mpcc.frequencia AS Frequency,
+                mpcc.horario_administracao AS AdministrationTime,
+                f.nome AS ResponsibleEmployeeName
+            FROM medicamento_acolhido_condicaoclinica mpcc
+            INNER JOIN medicamentos med 
+                ON med.id_medicamento = mpcc.id_medicamento
+            INNER JOIN acolhido_condicaoclinica pcc 
+                ON pcc.id_acolhido_condicao = mpcc.id_acolhido_condicao
+            INNER JOIN acolhidos p 
+                ON p.id_acolhido = pcc.id_acolhido
+            LEFT JOIN funcionarios f 
+                ON f.id_funcionario = mpcc.id_funcionario_responsavel
+            WHERE mpcc.horario_administracao IS NOT NULL
+              AND (mpcc.data_fim IS NULL OR mpcc.data_fim >= CURDATE())
+        ";
+
+                using var reader = await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    var administrationTime = reader["AdministrationTime"] == DBNull.Value
+                        ? (TimeSpan?)null
+                        : (TimeSpan)reader["AdministrationTime"];
+
+                    if (administrationTime == null)
+                        continue;
+
+                    var nextDoseDateTime = today.Add(administrationTime.Value);
+
+                    if (nextDoseDateTime < now)
+                        nextDoseDateTime = nextDoseDateTime.AddDays(1);
+
+                    var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
+
+                    string alertText;
+
+                    if (minutesRemaining <= 5)
+                        alertText = "Faltam 5 minutos ou menos";
+                    else if (minutesRemaining <= 15)
+                        alertText = "Faltam 15 minutos ou menos";
+                    else if (minutesRemaining <= 30)
+                        alertText = "Faltam 30 minutos ou menos";
+                    else if (minutesRemaining <= 60)
+                        alertText = "Falta 1 hora ou menos";
+                    else
+                        alertText = $"Faltam {minutesRemaining} minutos";
+
+                    result.Add(new MedicineReminderDTO
+                    {
+                        PatientId = Convert.ToInt64(reader["PatientId"]),
+                        PatientName = reader["PatientName"]?.ToString(),
+                        MedicineName = reader["MedicineName"]?.ToString(),
+                        Dosage = reader["Dosage"]?.ToString(),
+                        Frequency = reader["Frequency"]?.ToString(),
+                        AdministrationTime = administrationTime,
+                        NextDoseDateTime = nextDoseDateTime,
+                        ResponsibleEmployeeName = reader["ResponsibleEmployeeName"] == DBNull.Value
+                            ? "Não informado"
+                            : reader["ResponsibleEmployeeName"]?.ToString(),
+                        MinutesRemaining = minutesRemaining,
+                        AlertText = alertText
+                    });
+                }
+            }
+            finally
+            {
+                if (shouldCloseConnection)
+                    await connection.CloseAsync();
+            }
+
+            return result
+                .OrderBy(x => x.MinutesRemaining)
+                .ToList();
+        }
 
         public async Task CreatePatient(Patient patient)
         {
@@ -157,7 +247,5 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             await Any(c => c.Name == patient);
         }
-
-        // Note: medicine/minister flow moved to MedicinePatientClinicalCondition; remove old methods from interface.
     }
 }

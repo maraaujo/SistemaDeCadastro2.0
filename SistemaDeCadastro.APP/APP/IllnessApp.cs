@@ -31,6 +31,9 @@ namespace SistemaDeCadastro.APP.APP
                 Illness newIllness = new(); 
                 newIllness.Id = illness.Id;
                 newIllness.Name = illness.Name;
+                newIllness.Description = illness.Description;
+                newIllness.Cid = illness.Cid;
+
                 await this._illnessRepository.CreateIllness(newIllness);    
             }
             catch (Exception err)
@@ -48,6 +51,8 @@ namespace SistemaDeCadastro.APP.APP
             {
                 Illness newIllness = (await _illnessRepository.GetIllnessById(illness.Id)).FirstOrDefault(); 
                 newIllness.Name = illness.Name;
+                 newIllness.Description = illness.Description;
+                newIllness.Cid = illness.Cid;
                 await this._illnessRepository.UpdateIllness(newIllness);
             }
             catch (Exception err)

@@ -20,8 +20,10 @@ namespace SistemaDeCadastro.APP.APP
             this._medicineRepository = medicineRepository;  
         }
 
+        public async Task<List<Medicine>> GetAll() =>
+            await this._medicineRepository.GetAll();
         public async Task<List<Medicine>> GetMedicineId(long id) =>
-            await this.GetMedicineId(id);
+            await this._medicineRepository.GetMedicineById(id);
         public async Task GetMedicineByAnyValorString(string medicine) =>
             await this._medicineRepository.GetMedicineByAnyValorString(medicine);
 

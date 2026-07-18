@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateAppointment")]
-        public async Task<IActionResult> CreateAppointment(Appointment entity)
+        public async Task<IActionResult> CreateAppointment(CreateAppointmentDTO entity)
         {
+            // TODO: Ajustar IAppointmentApp e AppointmentApp para receber CreateAppointmentDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateAppointment")]
-        public async Task<IActionResult> UpdateAppointment(Appointment entity)
+        public async Task<IActionResult> UpdateAppointment(UpdateAppointmentDTO entity)
         {
+            // TODO: Ajustar IAppointmentApp e AppointmentApp para receber UpdateAppointmentDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

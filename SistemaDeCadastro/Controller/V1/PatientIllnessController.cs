@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreatePatientIllness")]
-        public async Task<IActionResult> CreatePatientIllness(PatientIllness entity)
+        public async Task<IActionResult> CreatePatientIllness(CreatePatientIllnessDTO entity)
         {
+            // TODO: Ajustar IPatientIllnessApp e PatientIllnessApp para receber CreatePatientIllnessDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdatePatientIllness")]
-        public async Task<IActionResult> UpdatePatientIllness(PatientIllness entity)
+        public async Task<IActionResult> UpdatePatientIllness(UpdatePatientIllnessDTO entity)
         {
+            // TODO: Ajustar IPatientIllnessApp e PatientIllnessApp para receber UpdatePatientIllnessDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

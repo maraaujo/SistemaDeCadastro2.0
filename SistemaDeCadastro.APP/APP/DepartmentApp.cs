@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,19 +18,50 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<Department?> GetById(long id) => (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(Department entity)
+        public async Task<ApiResponse> Create(CreateDepartmentDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _departmentRepository.Create(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var department = new Department
+                {
+                    Name = entity.Name,
+                    Description = entity.Description
+                };
+                await _departmentRepository.Create(department);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 
-        public async Task<ApiResponse> Update(Department entity)
+        public async Task<ApiResponse> Update(UpdateDepartmentDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _departmentRepository.Update(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingDepartment = (await _departmentRepository.FindBy(d => d.Id == entity.Id)).FirstOrDefault();
+                if (existingDepartment != null) {
+                    existingDepartment.Name = entity.Name;
+                    existingDepartment.Description = entity.Description;
+                    await _departmentRepository.Update(existingDepartment);
+                    ret.Success = true;
+                }
+                else
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Department not found.";
+                }
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

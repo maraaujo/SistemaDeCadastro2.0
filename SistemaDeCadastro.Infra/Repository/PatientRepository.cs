@@ -130,6 +130,8 @@ namespace SistemaDeCadastro.Infra.Repository
                 .Include(p => p.CareServices)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
+        //vou ter que fazer um job para ficar chamando esse metodo de tempos
+        //em tempos para ficar atualizando a tela de lembrete de medicamentos
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
             var result = new List<MedicineReminderDTO>();

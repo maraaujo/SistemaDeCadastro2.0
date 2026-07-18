@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,14 +33,14 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateClinicalCondition")]
-        public async Task<IActionResult> CreateClinicalCondition(ClinicalCondition clinicalCondition)
+        public async Task<IActionResult> CreateClinicalCondition(CreateClinicalConditionDTO clinicalCondition)
         {
             var ret = await _clinicalConditionApp.Create(clinicalCondition);
             return Ok(ret);
         }
 
         [HttpPut("UpdateClinicalCondition")]
-        public async Task<IActionResult> UpdateClinicalCondition(ClinicalCondition clinicalCondition)
+        public async Task<IActionResult> UpdateClinicalCondition(UpdateClinicalConditionDTO clinicalCondition)
         {
             var ret = await _clinicalConditionApp.Update(clinicalCondition);
             return Ok(ret);

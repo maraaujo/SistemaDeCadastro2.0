@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,17 +18,69 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<Appointment?> GetById(long id) => (await _repo.FindBy(a => a.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(Appointment entity)
+        public async Task<ApiResponse> Create(CreateAppointmentDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                if (entity == null || entity.PatientId <= 0 )
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Paciente não encontrado";
+                    return ret;
+                }
+                //aqui eu estou atribuindo os valores do DTO para a entidade Appointment, que será salva no banco de dados
+                var appointment = new Appointment
+                {
+                    PatientId = entity.PatientId,
+                    AppointmentType = entity.AppointmentType,
+                    DateTime = entity.DateTime,
+                    Responsible = entity.Responsible,
+                    Status = entity.Status,
+                    Observations = entity.Observations
+                };
+                await _repo.Create(appointment);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 
-        public async Task<ApiResponse> Update(Appointment entity)
+        public async Task<ApiResponse> Update(UpdateAppointmentDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+
+                var existingAppointment = (await _repo.FindBy(a => a.Id == entity.Id)).FirstOrDefault();
+                if (existingAppointment == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Agendamento não encontrado";
+                    return ret;
+                }
+
+                // Atualiza os campos do agendamento existente com os valores do DTO
+                existingAppointment.PatientId = entity.PatientId;
+                existingAppointment.AppointmentType = entity.AppointmentType;
+                existingAppointment.DateTime = entity.DateTime;
+                existingAppointment.Responsible = entity.Responsible;
+                existingAppointment.Status = entity.Status;
+                existingAppointment.Observations = entity.Observations;
+
+                await _repo.Update(existingAppointment);
+                ret.Success = true;
+
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

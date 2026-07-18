@@ -38,7 +38,7 @@ namespace SistemaDeCadastro.Controller.V1
             await _patientApp.GetPatientByAny(patient);
             return Ok();
         }
-        [HttpGet("GetPatientFilter")]
+        [HttpPost("GetPatientFilter")]
         public async Task<IActionResult> GetPatientFilter(PatientFilterDTO filter)
         {
             ApiResponse response = new ApiResponse();

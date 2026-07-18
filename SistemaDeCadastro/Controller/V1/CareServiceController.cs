@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateCareService")]
-        public async Task<IActionResult> CreateCareService(CareService entity)
+        public async Task<IActionResult> CreateCareService(CreateCareServiceDTO entity)
         {
+            // TODO: Ajustar ICareServiceApp e CareServiceApp para receber CreateCareServiceDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateCareService")]
-        public async Task<IActionResult> UpdateCareService(CareService entity)
+        public async Task<IActionResult> UpdateCareService(UpdateCareServiceDTO entity)
         {
+            // TODO: Ajustar ICareServiceApp e CareServiceApp para receber UpdateCareServiceDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

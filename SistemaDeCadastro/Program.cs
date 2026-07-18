@@ -39,7 +39,27 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 //app
+builder.Services.AddScoped<IAuthApp, AuthApp>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
+builder.Services.AddScoped<IResponsibleApp, ResponsibleApp>();
+builder.Services.AddScoped<IBloodTypeApp, BloodTypeApp>();
+builder.Services.AddScoped<IEmployeeApp, EmployeeApp>();
+builder.Services.AddScoped<IDepartmentApp, DepartmentApp>();
+builder.Services.AddScoped<IClinicalConditionApp, ClinicalConditionApp>();
+builder.Services.AddScoped<IPatientClinicalConditionApp, PatientClinicalConditionApp>();
+builder.Services.AddScoped<IIllnessApp, IllnessApp>();
+builder.Services.AddScoped<IPatientIllnessApp, PatientIllnessApp>();
+builder.Services.AddScoped<IMedicineApp, MedicineApp>();
+builder.Services.AddScoped<IMedicinePatientClinicalConditionApp, MedicinePatientClinicalConditionApp>();
+builder.Services.AddScoped<IPatientEmployeeApp, PatientEmployeeApp>();
+builder.Services.AddScoped<ILoginAccountApp, LoginAccountApp>();
+builder.Services.AddScoped<IAvailablePermissionApp, AvailablePermissionApp>();
+builder.Services.AddScoped<IUserPermissionApp, UserPermissionApp>();
+builder.Services.AddScoped<IAccessLogApp, AccessLogApp>();
+builder.Services.AddScoped<IAppointmentApp, AppointmentApp>();
+builder.Services.AddScoped<ICareServiceApp, CareServiceApp>();
+builder.Services.AddScoped<IPaymentApp, PaymentApp>();
+
 // app services (register APP layer implementations)
 builder.Services.AddScoped<IResponsibleApp, ResponsibleApp>();
 builder.Services.AddScoped<IBloodTypeApp, BloodTypeApp>();

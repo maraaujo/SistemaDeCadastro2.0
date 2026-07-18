@@ -1,3 +1,4 @@
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 
 namespace SistemaDeCadastro.APP.Interface
@@ -6,7 +7,7 @@ namespace SistemaDeCadastro.APP.Interface
     {
         Task<List<PatientClinicalCondition>> GetAll();
         Task<PatientClinicalCondition?> GetById(long id);
-        Task<ApiResponse> Create(PatientClinicalCondition entity);
+        Task<ApiResponse> Create(CreatePatientClinicalConditionDTO entity);
         Task<ApiResponse> Update(PatientClinicalCondition entity);
         Task<ApiResponse> Delete(long id);
     }

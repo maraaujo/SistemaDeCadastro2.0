@@ -58,25 +58,42 @@ namespace SistemaDeCadastro.APP.APP
                     var newPatient = new Patient
                     {
                         Name = patient.Name,
-                        Document = patient.Document,
+                        BirthDate = patient.BirthDate,
                         Phone = patient.Phone,
-                        BloodTypeId = patient.BooldType,
-                        CreatedAt = DateTime.UtcNow
+                        Document = patient.Document,
+                        Gender = patient.Gender,
+                        Cpf = patient.Cpf,
+                        Observations = patient.Observations,
+                        CreatedAt = DateTime.Now,
+                        BloodTypeId = patient.BloodTypeId
                     };
 
                     await _patientRepository.CreatePatient(newPatient);
 
-                    if (!string.IsNullOrWhiteSpace(patient.Responsible))
+                    //se for diferente de nulo e tiver algum responsável, cria os responsáveis
+                    if (patient.Responsibles != null && patient.Responsibles.Any())
                     {
-                        var responsible = new Responsible
+                        //percorre a lista de responsáveis
+                        //e cria cada um deles, associando ao paciente recém-criado
+                        foreach (var resposibleDto in patient.Responsibles)
                         {
-                            PatientId = newPatient.Id,
-                            Name = patient.Responsible
-                        };
-                        await _responsibleRepository.Create(responsible);
+                            //cria um novo responsável com os dados do DTO
+                            //e o ID do paciente recém-criado
+                            var responsible = new Responsible
+                            {
+                                PatientId = newPatient.Id,
+                                Name = resposibleDto.Name,
+                                Phone = resposibleDto.Phone,
+                                Relationship = resposibleDto.Relationship,
+                                Address = resposibleDto.Address
+                            };
+                            await _responsibleRepository.Create(responsible);
+                        }
+
                     }
                 }
             }
+
             catch (Exception err)
             {
                 ret.ErrorMessage = err.Message;

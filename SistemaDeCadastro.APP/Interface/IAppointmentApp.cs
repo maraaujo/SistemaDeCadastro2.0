@@ -1,3 +1,4 @@
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 
 namespace SistemaDeCadastro.APP.Interface
@@ -6,8 +7,8 @@ namespace SistemaDeCadastro.APP.Interface
     {
         Task<List<Appointment>> GetAll();
         Task<Appointment?> GetById(long id);
-        Task<ApiResponse> Create(Appointment entity);
-        Task<ApiResponse> Update(Appointment entity);
+        Task<ApiResponse> Create(CreateAppointmentDTO entity);
+        Task<ApiResponse> Update(UpdateAppointmentDTO entity);
         Task<ApiResponse> Delete(long id);
     }
 }

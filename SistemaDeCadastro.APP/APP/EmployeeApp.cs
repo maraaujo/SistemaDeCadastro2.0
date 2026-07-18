@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,11 +18,31 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<Employee?> GetById(long id) => (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(Employee entity)
+        public async Task<ApiResponse> Create(CreatePatientEmployeeDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _employeeRepository.Create(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try { 
+                if(entity.DepartmentId == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Departamento do funcionário é obrigatório.";
+                    return ret;
+                }
+                var employee = new Employee
+                {
+                    Name = entity.Name,
+                    Cpf = entity.Cpf,
+                    Position = entity.Position,
+                    Phone = entity.Phone,
+                    Email = entity.Email,
+                    AdmissionDate = DateTime.Now,
+                    DepartmentId = entity.DepartmentId
+                };
+            } catch (Exception ex) 
+            {
+            ret.ErrorMessage = ex.Message;
+            ret.Success = true;
+            }
             return ret;
         }
 

@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,17 +18,63 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<AvailablePermission?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(AvailablePermission entity)
+        public async Task<ApiResponse> Create(CreateAvailablePermissionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
-            return ret;
+            try
+            {
+              
+                var newAvailablePermission = new AvailablePermission
+                {
+                    Name = entity.Name,
+                    Description = entity.Description,
+                    Module = entity.Module,
+                    Active = entity.Active
+                };
+                await _repo.Create(newAvailablePermission);
+                ret.Success = true;
+                ret.Message = "AvailablePermission criado com successo";
+                ret.Data = newAvailablePermission;
+
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
+            return ret; 
         }
 
-        public async Task<ApiResponse> Update(AvailablePermission entity)
+        public async Task<ApiResponse> Update(UpdateAvailablePermissionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingAvailablePermission = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
+                if (existingAvailablePermission != null)
+                {
+                    existingAvailablePermission.Name = entity.Name;
+                    existingAvailablePermission.Description = entity.Description;
+                    existingAvailablePermission.Module = entity.Module;
+                    existingAvailablePermission.Active = entity.Active;
+                    await _repo.Update(existingAvailablePermission);
+                    ret.Success = true;
+                    ret.Message = "AvailablePermission atualizado com successo";
+                    ret.Data = existingAvailablePermission;
+                }
+                else
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "AvailablePermission não encontrado";
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

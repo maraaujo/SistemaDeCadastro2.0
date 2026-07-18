@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using SistemaDeCadastro.APP.APP;
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 
 namespace SistemaDeCadastro.Controller.V1
@@ -10,13 +12,21 @@ namespace SistemaDeCadastro.Controller.V1
     {
         private IConfiguration _configuration;
         private readonly ILoginAccountApp _app;
+        private readonly IAuthApp _authApp;
 
-        public LoginAccountController(IConfiguration configuration, ILoginAccountApp app)
+        public LoginAccountController(IConfiguration configuration, ILoginAccountApp app, IAuthApp authApp)
         {
             this._configuration = configuration;
             this._app = app;
+            this._authApp = authApp;
         }
-
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login(LoginRequestDTO login)
+        {
+            var ret = await _authApp.Login(login);
+            
+            return Ok(ret);
+        }
         [HttpGet("GetLoginAccountById")]
         public async Task<IActionResult> GetLoginAccountById(long id)
         {
@@ -32,14 +42,15 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateLoginAccount")]
-        public async Task<IActionResult> CreateLoginAccount(LoginAccount entity)
+        public async Task<IActionResult> CreateLoginAccount(CreateLoginAccountDTO entity)
         {
+            // CreateLoginAccount DTO exists as CreateLoginAccount in Domain.DataTransferObject
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateLoginAccount")]
-        public async Task<IActionResult> UpdateLoginAccount(LoginAccount entity)
+        public async Task<IActionResult> UpdateLoginAccount(UpdateLoginAccountDTO entity)
         {
             var ret = await _app.Update(entity);
             return Ok(ret);

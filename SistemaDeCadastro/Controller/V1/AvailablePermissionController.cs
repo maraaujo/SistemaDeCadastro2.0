@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,14 +33,14 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateAvailablePermission")]
-        public async Task<IActionResult> CreateAvailablePermission(AvailablePermission entity)
+        public async Task<IActionResult> CreateAvailablePermission(CreateAvailablePermissionDTO entity)
         {
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateAvailablePermission")]
-        public async Task<IActionResult> UpdateAvailablePermission(AvailablePermission entity)
+        public async Task<IActionResult> UpdateAvailablePermission(UpdateAvailablePermissionDTO entity)
         {
             var ret = await _app.Update(entity);
             return Ok(ret);

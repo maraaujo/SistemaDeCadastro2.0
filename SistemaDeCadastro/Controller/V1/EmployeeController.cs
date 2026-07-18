@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 
 namespace SistemaDeCadastro.Controller.V1
@@ -32,14 +33,14 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateEmployee")]
-        public async Task<IActionResult> CreateEmployee(Employee employee)
+        public async Task<IActionResult> CreateEmployee(CreateEmployeeDTO employee)
         {
-            var ret = await _employeeApp.Create(employee);
+             var ret = await _employeeApp.Create(employee);
             return Ok(ret);
         }
 
         [HttpPut("UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployee(Employee employee)
+        public async Task<IActionResult> UpdateEmployee(UpdateEmployeeDTO employee)
         {
             var ret = await _employeeApp.Update(employee);
             return Ok(ret);

@@ -33,21 +33,23 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateIllness")]
-        public async Task<IActionResult> CreateIllness(IllnessDTO entity)
+        public async Task<IActionResult> CreateIllness(CreateIllnessDTO entity)
         {
+            // TODO: Ajustar IIllnessApp e IllnessApp para receber CreateIllnessDTO
             var ret = await _app.CreateIllness(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateIllness")]
-        public async Task<IActionResult> UpdateIllness(IllnessDTO entity)
+        public async Task<IActionResult> UpdateIllness(UpdateIllnessDTO entity)
         {
+            // TODO: Ajustar IIllnessApp e IllnessApp para receber UpdateIllnessDTO
             var ret = await _app.UpdateIllness(entity);
             return Ok(ret);
         }
 
         [HttpGet("DeleteIllness/{idIllness}")]
-        public async Task<IActionResult> DeleteIllness(IllnessDTO idIllness)
+        public async Task<IActionResult> DeleteIllness(long idIllness)
         {
             var ret = await _app.DeleteIllness(idIllness);
             return Ok(ret);

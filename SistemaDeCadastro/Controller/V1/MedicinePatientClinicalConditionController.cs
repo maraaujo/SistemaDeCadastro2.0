@@ -33,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create(MedicinePatientClinicalCondition entity)
+        public async Task<IActionResult> Create(CreateMedicinePatientClinicalConditionDTO entity)
         {
+            // TODO: Ajustar IMedicinePatientClinicalConditionApp e MedicinePatientClinicalConditionApp para receber CreateMedicinePatientClinicalConditionDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("Update")]
-        public async Task<IActionResult> Update(MedicinePatientClinicalCondition entity)
+        public async Task<IActionResult> Update(UpdateMedicinePatientClinicalConditionDTO entity)
         {
+            // TODO: Ajustar IMedicinePatientClinicalConditionApp e MedicinePatientClinicalConditionApp para receber UpdateMedicinePatientClinicalConditionDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

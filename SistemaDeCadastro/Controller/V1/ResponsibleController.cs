@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateResponsible")]
-        public async Task<IActionResult> CreateResponsible(Responsible responsible)
+        public async Task<IActionResult> CreateResponsible(CreateResponsibleDTO responsible)
         {
+            // TODO: Ajustar IResponsibleApp e ResponsibleApp para receber CreateResponsibleDTO
             var ret = await _responsibleApp.Create(responsible);
             return Ok(ret);
         }
 
         [HttpPut("UpdateResponsible")]
-        public async Task<IActionResult> UpdateResponsible(Responsible responsible)
+        public async Task<IActionResult> UpdateResponsible(UpdateResponsibleDTO responsible)
         {
+            // TODO: Ajustar IResponsibleApp e ResponsibleApp para receber UpdateResponsibleDTO
             var ret = await _responsibleApp.Update(responsible);
             return Ok(ret);
         }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateAccessLog")]
-        public async Task<IActionResult> CreateAccessLog(AccessLog entity)
+        public async Task<IActionResult> CreateAccessLog(CreateAccessLogDTO entity)
         {
+            // TODO: Ajustar IAccessLogApp e AccessLogApp para receber CreateAccessLogDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateAccessLog")]
-        public async Task<IActionResult> UpdateAccessLog(AccessLog entity)
+        public async Task<IActionResult> UpdateAccessLog(UpdateAccessLogDTO entity)
         {
+            // TODO: Ajustar IAccessLogApp e AccessLogApp para receber UpdateAccessLogDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

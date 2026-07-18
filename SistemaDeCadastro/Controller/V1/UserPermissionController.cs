@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -32,15 +33,17 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateUserPermission")]
-        public async Task<IActionResult> CreateUserPermission(UserPermission entity)
+        public async Task<IActionResult> CreateUserPermission(CreateUserPermissionDTO entity)
         {
+            // TODO: Ajustar IUserPermissionApp e UserPermissionApp para receber CreateUserPermissionDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateUserPermission")]
-        public async Task<IActionResult> UpdateUserPermission(UserPermission entity)
+        public async Task<IActionResult> UpdateUserPermission(UpdateUserPermissionDTO entity)
         {
+            // TODO: Ajustar IUserPermissionApp e UserPermissionApp para receber UpdateUserPermissionDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

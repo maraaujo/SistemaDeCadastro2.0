@@ -1,9 +1,5 @@
-﻿using SistemaDeCadastro.Domain.Models.Stage;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Domain.DataTransferObject
 {
@@ -11,11 +7,17 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
     {
         public long Id { get; set; }
         public string Name { get; set; }
-        public string Document { get; set; }
-        public string Responsible { get; set; }
+        public DateTime BirthDate { get; set; }
         public string Phone { get; set; }
-        public int BooldType { get; set; }
-        public  List<MedicinePatientIllnessDTO> MedicinePatientIllnesses { get; set; }
+        public string Document { get; set; }
+        public string Gender { get; set; }
+        public string Cpf { get; set; }
+        public string Observations { get; set; }
+        public long? BloodTypeId { get; set; }
+
+        public List<CreateResponsibleDTO> Responsibles { get; set; } = new();
 
     }
+
+  
 }

@@ -1,4 +1,5 @@
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.DataTransferObject;
 
 namespace SistemaDeCadastro.APP.Interface
 {
@@ -6,8 +7,8 @@ namespace SistemaDeCadastro.APP.Interface
     {
         Task<List<Department>> GetAll();
         Task<Department?> GetById(long id);
-        Task<ApiResponse> Create(Department entity);
-        Task<ApiResponse> Update(Department entity);
+        Task<ApiResponse> Create(CreateDepartmentDTO entity);
+        Task<ApiResponse> Update(UpdateDepartmentDTO  entity);
         Task<ApiResponse> Delete(long id);
     }
 }

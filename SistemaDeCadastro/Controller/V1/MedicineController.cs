@@ -33,8 +33,9 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPost("CreateMedicine")]
-        public async Task<IActionResult> CreateMedicine(Medicine entity)
+        public async Task<IActionResult> CreateMedicine(CreateMedicineDTO entity)
         {
+            // TODO: Ajustar IMedicineApp e MedicineApp para receber CreateMedicineDTO
             var ret = await _app.CreateMedicine(entity);
             return Ok(ret);
         }

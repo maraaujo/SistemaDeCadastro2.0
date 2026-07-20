@@ -27,14 +27,17 @@ namespace SistemaDeCadastro.APP.APP
         public async Task GetMedicineByAnyValorString(string medicine) =>
             await this._medicineRepository.GetMedicineByAnyValorString(medicine);
 
-        public async Task<ApiResponse> CreateMedicine(Medicine medicine)
+        public async Task<ApiResponse> CreateMedicine(CreateMedicineDTO medicine)
         {
             ApiResponse ret = new();
             try
             {
                 Medicine newMedicine = new();
-                newMedicine.Id = medicine.Id;
+                newMedicine.Frequency = medicine.Frequency;
+                newMedicine.Description = medicine.Description;
+                newMedicine.Dosage = medicine.Dosage;
                 newMedicine.Name = medicine.Name;
+                newMedicine.AdministrationRoute = medicine.AdministrationRoute;
                 await this._medicineRepository.CreateMedicine(newMedicine);
             }
             catch (Exception err)
@@ -45,15 +48,19 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> UpdateMedicine(MedicineDTO medicine)
+        public async Task<ApiResponse> UpdateMedicine(UpdateMedicineDTO medicine)
         {
             ApiResponse ret = new();
 
             try
             {
                 Medicine updateMedicine = (await this._medicineRepository.GetMedicineById(medicine.Id)).FirstOrDefault();
-                updateMedicine.Id = medicine.Id;
+             
                 updateMedicine.Name = medicine.Name;
+                updateMedicine.Description = medicine.Description;
+                updateMedicine.Dosage = medicine.Dosage;
+                updateMedicine.Frequency = medicine.Frequency;
+                updateMedicine.AdministrationRoute = medicine.AdministrationRoute;
                 await this._medicineRepository.UpdateMedicine(updateMedicine);
             }
             catch (Exception err)

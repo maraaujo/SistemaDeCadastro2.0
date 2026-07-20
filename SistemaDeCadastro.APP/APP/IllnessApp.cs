@@ -24,12 +24,12 @@ namespace SistemaDeCadastro.APP.APP
         public async Task GetAnyIllnessIfTheValor(string illness) =>
             await this._illnessRepository.GetAnyIllnessIfTheValor(illness);
 
-        public async Task<ApiResponse> CreateIllness(IllnessDTO illness)
+        public async Task<ApiResponse> CreateIllness(CreateIllnessDTO illness)
         {
             ApiResponse ret = new(); try
             {
                 Illness newIllness = new(); 
-                newIllness.Id = illness.Id;
+          
                 newIllness.Name = illness.Name;
                 newIllness.Description = illness.Description;
                 newIllness.Cid = illness.Cid;
@@ -45,7 +45,7 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> UpdateIllness(IllnessDTO illness)
+        public async Task<ApiResponse> UpdateIllness(UpdateIllnessDTO illness)
         {
             ApiResponse ret = new(); try
             {

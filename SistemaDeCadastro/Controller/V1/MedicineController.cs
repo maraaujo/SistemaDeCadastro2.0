@@ -35,13 +35,12 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateMedicine")]
         public async Task<IActionResult> CreateMedicine(CreateMedicineDTO entity)
         {
-            // TODO: Ajustar IMedicineApp e MedicineApp para receber CreateMedicineDTO
             var ret = await _app.CreateMedicine(entity);
             return Ok(ret);
         }
 
         [HttpPut("UpdateMedicine")]
-        public async Task<IActionResult> UpdateMedicine(MedicineDTO entity)
+        public async Task<IActionResult> UpdateMedicine(UpdateMedicineDTO entity)
         {
             var ret = await _app.UpdateMedicine(entity);
             return Ok(ret);

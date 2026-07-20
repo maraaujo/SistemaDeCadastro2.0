@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
@@ -7,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PatientEmployeeController : ControllerBase
     {
         private IConfiguration _configuration;
@@ -35,7 +37,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreatePatientEmployee")]
         public async Task<IActionResult> CreatePatientEmployee(CreatePatientEmployeeDTO entity)
         {
-            // TODO: Ajustar IPatientEmployeeApp e PatientEmployeeApp para receber CreatePatientEmployeeDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
@@ -43,7 +44,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdatePatientEmployee")]
         public async Task<IActionResult> UpdatePatientEmployee(UpdatePatientEmployeeDTO entity)
         {
-            // TODO: Ajustar IPatientEmployeeApp e PatientEmployeeApp para receber UpdatePatientEmployeeDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

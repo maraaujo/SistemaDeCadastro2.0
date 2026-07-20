@@ -58,12 +58,16 @@ namespace SistemaDeCadastro.APP.APP
                     ret.Success = false;
                     ret.ErrorMessage = "Clinical condition not found.";
                 }
+              
 
             }
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;  
+                ret.ErrorMessage = ex.Message;
+            }
+            return ret;
+        }
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

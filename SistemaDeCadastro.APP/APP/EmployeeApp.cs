@@ -18,7 +18,7 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<Employee?> GetById(long id) => (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(CreatePatientEmployeeDTO entity)
+        public async Task<ApiResponse> Create(CreateEmployeeDTO entity)
         {
             var ret = new ApiResponse();
             try { 
@@ -46,11 +46,32 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> Update(Employee entity)
+        public async Task<ApiResponse> Update(UpdateEmployeeDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _employeeRepository.Update(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingEmployee = (await _employeeRepository.FindBy(e => e.Id == entity.Id)).FirstOrDefault();
+                if(existingEmployee == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Funcionário não encontrado.";
+                    return ret;
+                }   
+                existingEmployee.Name = entity.Name;
+                existingEmployee.Cpf = entity.Cpf;
+                existingEmployee.Position = entity.Position;
+                existingEmployee.Phone = entity.Phone;
+                existingEmployee.Email = entity.Email;
+                existingEmployee.DepartmentId = entity.DepartmentId;
+                await _employeeRepository.Update(existingEmployee);
+
+            }
+            catch (Exception ex)
+            {
+                ret.ErrorMessage = ex.Message;
+                ret.Success = true;
+            }
             return ret;
         }
 

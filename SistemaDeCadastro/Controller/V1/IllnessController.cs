@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
@@ -7,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class IllnessController : ControllerBase
     {
         private IConfiguration _configuration;
@@ -35,7 +37,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateIllness")]
         public async Task<IActionResult> CreateIllness(CreateIllnessDTO entity)
         {
-            // TODO: Ajustar IIllnessApp e IllnessApp para receber CreateIllnessDTO
             var ret = await _app.CreateIllness(entity);
             return Ok(ret);
         }
@@ -43,13 +44,12 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdateIllness")]
         public async Task<IActionResult> UpdateIllness(UpdateIllnessDTO entity)
         {
-            // TODO: Ajustar IIllnessApp e IllnessApp para receber UpdateIllnessDTO
             var ret = await _app.UpdateIllness(entity);
             return Ok(ret);
         }
 
         [HttpGet("DeleteIllness/{idIllness}")]
-        public async Task<IActionResult> DeleteIllness(long idIllness)
+        public async Task<IActionResult> DeleteIllness(IllnessDTO idIllness)
         {
             var ret = await _app.DeleteIllness(idIllness);
             return Ok(ret);

@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,19 +18,58 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<UserPermission?> GetById(long id) => (await _repo.FindBy(u => u.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(UserPermission entity)
+        public async Task<ApiResponse> Create(CreateUserPermissionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try { 
+            var newUser = new UserPermission
+            {
+                Id = entity.Id,
+                UserId = entity.UserId,
+                PermissionId = entity.PermissionId,
+                GrantedAt = entity.GrantedAt
+            };
+            await _repo.Create(newUser);
+            ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 
-        public async Task<ApiResponse> Update(UserPermission entity)
+        public async Task<ApiResponse> Update(UpdateUserPermissionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingUserPermission = (await _repo.FindBy(u => u.Id == entity.Id)).FirstOrDefault();
+                if (existingUserPermission != null)
+                {
+                    existingUserPermission.UserId = entity.UserId;
+                    existingUserPermission.PermissionId = entity.PermissionId;
+                    existingUserPermission.GrantedAt = entity.GrantedAt;
+                    await _repo.Update(existingUserPermission);
+                    ret.Success = true;
+                }
+                else
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "UserPermission not found.";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+                var existingUserPermission = (await _repo.FindBy(u => u.Id == entity.Id)).FirstOrDefault();
+            }
             return ret;
         }
+
 
         public async Task<ApiResponse> Delete(long id)
         {

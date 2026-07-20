@@ -1,7 +1,7 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-
+using SistemaDeCadastro.Domain.DataTransferObject;
 namespace SistemaDeCadastro.APP.APP
 {
     public class PatientIllnessApp : IPatientIllnessApp
@@ -17,19 +17,48 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<PatientIllness?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(PatientIllness entity)
+        public async Task<ApiResponse> Create(CreatePatientIllnessDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var newPatientIllness = new PatientIllness
+                { 
+                    PatientId = entity.PatientId,
+                    IllnessId = entity.IllnessId,
+                    Observations = entity.Observations,
+                    DiagnosisDate = entity.DiagnosisDate
+
+                };
+                await _repo.Create(newPatientIllness);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 
-        public async Task<ApiResponse> Update(PatientIllness entity)
+        public async Task<ApiResponse> Update(UpdatePatientIllnessDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingEntity = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
+               existingEntity.PatientId = entity.PatientId;
+                existingEntity.IllnessId = entity.IllnessId;
+                existingEntity.Observations = entity.Observations;
+                existingEntity.DiagnosisDate = entity.DiagnosisDate;
+                await _repo.Update(existingEntity);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

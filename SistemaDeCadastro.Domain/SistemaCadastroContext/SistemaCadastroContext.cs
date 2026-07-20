@@ -40,6 +40,10 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<Appointment> Appointments { get; set; }
     public virtual DbSet<CareService> CareServices { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<Institution> Institutions { get; set; }
+    public virtual DbSet<Plan> Plans { get; set; }
+    public virtual DbSet<Subscription> Subscriptions { get; set; }
+    public virtual DbSet<SubscriptionPayment> SubscriptionPayments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -108,6 +112,190 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.HasOne(e => e.BloodType)
                 .WithMany(e => e.Patients)
                 .HasForeignKey(e => e.BloodTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Institution>(entity =>
+        {
+            entity.ToTable("instituicoes");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_instituicao")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .HasColumnName("nome")
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(e => e.Cnpj)
+                .HasColumnName("cnpj")
+                .HasMaxLength(18);
+
+            entity.Property(e => e.Email)
+                .HasColumnName("email")
+                .HasMaxLength(150);
+
+            entity.Property(e => e.Phone)
+                .HasColumnName("telefone")
+                .HasMaxLength(20);
+
+            entity.Property(e => e.Active)
+                .HasColumnName("ativa")
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("data_cadastro")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.HasIndex(e => e.Cnpj).IsUnique();
+
+            entity.HasMany(e => e.Subscriptions)
+                .WithOne(e => e.Institution)
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Plan>(entity =>
+        {
+            entity.ToTable("planos");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_plano")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .HasColumnName("nome")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasColumnName("descricao")
+                .HasColumnType("text");
+
+            entity.Property(e => e.MonthlyPrice)
+                .HasColumnName("valor_mensal")
+                .HasColumnType("decimal(10,2)")
+                .IsRequired();
+
+            entity.Property(e => e.MaxPatients)
+                .HasColumnName("limite_acolhidos")
+                .IsRequired();
+
+            entity.Property(e => e.MaxUsers)
+                .HasColumnName("limite_usuarios")
+                .IsRequired();
+
+            entity.Property(e => e.Active)
+                .HasColumnName("ativo")
+                .IsRequired();
+
+            entity.HasMany(e => e.Subscriptions)
+                .WithOne(e => e.Plan)
+                .HasForeignKey(e => e.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.ToTable("assinaturas");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_assinatura")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao")
+                .IsRequired();
+
+            entity.Property(e => e.PlanId)
+                .HasColumnName("id_plano")
+                .IsRequired();
+
+            entity.Property(e => e.StartDate)
+                .HasColumnName("data_inicio")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(e => e.EndDate)
+                .HasColumnName("data_fim")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(e => e.ExternalSubscriptionId)
+                .HasColumnName("id_assinatura_externa")
+                .HasMaxLength(150);
+
+            entity.HasOne(e => e.Institution)
+                .WithMany(e => e.Subscriptions)
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Plan)
+                .WithMany(e => e.Subscriptions)
+                .HasForeignKey(e => e.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(e => e.SubscriptionPayments)
+                .WithOne(e => e.Subscription)
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SubscriptionPayment>(entity =>
+        {
+            entity.ToTable("pagamentos_assinatura");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_pagamento_assinatura")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.SubscriptionId)
+                .HasColumnName("id_assinatura")
+                .IsRequired();
+
+            entity.Property(e => e.Amount)
+                .HasColumnName("valor")
+                .HasColumnType("decimal(10,2)")
+                .IsRequired();
+
+            entity.Property(e => e.PaymentMethod)
+                .HasColumnName("metodo_pagamento")
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(e => e.PaymentDate)
+                .HasColumnName("data_pagamento")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.ExternalPaymentId)
+                .HasColumnName("id_pagamento_externo")
+                .HasMaxLength(150);
+
+            entity.Property(e => e.Observations)
+                .HasColumnName("observacoes")
+                .HasColumnType("text");
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany(e => e.SubscriptionPayments)
+                .HasForeignKey(e => e.SubscriptionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<BloodType>(entity =>

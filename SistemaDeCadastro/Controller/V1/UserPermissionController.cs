@@ -35,7 +35,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateUserPermission")]
         public async Task<IActionResult> CreateUserPermission(CreateUserPermissionDTO entity)
         {
-            // TODO: Ajustar IUserPermissionApp e UserPermissionApp para receber CreateUserPermissionDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
@@ -43,7 +42,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdateUserPermission")]
         public async Task<IActionResult> UpdateUserPermission(UpdateUserPermissionDTO entity)
         {
-            // TODO: Ajustar IUserPermissionApp e UserPermissionApp para receber UpdateUserPermissionDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

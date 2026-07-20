@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -35,7 +36,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreatePayment")]
         public async Task<IActionResult> CreatePayment(CreatePaymentDTO entity)
         {
-            // TODO: Ajustar IPaymentApp e PaymentApp para receber CreatePaymentDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
@@ -43,7 +43,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdatePayment")]
         public async Task<IActionResult> UpdatePayment(UpdatePaymentDTO entity)
         {
-            // TODO: Ajustar IPaymentApp e PaymentApp para receber UpdatePaymentDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

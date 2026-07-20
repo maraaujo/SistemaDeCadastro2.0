@@ -7,8 +7,8 @@ namespace SistemaDeCadastro.APP.Interface
     {
         Task<List<Employee>> GetAll();
         Task<Employee?> GetById(long id);
-        Task<ApiResponse> Create(CreatePatientEmployeeDTO entity);
-        Task<ApiResponse> Update(Employee entity);
+        Task<ApiResponse> Create(CreateEmployeeDTO entity);
+        Task<ApiResponse> Update(UpdateEmployeeDTO entity);
         Task<ApiResponse> Delete(long id);
     }
 }

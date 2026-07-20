@@ -20,19 +20,55 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<MedicinePatientClinicalCondition?> GetById(long id) => (await _repo.FindBy(m => m.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(MedicinePatientClinicalCondition entity)
+        public async Task<ApiResponse> Create(CreateMedicinePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try {
+                var newEntity = new MedicinePatientClinicalCondition
+                {
+                    MedicineId = entity.MedicineId,
+                    PatientClinicalConditionId = entity.PatientClinicalConditionId,
+                    PrescribedDosage = entity.PrescribedDosage,
+                    Frequency = entity.Frequency,
+                    AdministrationTime = entity.AdministrationTime,
+                    ResponsibleEmployeeId = entity.ResponsibleEmployeeId,
+                    StartDate = entity.StartDate,
+                    EndDate = entity.EndDate,
+                    Observations = entity.Observations
+                };
+                  await _repo.Create(newEntity);
+             
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse { Success = false, ErrorMessage = ex.Message };
+            }
             return ret;
         }
 
-        public async Task<ApiResponse> Update(MedicinePatientClinicalCondition entity)
+        public async Task<ApiResponse> Update(UpdateMedicinePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+
+                var existingEntity = (await _repo.FindBy(m => m.Id == entity.Id)).FirstOrDefault();
+                existingEntity.MedicineId = entity.MedicineId;
+                existingEntity.PatientClinicalConditionId = entity.PatientClinicalConditionId;
+                existingEntity.PrescribedDosage = entity.PrescribedDosage;
+                existingEntity.Frequency = entity.Frequency;
+                existingEntity.AdministrationTime = entity.AdministrationTime;
+                existingEntity.ResponsibleEmployeeId = entity.ResponsibleEmployeeId;
+                existingEntity.StartDate = entity.StartDate;
+                existingEntity.EndDate = entity.EndDate;
+                existingEntity.Observations = entity.Observations;
+                await _repo.Update(existingEntity);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse { Success = false, ErrorMessage = ex.Message };
+            }
             return ret;
         }
 

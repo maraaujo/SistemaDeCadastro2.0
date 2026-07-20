@@ -12,8 +12,8 @@ namespace SistemaDeCadastro.APP.Interface
     {
         Task<List<Medicine>> GetMedicineId(long id);
         Task<List<Medicine>> GetAll();
-        Task<ApiResponse> CreateMedicine(Medicine medicine);
-        Task<ApiResponse> UpdateMedicine(MedicineDTO medicine);
+        Task<ApiResponse> CreateMedicine(CreateMedicineDTO medicine);
+        Task<ApiResponse> UpdateMedicine(UpdateMedicineDTO medicine);
         Task<ApiResponse> DeleteMedicine(MedicineDTO medicine);
     }
 }

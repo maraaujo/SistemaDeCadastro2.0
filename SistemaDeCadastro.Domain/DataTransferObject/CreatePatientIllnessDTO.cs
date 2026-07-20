@@ -8,6 +8,8 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 {
     public class CreatePatientIllnessDTO
     {
+        public long PatientId { get; set; }
+
         public long IllnessId { get; set; }
 
         public DateTime? DiagnosisDate { get; set; }

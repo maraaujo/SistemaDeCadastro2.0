@@ -1,4 +1,5 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 
@@ -17,17 +18,46 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<PatientEmployee?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(PatientEmployee entity)
+        public async Task<ApiResponse> Create(CreatePatientEmployeeDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
-            return ret;
+            try { 
+            var newEntity = new PatientEmployee
+            {
+                EmployeeId = entity.EmployeeId,
+                PatientId = entity.PatientId,
+                ResponsibilityFunction = entity.ResponsibilityFunction,
+                StartDate = entity.StartDate,
+                EndDate = entity.EndDate
+            };
+            await _repo.Create(newEntity);
+            ret.Success = true;
         }
+        catch (Exception ex)
+        {
+            ret.Success = false;
+            ret.ErrorMessage = ex.Message;
+        }
+        return ret;
+    }
 
-        public async Task<ApiResponse> Update(PatientEmployee entity)
+        public async Task<ApiResponse> Update(UpdatePatientEmployeeDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try { 
+            var existingEntity = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
+                existingEntity.EmployeeId = entity.EmployeeId;
+                existingEntity.PatientId = entity.PatientId;
+                existingEntity.ResponsibilityFunction = entity.ResponsibilityFunction;
+                existingEntity.StartDate = entity.StartDate;
+                existingEntity.EndDate = entity.EndDate;
+                await _repo.Update(existingEntity);
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

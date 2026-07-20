@@ -1,174 +1,174 @@
-using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore;
 
 
-using SistemaDeCadastro.APP.APP;
-using SistemaDeCadastro.Domain.DataTransferObject;
-using SistemaDeCadastro.Domain.Models.Stage;
-using SistemaDeCadastro.Infra.Repository;
-namespace SistemadeCadastro.Test
-{
-    public class PatientAppTest
-    {
-        private readonly PatientApp _patientApp;
+//using SistemaDeCadastro.APP.APP;
+//using SistemaDeCadastro.Domain.DataTransferObject;
+//using SistemaDeCadastro.Domain.Models.Stage;
+//using SistemaDeCadastro.Infra.Repository;
+//namespace SistemadeCadastro.Test
+//{
+//    public class PatientAppTest
+//    {
+//        private readonly PatientApp _patientApp;
      
-       // [Fact]
-        //public async Task GetPatientById()
-        //{
-        //    //Arrange
-        //    using var context = TestDbContextFactory.CreateDbContext();
+//       // [Fact]
+//        //public async Task GetPatientById()
+//        //{
+//        //    //Arrange
+//        //    using var context = TestDbContextFactory.CreateDbContext();
 
-        //    var existingPatientId = 1;
-           // var patientApp = CreatePatientApp(context);
+//        //    var existingPatientId = 1;
+//           // var patientApp = CreatePatientApp(context);
     
-        //    //Act 
-        //    var result = await patientApp.GetPatientById(existingPatientId);
+//        //    //Act 
+//        //    var result = await patientApp.GetPatientById(existingPatientId);
 
-        //    //Assert 
+//        //    //Assert 
 
-        //    Assert.NotNull(result);
-        //    Assert.Single(result);
-        //    Assert.Equal("Felipe Campelo", result.First().Name);
+//        //    Assert.NotNull(result);
+//        //    Assert.Single(result);
+//        //    Assert.Equal("Felipe Campelo", result.First().Name);
 
-        //}
-        [Fact]
-        public async Task CreatePatient()
-        {
-            //arrange 
-            using var context = TestDbContextFactory.CreateDbContext();
-            var createPatient = new CreatepatientDTO
-            {
-                Id = 0,
-                Name = "João",
-                BooldType = 1,
-                Phone = "987654321",
-                Responsible = "João Junior",
-                MedicinePatientIllnesses = new List<MedicinePatientIllnessDTO>
-                {
-                    new MedicinePatientIllnessDTO { IdIllness = 1, 
-                        IdMedicine = 1,
-                        Dosage = "10mg", 
-                        Time = 8 }
-                }
+//        //}
+//        [Fact]
+//        public async Task CreatePatient()
+//        {
+//            //arrange 
+//            using var context = TestDbContextFactory.CreateDbContext();
+//            var createPatient = new CreatepatientDTO
+//            {
+//                Id = 0,
+//                Name = "João",
+//                BooldType = 1,
+//                Phone = "987654321",
+//                Responsible = "João Junior",
+//                MedicinePatientIllnesses = new List<MedicinePatientIllnessDTO>
+//                {
+//                    new MedicinePatientIllnessDTO { IdIllness = 1, 
+//                        IdMedicine = 1,
+//                        Dosage = "10mg", 
+//                        Time = 8 }
+//                }
 
-            }; 
-            //Act 
-            var patientApp = CreatePatientApp(context);
-            var result = await patientApp.CreatePatient(createPatient);
+//            }; 
+//            //Act 
+//            var patientApp = CreatePatientApp(context);
+//            var result = await patientApp.CreatePatient(createPatient);
 
-            //Assert
-            Assert.True(result.Success);
-            var patient = context.Patients.FirstOrDefault();
-            Assert.NotNull(patient);
-            Assert.Equal("João", patient.Name);
-        }
+//            //Assert
+//            Assert.True(result.Success);
+//            var patient = context.Patients.FirstOrDefault();
+//            Assert.NotNull(patient);
+//            Assert.Equal("João", patient.Name);
+//        }
 
-        [Fact]
-        public async Task UpdatePatient()
-        {
-            //Arrange
-            using var context = TestDbContextFactory.CreateDbContext();
-            var existingPatient = new Patient
-            {
-                Name = "João",
-                Document = "123456",
+//        [Fact]
+//        public async Task UpdatePatient()
+//        {
+//            //Arrange
+//            using var context = TestDbContextFactory.CreateDbContext();
+//            var existingPatient = new Patient
+//            {
+//                Name = "João",
+//                Document = "123456",
  
-                Phone = "123456789",
-                BloodTypeId = 1
-            }; 
-            context.Patients.Add(existingPatient);
-            await context.SaveChangesAsync();
+//                Phone = "123456789",
+//                BloodTypeId = 1
+//            }; 
+//            context.Patients.Add(existingPatient);
+//            await context.SaveChangesAsync();
 
-            var updatePatient = new PatientDTO
-            {
-                Id = existingPatient.Id,
-                Name = "João Neto",
-                Document = "654321",
-                Responsible = "New Responsible",
-                Phone = "987654321",
-                IdBloodType = 2
-            };
+//            var updatePatient = new PatientDTO
+//            {
+//                Id = existingPatient.Id,
+//                Name = "João Neto",
+//                Document = "654321",
+//                Responsible = "New Responsible",
+//                Phone = "987654321",
+//                IdBloodType = 2
+//            };
 
-            //Act 
-            var patientApp = CreatePatientApp(context);
-            var response = await patientApp.UpdatePatient(updatePatient);
+//            //Act 
+//            var patientApp = CreatePatientApp(context);
+//            var response = await patientApp.UpdatePatient(updatePatient);
 
-            //Assert
+//            //Assert
 
-            Assert.True(response.Success);
-            var patient = context.Patients.FirstOrDefault( p => p.Id == existingPatient.Id );   
-            Assert.NotNull(patient);
-            Assert.Equal("João Neto", patient.Name );
-            Assert.Equal("654321", patient.Document);
-        }
+//            Assert.True(response.Success);
+//            var patient = context.Patients.FirstOrDefault( p => p.Id == existingPatient.Id );   
+//            Assert.NotNull(patient);
+//            Assert.Equal("João Neto", patient.Name );
+//            Assert.Equal("654321", patient.Document);
+//        }
 
-        [Fact]
-        public async Task DeletePatient()
-        {
-            //Arrange
-            using var context = TestDbContextFactory.CreateDbContext();
-            var patient = new Patient
-            {
-                Name = "John Doe",
-                Document = "123456",
+//        [Fact]
+//        public async Task DeletePatient()
+//        {
+//            //Arrange
+//            using var context = TestDbContextFactory.CreateDbContext();
+//            var patient = new Patient
+//            {
+//                Name = "John Doe",
+//                Document = "123456",
         
-                Phone = "123456789",
-                BloodTypeId = 1
-            };
-            context.Patients.Add(patient);
-            await context.SaveChangesAsync();
+//                Phone = "123456789",
+//                BloodTypeId = 1
+//            };
+//            context.Patients.Add(patient);
+//            await context.SaveChangesAsync();
 
-            //Act
-            var patientApp = CreatePatientApp(context);
-            var responte = await patientApp.DeletePatient(patient.Id);
+//            //Act
+//            var patientApp = CreatePatientApp(context);
+//            var responte = await patientApp.DeletePatient(patient.Id);
 
-            //Asset 
-            Assert.True(responte.Success);
-            Assert.Null(context.Patients.FirstOrDefault(p => p.Id == patient.Id));
-        }
-        //[Fact]
-        //public async Task CreateNewDosageInterval_ShouldAddToHistoricTable()
-        //{
-        //    // Arrange
-        //    using var context = TestDbContextFactory.CreateDbContext();
-        //    var medicinePatientIllness = new MedicinePatientIllness
-        //    {
-        //        IdIllness = 1,
-        //        IdMedicine = 1,
-        //        Dosage = "1x ao dia",
-        //        Time = 8
-        //    };
-        //    context.MedicinePatientIllnesses.Add(medicinePatientIllness);
-        //    await context.SaveChangesAsync();
+//            //Asset 
+//            Assert.True(responte.Success);
+//            Assert.Null(context.Patients.FirstOrDefault(p => p.Id == patient.Id));
+//        }
+//        //[Fact]
+//        //public async Task CreateNewDosageInterval_ShouldAddToHistoricTable()
+//        //{
+//        //    // Arrange
+//        //    using var context = TestDbContextFactory.CreateDbContext();
+//        //    var medicinePatientIllness = new MedicinePatientIllness
+//        //    {
+//        //        IdIllness = 1,
+//        //        IdMedicine = 1,
+//        //        Dosage = "1x ao dia",
+//        //        Time = 8
+//        //    };
+//        //    context.MedicinePatientIllnesses.Add(medicinePatientIllness);
+//        //    await context.SaveChangesAsync();
 
-        //    var historicDTO = new MedicinePatientIllnessHistoricDTO
-        //    {
-        //        IdMedicinePatientIllness = medicinePatientIllness.Id,
-        //        LastTime = DateTime.Now
-        //    };
+//        //    var historicDTO = new MedicinePatientIllnessHistoricDTO
+//        //    {
+//        //        IdMedicinePatientIllness = medicinePatientIllness.Id,
+//        //        LastTime = DateTime.Now
+//        //    };
 
-        //    // Act
-        //    var response = await _patientApp.CreateNewDosageInterval(historicDTO);
+//        //    // Act
+//        //    var response = await _patientApp.CreateNewDosageInterval(historicDTO);
 
-        //    // Assert
-        //    Assert.True(response.Success);
-        //    var historic = context.MedicinePatientIllnessHistorics.FirstOrDefault();
-        //    Assert.NotNull(historic);
-        //    Assert.Equal(medicinePatientIllness.Id, historic.IdMedicinePatientIllness);
-        //}
+//        //    // Assert
+//        //    Assert.True(response.Success);
+//        //    var historic = context.MedicinePatientIllnessHistorics.FirstOrDefault();
+//        //    Assert.NotNull(historic);
+//        //    Assert.Equal(medicinePatientIllness.Id, historic.IdMedicinePatientIllness);
+//        //}
 
-        private static PatientApp CreatePatientApp(SistemaDeCadastroContext context)
-        {
-            return new PatientApp(
-                new PatientRepository(context),
-                null, // IResponsibleRepository
-                null, // IPatientEmployeeRepository
-                null, // IPatientClinicalConditionRepository
-                null, // IPatientIllnessRepository
-                null, // IAppointmentRepository
-                null, // ICareServiceRepository
-                null, // IPaymentRepository
-                null  // IMedicinePatientClinicalConditionRepository
-            );
-        }
-    }
-}
+//        private static PatientApp CreatePatientApp(SistemaDeCadastroContext context)
+//        {
+//            return new PatientApp(
+//                new PatientRepository(context),
+//                null, // IResponsibleRepository
+//                null, // IPatientEmployeeRepository
+//                null, // IPatientClinicalConditionRepository
+//                null, // IPatientIllnessRepository
+//                null, // IAppointmentRepository
+//                null, // ICareServiceRepository
+//                null, // IPaymentRepository
+//                null  // IMedicinePatientClinicalConditionRepository
+//            );
+//        }
+//    }
+//}

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
@@ -7,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DepartmentController : ControllerBase
     {
         private IConfiguration _configuration;

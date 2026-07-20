@@ -1,7 +1,7 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-
+using SistemaDeCadastro.Domain.DataTransferObject;
 namespace SistemaDeCadastro.APP.APP
 {
     public class AccessLogApp : IAccessLogApp
@@ -17,17 +17,52 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<AccessLog?> GetById(long id) => (await _repo.FindBy(a => a.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(AccessLog entity)
+        public async Task<ApiResponse> Create(CreateAccessLogDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Create(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try { 
+                var newAccessLog = new AccessLog
+                {
+                    UserId = entity.UserId,
+                    Action = entity.Action,
+                  DateTime = entity.DateTime,
+                   IpAddress = entity.IpAddress,
+                   Observation = entity.Observation
+                };
+                await _repo.Create(newAccessLog);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
+        
 
-        public async Task<ApiResponse> Update(AccessLog entity)
+        public async Task<ApiResponse> Update(UpdateAccessLogDTO entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            try
+            {
+                var existingEntity = (await _repo.FindBy(a => a.Id == entity.Id)).FirstOrDefault();
+                if (existingEntity != null)
+                {
+                    existingEntity.UserId = entity.UserId;
+                    existingEntity.Action = entity.Action;
+                    existingEntity.DateTime = entity.DateTime;
+                    existingEntity.IpAddress = entity.IpAddress;
+                    existingEntity.Observation = entity.Observation;
+                    await _repo.Update(existingEntity);
+                    ret.Success = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.Message;
+            }
             return ret;
         }
 

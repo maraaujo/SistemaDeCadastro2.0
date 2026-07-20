@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
@@ -7,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ResponsibleController : ControllerBase
     {
         private IConfiguration _configuration;
@@ -35,7 +37,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateResponsible")]
         public async Task<IActionResult> CreateResponsible(CreateResponsibleDTO responsible)
         {
-            // TODO: Ajustar IResponsibleApp e ResponsibleApp para receber CreateResponsibleDTO
             var ret = await _responsibleApp.Create(responsible);
             return Ok(ret);
         }
@@ -43,7 +44,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdateResponsible")]
         public async Task<IActionResult> UpdateResponsible(UpdateResponsibleDTO responsible)
         {
-            // TODO: Ajustar IResponsibleApp e ResponsibleApp para receber UpdateResponsibleDTO
             var ret = await _responsibleApp.Update(responsible);
             return Ok(ret);
         }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.APP.Interface
 {
+    // Interface kept as-is (no changes)
     public interface IAuthApp
     {
         Task<ApiResponse> Login(LoginRequestDTO login);

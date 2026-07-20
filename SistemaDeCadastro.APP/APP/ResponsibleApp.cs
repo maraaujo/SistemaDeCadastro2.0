@@ -1,7 +1,7 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-
+using SistemaDeCadastro.Domain.DataTransferObject;
 namespace SistemaDeCadastro.APP.APP
 {
     public class ResponsibleApp : IResponsibleApp
@@ -17,13 +17,19 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<Responsible?> GetById(long id) => (await _responsibleRepository.FindBy(r => r.Id == id)).FirstOrDefault();
 
-        public async Task<ApiResponse> Create(Responsible entity)
+        public async Task<ApiResponse> Create(CreateResponsibleDTO entity)
         {
             var ret = new ApiResponse();
             try
             {
-                await _responsibleRepository.Create(entity);
-                ret.Success = true;
+                var responsible = new Responsible
+                {
+                    Name = entity.Name,
+                    Relationship = entity.Relationship,
+                    Phone = entity.Phone,
+                    Address = entity.Address,
+                    PatientId = entity.PatientId
+                };
             }
             catch (Exception ex)
             {
@@ -33,13 +39,26 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
-        public async Task<ApiResponse> Update(Responsible entity)
+        public async Task<ApiResponse> Update(UpdateResponsibleDTO entity)
         {
             var ret = new ApiResponse();
-            try
+            try { 
+            var existingResponsible = (await _responsibleRepository.FindBy(r => r.Id == entity.Id)).FirstOrDefault();
+            if (existingResponsible != null)
             {
-                await _responsibleRepository.Update(entity);
+                existingResponsible.Name = entity.Name;
+                existingResponsible.Relationship = entity.Relationship;
+                existingResponsible.Phone = entity.Phone;
+                existingResponsible.Address = entity.Address;
+                existingResponsible.PatientId = entity.PatientId;
+                await _responsibleRepository.Update(existingResponsible);
                 ret.Success = true;
+            }
+            else
+            {
+                ret.Success = false;
+                ret.ErrorMessage = "Responsible not found.";
+            }
             }
             catch (Exception ex)
             {

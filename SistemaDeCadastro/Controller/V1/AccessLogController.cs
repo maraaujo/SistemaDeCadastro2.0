@@ -35,7 +35,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateAccessLog")]
         public async Task<IActionResult> CreateAccessLog(CreateAccessLogDTO entity)
         {
-            // TODO: Ajustar IAccessLogApp e AccessLogApp para receber CreateAccessLogDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }
@@ -43,7 +42,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPut("UpdateAccessLog")]
         public async Task<IActionResult> UpdateAccessLog(UpdateAccessLogDTO entity)
         {
-            // TODO: Ajustar IAccessLogApp e AccessLogApp para receber UpdateAccessLogDTO
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

@@ -1,7 +1,9 @@
 using Microsoft.IdentityModel.Protocols.WSFederation.Metadata;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.APP.APP
@@ -13,6 +15,10 @@ namespace SistemaDeCadastro.APP.APP
         public ClinicalConditionApp(IClinicalConditionRepository clinicalConditionRepository)
         {
             _clinicalConditionRepository = clinicalConditionRepository;
+        }
+        public async Task<PagedClinicalConditionDTO> GetClinicalConditionByFilter(ClinicalConditionFilterDTO filter)
+        {
+            return await _clinicalConditionRepository.GetClinicalConditionByFilter(filter);
         }
 
         public async Task<List<ClinicalCondition>> GetAll() => await _clinicalConditionRepository.GetAll();

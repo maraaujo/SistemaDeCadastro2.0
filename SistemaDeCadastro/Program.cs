@@ -65,7 +65,7 @@ builder.Services.AddScoped<IPaymentApp, PaymentApp>();
 builder.Services.AddScoped<ISubscriptionApp, SubscriptionApp>();
 builder.Services.AddScoped<ISubscriptionPaymentApp, SubscriptionPaymentApp>();
 builder.Services.AddScoped<IPlanApp, PlanApp>();
-builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();>
+builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
 
 // Repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();

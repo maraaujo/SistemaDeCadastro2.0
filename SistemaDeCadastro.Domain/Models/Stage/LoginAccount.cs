@@ -13,7 +13,7 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public long UserId { get; set; }
 
         public string Email { get; set; }
-
+      
         public string PasswordHash { get; set; }
 
         public string UserType { get; set; }

@@ -764,7 +764,43 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.PermissionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+        modelBuilder.Entity<LoginAccount>(entity =>
+        {
+            entity.ToTable("contas_login");
 
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_conta_login")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("id_usuario")
+                .IsRequired();
+
+            entity.Property(e => e.Email)
+                .HasColumnName("email")
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(e => e.PasswordHash)
+                .HasColumnName("senha_hash")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.UserType)
+                .HasColumnName("tipo_usuario")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.LastLogin)
+                .HasColumnName("ultimo_login")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.Active)
+                .HasColumnName("ativo")
+                .IsRequired();
+        });
         modelBuilder.Entity<AccessLog>(entity =>
         {
             entity.ToTable("log_acesso");

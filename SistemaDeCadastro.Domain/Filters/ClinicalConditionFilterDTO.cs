@@ -7,5 +7,6 @@ namespace SistemaDeCadastro.Domain.Filters
         public string Description { get; set; }
         public string Type { get; set; }
         public int Page { get; set; } = 1;
+
     }
 }

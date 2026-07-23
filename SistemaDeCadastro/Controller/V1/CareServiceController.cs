@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -53,6 +54,12 @@ namespace SistemaDeCadastro.Controller.V1
         {
             var ret = await _app.Delete(idCareService);
             return Ok(ret);
+        }
+        [HttpPost("GetCareServiceByFilter")]
+        public async Task<IActionResult> GetCareServiceByFilter(CareServiceFilterDTO filter)
+        {
+            var items = await _app.GetCareServiceByFilter(filter);
+            return Ok(items);
         }
     }
 }

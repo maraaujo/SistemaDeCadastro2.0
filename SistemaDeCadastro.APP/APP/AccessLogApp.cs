@@ -1,7 +1,9 @@
 using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Pageds;
 namespace SistemaDeCadastro.APP.APP
 {
     public class AccessLogApp : IAccessLogApp
@@ -12,7 +14,10 @@ namespace SistemaDeCadastro.APP.APP
         {
             _repo = repo;
         }
-
+        public async Task<PagedAcesseLog> GetAccessLogsByFilter(AccessLogFilterDTO filter)
+        {
+            return await _repo.GetAccessLogsByFilter(filter);
+        }
         public async Task<List<AccessLog>> GetAll() => await _repo.GetAll();
 
         public async Task<AccessLog?> GetById(long id) => (await _repo.FindBy(a => a.Id == id)).FirstOrDefault();

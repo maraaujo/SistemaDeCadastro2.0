@@ -1,6 +1,8 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.APP.APP
@@ -71,6 +73,10 @@ namespace SistemaDeCadastro.APP.APP
             try { var entity = (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault(); if (entity != null) await _departmentRepository.Delete(entity); ret.Success = true; }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
             return ret;
+        }
+        public async Task<PagedDepartmentDTO> GetDepartmentByFilter(DepartmentFilterDTO filter)
+        {
+            return await _departmentRepository.GetDepartmentByFilter(filter);
         }
     }
 }

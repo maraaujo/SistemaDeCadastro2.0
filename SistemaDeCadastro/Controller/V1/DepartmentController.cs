@@ -54,5 +54,11 @@ namespace SistemaDeCadastro.Controller.V1
             var ret = await _departmentApp.Delete(idDepartment);
             return Ok(ret);
         }
+        [HttpPost("GetDepartmentByFilter")]
+        public async Task<IActionResult> GetDepartmentByFilter(DepartmentFilterDTO filter)
+        {
+            var ret = await _departmentApp.GetDepartmentByFilter(filter);
+            return Ok(ret);
+        }
     }
 }

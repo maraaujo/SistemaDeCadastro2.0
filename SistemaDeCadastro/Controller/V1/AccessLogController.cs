@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
+
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -16,6 +18,12 @@ namespace SistemaDeCadastro.Controller.V1
         {
             this._configuration = configuration;
             this._app = app;
+        }
+        [HttpGet("GetAccessLogsByFilter")]
+        public async Task<IActionResult> GetAccessLogsByFilter(AccessLogFilterDTO filter)
+        {
+            var items = await _app.GetAccessLogsByFilter(filter);
+            return Ok(items);
         }
 
         [HttpGet("GetAccessLogById")]

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Pageds;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -55,6 +57,12 @@ namespace SistemaDeCadastro.Controller.V1
         {
             var ret = await _app.Delete(idAppointment);
             return Ok(ret);
+        }
+        [HttpPost("GetPagedAppointmentByFilter")]
+        public async Task<IActionResult> GetPagedAppointmentByFilter(AppointmentFilterDTO filter)
+        {
+            var pagedAppointments = await _app.GetPagedAppointmentByFilter(filter);
+            return Ok(pagedAppointments);
         }
     }
 }

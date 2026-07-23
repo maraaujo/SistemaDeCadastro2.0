@@ -18,7 +18,22 @@ namespace SistemaDeCadastro.APP.APP
         {
             _repo = repo;
         }
-
+        public Task<ApiResponse> GetActiveByInstitutionId(long institutionId)
+        {
+            var ret = new ApiResponse();
+            try
+            {
+                var item = _repo.GetActiveByInstitutionId(institutionId);
+                ret.Success = true;
+                ret.Data = item;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+            }
+            return Task.FromResult(ret);
+        }
         public async Task<ApiResponse> Create(CreateSubscriptionDTO entity)
         {
             var ret = new ApiResponse();
@@ -140,4 +155,4 @@ namespace SistemaDeCadastro.APP.APP
         }
     }
 }
-}
+

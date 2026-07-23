@@ -2,7 +2,8 @@ using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Pageds;  
 namespace SistemaDeCadastro.APP.APP
 {
     public class EmployeeApp : IEmployeeApp
@@ -81,6 +82,10 @@ namespace SistemaDeCadastro.APP.APP
             try { var entity = (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault(); if (entity != null) await _employeeRepository.Delete(entity); ret.Success = true; }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
             return ret;
+        }
+        public async Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter)
+        {
+            return await _employeeRepository.GetEmployeeByFilter(filter);
         }
     }
 }

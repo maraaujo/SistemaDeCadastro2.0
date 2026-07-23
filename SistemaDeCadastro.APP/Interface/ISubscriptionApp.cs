@@ -10,9 +10,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Delete(long id);
         Task<ApiResponse> GetById(long id);
         Task<ApiResponse> GetAll();
-
-        Task<ApiResponse> SimulatePaymentApproved(long subscriptionId);
-        Task<ApiResponse> SimulatePaymentRefused(long subscriptionId);
-        Task<ApiResponse> GetActiveSubscriptionByInstitution(long institutionId);
+        Task<ApiResponse> GetActiveByInstitutionId(long institutionId);
     }
 }

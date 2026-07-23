@@ -1,5 +1,7 @@
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 
 namespace SistemaDeCadastro.APP.Interface
 {
@@ -10,5 +12,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Create(CreateEmployeeDTO entity);
         Task<ApiResponse> Update(UpdateEmployeeDTO entity);
         Task<ApiResponse> Delete(long id);
+        Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter);
     }
 }

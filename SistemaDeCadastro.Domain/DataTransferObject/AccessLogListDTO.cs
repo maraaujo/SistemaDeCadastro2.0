@@ -8,6 +8,7 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long UserId { get; set; }
         public string UserEmail { get; set; }
         public string Action { get; set; }
+        public string UserType { get; set; }
         public DateTime DateTime { get; set; }
         public string IpAddress { get; set; }
     }

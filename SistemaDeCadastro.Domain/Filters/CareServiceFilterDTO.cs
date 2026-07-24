@@ -5,8 +5,8 @@ namespace SistemaDeCadastro.Domain.Filters
 {
     public class CareServiceFilterDTO
     {
-        public long Id { get; set; }
-        public long AppointmentId { get; set; }
+        public long? Id { get; set; }
+        public long? AppointmentId { get; set; }
 
         public long? PatientId { get; set; }
         public long? UserId { get; set; }

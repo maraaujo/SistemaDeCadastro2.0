@@ -1,9 +1,7 @@
-﻿using SistemaDeCadastro.Domain.Models.Stage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
+
 
 namespace SistemaDeCadastro.Infra.Interface
 {
@@ -15,5 +13,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task CreateIllness(Illness illness);
         Task UpdateIllness(Illness illness);
         Task GetAnyIllnessIfTheValor(string illness);
+        Task<PagedIllnessDTO> GetIllnessByFilter(IllnessFilterDTO filter);
     }
 }

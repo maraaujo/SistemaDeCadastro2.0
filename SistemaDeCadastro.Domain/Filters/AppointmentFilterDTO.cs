@@ -10,9 +10,9 @@ namespace SistemaDeCadastro.Domain.Filters
         public long? UserId { get; set; }
         public string AppointmentType { get; set; }
         public DateTime? DateTime { get; set; }
-        public string Responsible { get; set; }
-        public string Observations { get; set; }
-        public string Status { get; set; }
+        public string? Responsible { get; set; }
+        public string? Observations { get; set; }
+        public string? Status { get; set; }
         public int Page { get; set; } = 1;
     }
 }

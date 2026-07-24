@@ -2,12 +2,9 @@
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-using SistemaDeCadastro.Infra.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Pageds;
+
 
 namespace SistemaDeCadastro.APP.APP
 {
@@ -99,6 +96,10 @@ namespace SistemaDeCadastro.APP.APP
             }
 
             return ret;
+        }
+        public async Task<PagedIllnessDTO> GetIllnessByFilter(IllnessFilterDTO filter)
+        {
+            return await _illnessRepository.GetIllnessByFilter(filter);
         }
     }
 }

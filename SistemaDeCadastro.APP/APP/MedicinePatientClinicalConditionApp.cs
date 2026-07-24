@@ -1,6 +1,8 @@
 using SistemaDeCadastro.APP.Interface;
-using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.APP.APP
@@ -85,6 +87,7 @@ namespace SistemaDeCadastro.APP.APP
             return await _repo.GetByPatientClinicalConditionId(patientClinicalConditionId);
         }
 
+        //implemntar job para ficar atualizando a lista de lembretes de medicamentos, e enviar notificação para o paciente
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
             var items = await _repo.GetAll();
@@ -111,6 +114,10 @@ namespace SistemaDeCadastro.APP.APP
             }
 
             return result;
+        }
+       public async Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
+        {
+            return await _repo.GetMedicinePatientClinicalConditionByFilter(filter);
         }
     }
 }

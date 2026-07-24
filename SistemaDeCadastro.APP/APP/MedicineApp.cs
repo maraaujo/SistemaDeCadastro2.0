@@ -3,12 +3,8 @@ using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Pageds;
 
 namespace SistemaDeCadastro.APP.APP
 {
@@ -87,5 +83,8 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
 
         }
+        public async Task<PagedMedicineDTO> GetMedicineByFilter(MedicineFilterDTO filter)
+        { return await this._medicineRepository.GetMedicineByFilter(filter); }
+        
     }
 }

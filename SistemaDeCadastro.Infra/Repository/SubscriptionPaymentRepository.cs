@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
     public class SubscriptionPaymentRepository : BaseRepository<SubscriptionPayment>, ISubscriptionPaymentRepository
     {
-        public SubscriptionPaymentRepository(DbContext context) : base(context)
+        private readonly SistemaDeCadastroContext _context;
+        public SubscriptionPaymentRepository(SistemaDeCadastroContext context) : base(context)
         {
+            _context = context;
         }
     }
 }

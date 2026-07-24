@@ -1,13 +1,16 @@
-using SistemaDeCadastro.Domain.Models.Stage;
-using SistemaDeCadastro.Infra.Interface;
 using Microsoft.EntityFrameworkCore;
+using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.SistemaCadastroContext;
+using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
     public class InstitutionRepository : BaseRepository<Institution>, IInstitutionRepository
     {
-        public InstitutionRepository(DbContext context) : base(context)
+        private readonly SistemaDeCadastroContext _context;
+        public InstitutionRepository(SistemaDeCadastroContext context) : base(context)
         {
+            _context = context;
         }
     }
 }

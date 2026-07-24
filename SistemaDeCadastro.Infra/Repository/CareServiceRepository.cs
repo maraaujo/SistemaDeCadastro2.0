@@ -43,8 +43,8 @@ namespace SistemaDeCadastro.Infra.Repository
             var page = filter.Page <= 0 ? 1 : filter.Page;
             var query = from c in _context.CareServices
                         join a in _context.Appointments on c.AppointmentId equals a.Id
-                        join p in _context.Patients on c.PatientId equals p.Id
-                        join u in _context.LoginAccounts on c.UserId equals u.UserId
+                        join p in _context.Patients on a.PatientId equals p.Id
+                        
                         select new CareServiceListDTO
                         {
                             Id = c.Id,

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
-
+using SistemaDeCadastro.Domain.Filters;
 namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
@@ -66,6 +66,12 @@ namespace SistemaDeCadastro.Controller.V1
         public async Task<IActionResult> GetMedicineReminders()
         {
             var ret = await _app.GetMedicineReminders();
+            return Ok(ret);
+        }
+        [HttpPost("GetMedicinePatientClinicalConditionByFilter")]
+        public async Task<IActionResult> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
+        {
+            var ret = await _app.GetMedicinePatientClinicalConditionByFilter(filter);
             return Ok(ret);
         }
     }

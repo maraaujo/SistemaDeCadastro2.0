@@ -1,5 +1,7 @@
 ﻿using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +17,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> CreateMedicine(CreateMedicineDTO medicine);
         Task<ApiResponse> UpdateMedicine(UpdateMedicineDTO medicine);
         Task<ApiResponse> DeleteMedicine(MedicineDTO medicine);
+        Task<PagedMedicineDTO> GetMedicineByFilter(MedicineFilterDTO filter);
     }
 }

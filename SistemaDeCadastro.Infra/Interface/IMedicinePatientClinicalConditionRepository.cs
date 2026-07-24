@@ -1,6 +1,8 @@
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
-using System.Threading.Tasks;
+using SistemaDeCadastro.Domain.Pageds;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SistemaDeCadastro.Infra.Interface
 {
@@ -8,5 +10,6 @@ namespace SistemaDeCadastro.Infra.Interface
     {
         Task<MedicinePatientClinicalCondition?> GetById(long id);
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
+        Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter);
     }
 }

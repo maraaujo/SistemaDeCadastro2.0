@@ -29,7 +29,7 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 Medicine newMedicine = new();
-                newMedicine.Frequency = medicine.Frequency;
+              
                 newMedicine.Description = medicine.Description;
                 newMedicine.Dosage = medicine.Dosage;
                 newMedicine.Name = medicine.Name;
@@ -55,7 +55,7 @@ namespace SistemaDeCadastro.APP.APP
                 updateMedicine.Name = medicine.Name;
                 updateMedicine.Description = medicine.Description;
                 updateMedicine.Dosage = medicine.Dosage;
-                updateMedicine.Frequency = medicine.Frequency;
+               
                 updateMedicine.AdministrationRoute = medicine.AdministrationRoute;
                 await this._medicineRepository.UpdateMedicine(updateMedicine);
             }

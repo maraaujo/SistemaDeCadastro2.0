@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using SistemaDeCadastro.Domain.Models.Stage;
 
@@ -109,9 +108,17 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.Property(e => e.BloodTypeId)
                 .HasColumnName("id_blood_type");
 
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
+
             entity.HasOne(e => e.BloodType)
                 .WithMany(e => e.Patients)
                 .HasForeignKey(e => e.BloodTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -368,6 +375,14 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.Property(e => e.Description)
                 .HasColumnName("descricao")
                 .HasColumnType("text");
+
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -411,9 +426,17 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.Property(e => e.DepartmentId)
                 .HasColumnName("id_departamento");
 
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
+
             entity.HasOne(e => e.Department)
                 .WithMany(e => e.Employees)
                 .HasForeignKey(e => e.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -677,7 +700,11 @@ public partial class SistemaDeCadastroContext : DbContext
                 .ValueGeneratedOnAdd();
 
             entity.Property(e => e.UserId)
-                .HasColumnName("id_usuario");
+                .HasColumnName("id_usuario")
+                .IsRequired();
+
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
 
             entity.Property(e => e.Email)
                 .HasColumnName("email")
@@ -694,7 +721,8 @@ public partial class SistemaDeCadastroContext : DbContext
 
             entity.Property(e => e.UserType)
                 .HasColumnName("tipo_usuario")
-                .HasMaxLength(50);
+                .HasMaxLength(50)
+                .IsRequired();
 
             entity.Property(e => e.LastLogin)
                 .HasColumnName("ultimo_login")
@@ -702,7 +730,13 @@ public partial class SistemaDeCadastroContext : DbContext
 
             entity.Property(e => e.Active)
                 .HasColumnName("ativo")
-                .HasDefaultValue(true);
+                .HasDefaultValue(true)
+                .IsRequired();
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<AvailablePermission>(entity =>
@@ -764,43 +798,6 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.PermissionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        modelBuilder.Entity<LoginAccount>(entity =>
-        {
-            entity.ToTable("contas_login");
-
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .HasColumnName("id_conta_login")
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.UserId)
-                .HasColumnName("id_usuario")
-                .IsRequired();
-
-            entity.Property(e => e.Email)
-                .HasColumnName("email")
-                .HasMaxLength(150)
-                .IsRequired();
-
-            entity.Property(e => e.PasswordHash)
-                .HasColumnName("senha_hash")
-                .HasMaxLength(255)
-                .IsRequired();
-
-            entity.Property(e => e.UserType)
-                .HasColumnName("tipo_usuario")
-                .HasMaxLength(50)
-                .IsRequired();
-
-            entity.Property(e => e.LastLogin)
-                .HasColumnName("ultimo_login")
-                .HasColumnType("datetime");
-
-            entity.Property(e => e.Active)
-                .HasColumnName("ativo")
-                .IsRequired();
-        });
         modelBuilder.Entity<AccessLog>(entity =>
         {
             entity.ToTable("log_acesso");
@@ -853,6 +850,9 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.Property(e => e.UserId)
                 .HasColumnName("id_usuario");
 
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
+
             entity.Property(e => e.AppointmentType)
                 .HasColumnName("tipo_atendimento")
                 .HasMaxLength(100);
@@ -883,6 +883,11 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .HasPrincipalKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<CareService>(entity =>
@@ -903,6 +908,9 @@ public partial class SistemaDeCadastroContext : DbContext
 
             entity.Property(e => e.UserId)
                 .HasColumnName("id_usuario");
+
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
 
             entity.Property(e => e.Description)
                 .HasColumnName("descricao")
@@ -934,6 +942,11 @@ public partial class SistemaDeCadastroContext : DbContext
                 .WithMany(e => e.CareServices)
                 .HasForeignKey(e => e.UserId)
                 .HasPrincipalKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

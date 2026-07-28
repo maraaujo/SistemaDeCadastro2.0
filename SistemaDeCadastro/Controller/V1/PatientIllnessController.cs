@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
-
+using SistemaDeCadastro.Domain.Filters;
 namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
@@ -53,6 +53,12 @@ namespace SistemaDeCadastro.Controller.V1
         {
             var ret = await _app.Delete(idPatientIllness);
             return Ok(ret);
+        }
+        [HttpPost("GetPatientIllnessByFilter")]
+        public async Task<IActionResult> GetPatientIllnessByFilter(PatientIllnessFilterDTO filter)
+        {
+            var items = await _app.GetPatientIllnessByFilter(filter);
+            return Ok(items);
         }
     }
 }

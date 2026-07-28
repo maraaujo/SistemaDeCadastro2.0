@@ -1,5 +1,6 @@
 ﻿using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.APP.Interface
@@ -11,8 +12,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> UpdatePatient(PatientDTO patient);
         Task<ApiResponse> DeletePatient(long id);
         Task GetPatientByAny(string patient);
-        Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter);
-        Task<List<DetailsPatientDTO>> DetailsPatient();
+        Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter);        Task<List<DetailsPatientDTO>> DetailsPatient();
 
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
 

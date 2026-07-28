@@ -34,11 +34,11 @@ namespace SistemaDeCadastro.Infra.Repository
                         };
             if(!string.IsNullOrEmpty(filter.Name))
             {
-                query = query.Where(d => d.Name.Contains(filter.Name));
+                query = query.Where(d => d.Name.ToLower().Contains(filter.Name.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.Description))
             {
-                query = query.Where(d => d.Description.Contains(filter.Description));
+                query = query.Where(d => d.Description.ToLower().Contains(filter.Description.ToLower()));
             }
             var ret = new PagedDepartmentDTO();
 

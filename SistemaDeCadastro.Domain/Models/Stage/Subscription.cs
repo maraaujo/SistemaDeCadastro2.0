@@ -11,7 +11,7 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string Status { get; set; }
-        public string ExternalSubscriptionId { get; set; }
+        public string? ExternalSubscriptionId { get; set; }
 
         public virtual Institution Institution { get; set; }
         public virtual Plan Plan { get; set; }

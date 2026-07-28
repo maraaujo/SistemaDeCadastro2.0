@@ -50,12 +50,12 @@ namespace SistemaDeCadastro.Infra.Repository
 
             if (!string.IsNullOrEmpty(filter.UserEmail))
             {
-                query = query.Where(a => a.UserEmail.Contains(filter.UserEmail));
+                query = query.Where(a => a.UserEmail.ToLower().Contains(filter.UserEmail.ToLower()));
             }
 
             if (!string.IsNullOrEmpty(filter.Action))
             {
-                query = query.Where(a => a.Action.Contains(filter.Action));
+                query = query.Where(a => a.Action.ToLower().Contains(filter.Action));
             }
 
             if (filter.DateTime.HasValue)

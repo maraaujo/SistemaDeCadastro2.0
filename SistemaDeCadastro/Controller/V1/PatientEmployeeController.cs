@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 
 namespace SistemaDeCadastro.Controller.V1
 {
@@ -52,6 +53,12 @@ namespace SistemaDeCadastro.Controller.V1
         public async Task<IActionResult> DeletePatientEmployee(long idPatientEmployee)
         {
             var ret = await _app.Delete(idPatientEmployee);
+            return Ok(ret);
+        }
+        [HttpPost("GetPagedPatientEmployeeByFilter")]
+        public async Task<IActionResult> GetPagedPatientEmployeeByFilter(PatientEmployeeFilterDTO filter)
+        {
+            var ret = await _app.GetPagedPatientEmployeeByFilter(filter);
             return Ok(ret);
         }
     }

@@ -19,7 +19,8 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public string Phone { get; set; }
 
         public string Email { get; set; }
-
+        public long? InstitutionId { get; set; }
+        public virtual Institution Institution { get; set; }
         public DateTime AdmissionDate { get; set; }
 
         public long? DepartmentId { get; set; }

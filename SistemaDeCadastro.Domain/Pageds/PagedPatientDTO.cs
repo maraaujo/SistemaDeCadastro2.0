@@ -13,6 +13,6 @@ namespace SistemaDeCadastro.Domain.Pageds
         public int Page { get; set; }
         public int TotalPages { get; set; }
         public int ItensPerPage { get => 15; }
-        public List<SistemaDeCadastro.Domain.DataTransferObject.PatientListDTO> Patients { get; set; } = new();
+        public List<PatientListDTO> Patients { get; set; } = new();
     }
 }

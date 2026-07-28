@@ -67,15 +67,15 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             if (!string.IsNullOrEmpty(filter.Name))
             {
-                query = query.Where(c => c.Name.Contains(filter.Name));
+                query = query.Where(c => c.Name.ToLower().Contains(filter.Name.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.Cid))
             {
-                query = query.Where(c => c.Cid.Contains(filter.Cid));
+                query = query.Where(c => c.Cid.ToLower().Contains(filter.Cid.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.Description))
             {
-                query = query.Where(c => c.Description.Contains(filter.Description));
+                query = query.Where(c => c.Description.ToLower().Contains(filter.Description.ToLower()));
             }
             var ret = new PagedIllnessDTO();
 

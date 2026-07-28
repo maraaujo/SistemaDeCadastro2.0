@@ -1,5 +1,7 @@
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 
 namespace SistemaDeCadastro.APP.Interface
 {
@@ -10,5 +12,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Create(CreatePatientClinicalConditionDTO entity);
         Task<ApiResponse> Update(PatientClinicalCondition entity);
         Task<ApiResponse> Delete(long id);
+        Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter);
     }
 }

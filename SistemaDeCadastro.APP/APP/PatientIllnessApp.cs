@@ -2,6 +2,8 @@ using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Filters;
+using SistemaDeCadastro.Domain.Pageds;
 namespace SistemaDeCadastro.APP.APP
 {
     public class PatientIllnessApp : IPatientIllnessApp
@@ -12,7 +14,10 @@ namespace SistemaDeCadastro.APP.APP
         {
             _repo = repo;
         }
-
+        public async Task<PagedPatientIllnessDTO> GetPatientIllnessByFilter(PatientIllnessFilterDTO filter)
+        {
+            return await _repo.GetPatientIllnessByFilter(filter);
+        }
         public async Task<List<PatientIllness>> GetAll() => await _repo.GetAll();
 
         public async Task<PatientIllness?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();

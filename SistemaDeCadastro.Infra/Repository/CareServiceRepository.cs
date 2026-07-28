@@ -62,27 +62,27 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             if (!string.IsNullOrEmpty(filter.PatientName))
             {
-                query = query.Where(c => c.PatientName.Contains(filter.PatientName));
+                query = query.Where(c => c.PatientName.ToLower().Contains(filter.PatientName.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Referral))
             {
-                query = query.Where(c => c.Referral.Contains(filter.Referral));
+                query = query.Where(c => c.Referral.ToLower().Contains(filter.Referral.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.AppointmentType))
             {
-                query = query.Where(c => c.AppointmentType.Contains(filter.AppointmentType));
+                query = query.Where(c => c.AppointmentType.ToLower().Contains(filter.AppointmentType.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.AppointmentType))
             {
-                query = query.Where(c => c.AppointmentType.Contains(filter.AppointmentType));
+                query = query.Where(c => c.AppointmentType.ToLower().Contains(filter.AppointmentType.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Description))
             {
-                query = query.Where(c => c.Description.Contains(filter.Description));
+                query = query.Where(c => c.Description.ToLower().Contains(filter.Description.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Observations))
             {
-                query = query.Where(c => c.Observations.Contains(filter.Observations));
+                query = query.Where(c => c.Observations.ToLower().Contains(filter.Observations.ToLower()));
             }
             if (filter.ServiceDate.HasValue)
             {

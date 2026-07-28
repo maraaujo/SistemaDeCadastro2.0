@@ -96,22 +96,22 @@ namespace SistemaDeCadastro.Infra.Repository
 
             if (!string.IsNullOrWhiteSpace(filter.PatientName))
             {
-                query = query.Where(mp => mp.PatientName.Contains(filter.PatientName));
+                query = query.Where(mp => mp.PatientName.ToLower().Contains(filter.PatientName.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.MedicineName))
             {
-                query = query.Where(mp => mp.MedicineName.Contains(filter.MedicineName));
+                query = query.Where(mp => mp.MedicineName.ToLower().Contains(filter.MedicineName.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.ClinicalConditionName))
             {
-                query = query.Where(mp => mp.ClinicalConditionName.Contains(filter.ClinicalConditionName));
+                query = query.Where(mp => mp.ClinicalConditionName.ToLower().Contains(filter.ClinicalConditionName.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.ResponsibleEmployeeName))
             {
-                query = query.Where(mp => mp.ResponsibleEmployeeName.Contains(filter.ResponsibleEmployeeName));
+                query = query.Where(mp => mp.ResponsibleEmployeeName.ToLower().Contains(filter.ResponsibleEmployeeName.ToLower()));
             }
 
             if (filter.AdministrationTime.HasValue)

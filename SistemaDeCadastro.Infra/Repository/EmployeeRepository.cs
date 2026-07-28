@@ -48,23 +48,23 @@ namespace SistemaDeCadastro.Infra.Repository
                         };
             if(!string.IsNullOrEmpty(filter.Name))
             {
-                query = query.Where(e => e.Name.Contains(filter.Name));
+                query = query.Where(e => e.Name.ToLower().Contains(filter.Name.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Cpf))
             {
-                query = query.Where(e => e.Cpf.Contains(filter.Cpf));
+                query = query.Where(e => e.Cpf.ToLower().Contains(filter.Cpf.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Position))
             {
-                query = query.Where(e => e.Position.Contains(filter.Position));
+                query = query.Where(e => e.Position.ToLower().Contains(filter.Position.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Phone))
             {
-                query = query.Where(e => e.Phone.Contains(filter.Phone));
+                query = query.Where(e => e.Phone.ToLower().Contains(filter.Phone.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Email))
             {
-                query = query.Where(e => e.Email.Contains(filter.Email));
+                query = query.Where(e => e.Email.ToLower().Contains(filter.Email.ToLower()));
             }
             if (filter.DepartmentId.HasValue)
             {

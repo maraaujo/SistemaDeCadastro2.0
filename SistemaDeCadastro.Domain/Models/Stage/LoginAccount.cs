@@ -19,7 +19,8 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public string UserType { get; set; }
 
         public DateTime? LastLogin { get; set; }
-
+        public long? InstitutionId { get; set; }
+        public virtual Institution Institution { get; set; }
         public bool Active { get; set; } = true;
 
         public virtual ICollection<UserPermission> UserPermissions { get; set; }

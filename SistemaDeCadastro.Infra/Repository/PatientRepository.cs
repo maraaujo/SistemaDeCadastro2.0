@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Net.WebRequestMethods;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
@@ -20,6 +23,7 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             try
             {
+                
                 var result = await (
                     from p in _context.Patients
                     join pcc in _context.PatientClinicalConditions
@@ -47,68 +51,98 @@ namespace SistemaDeCadastro.Infra.Repository
             }
         }
 
-        public async Task<List<PatientFilterDTO>> FilterPatient(PatientFilterDTO filter)
+        
+        public async Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter)
         {
-            var ret =
-                from pa in _context.Patients
-                join pcc in _context.PatientClinicalConditions
-                    on pa.Id equals pcc.PatientId
-                join cc in _context.ClinicalConditions
-                    on pcc.ClinicalConditionId equals cc.Id
-                join mpcc in _context.MedicinePatientClinicalConditions
-                    on pcc.Id equals mpcc.PatientClinicalConditionId
-                join med in _context.Medicines
-                    on mpcc.MedicineId equals med.Id
-                join resp in _context.Responsibles
-                    on pa.Id equals resp.PatientId into respGroup
-                from resp in respGroup.DefaultIfEmpty()
-                select new
+            var page = filter.Page <= 0 ? 1 : filter.Page;
+
+            var query =
+                from pa in _context.Patients.AsNoTracking()
+
+                join re in _context.Responsibles.AsNoTracking()
+                    on pa.Id equals re.PatientId into responsibleGroup
+                from re in responsibleGroup.DefaultIfEmpty()
+
+                join pcc in _context.PatientClinicalConditions.AsNoTracking()
+                    on pa.Id equals pcc.PatientId into pccGroup
+                from pcc in pccGroup.DefaultIfEmpty()
+
+                join cc in _context.ClinicalConditions.AsNoTracking()
+                    on pcc.ClinicalConditionId equals cc.Id into ccGroup
+                from cc in ccGroup.DefaultIfEmpty()
+
+                join mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
+                    on pcc.Id equals mpcc.PatientClinicalConditionId into mpccGroup
+                from mpcc in mpccGroup.DefaultIfEmpty()
+
+                join med in _context.Medicines.AsNoTracking()
+                    on mpcc.MedicineId equals med.Id into medGroup
+                from med in medGroup.DefaultIfEmpty()
+
+                select new PatientListDTO
                 {
-                    Patient = pa,
-                    ClinicalCondition = cc,
-                    MedicinePatientClinicalCondition = mpcc,
-                    Medicine = med,
-                    Responsible = resp
+                    Id = pa.Id,
+                    Name = pa.Name,
+
+                    ResponsibleName = re != null ? re.Name : null,
+
+                    ClinicalCondition = cc != null ? cc.Name : null,
+
+                    Medicine = med != null ? med.Name : null,
+
+                    Dosage = mpcc != null ? mpcc.PrescribedDosage : null,
+
+                    Time = mpcc != null ? mpcc.AdministrationTime : null
                 };
 
-            if (!string.IsNullOrEmpty(filter.Name))
+            if (!string.IsNullOrWhiteSpace(filter.Name))
             {
-                ret = ret.Where(c => c.Patient.Name.Contains(filter.Name));
+                query = query.Where(c => c.Name.Contains(filter.Name));
             }
 
-            if (!string.IsNullOrEmpty(filter.Illness))
+            if (!string.IsNullOrWhiteSpace(filter.ResponsibleName))
             {
-                ret = ret.Where(c => c.ClinicalCondition.Name.Contains(filter.Illness));
+                query = query.Where(c => c.ResponsibleName != null &&
+                                         c.ResponsibleName.Contains(filter.ResponsibleName));
             }
 
-            if (!string.IsNullOrEmpty(filter.Medicine))
+            if (!string.IsNullOrWhiteSpace(filter.ClinicalCondition))
             {
-                ret = ret.Where(c => c.Medicine.Name.Contains(filter.Medicine));
+                query = query.Where(c => c.ClinicalCondition != null &&
+                                         c.ClinicalCondition.Contains(filter.ClinicalCondition));
             }
 
-            if (!string.IsNullOrEmpty(filter.Dosage))
+            if (!string.IsNullOrWhiteSpace(filter.Medicine))
             {
-                ret = ret.Where(c => c.MedicinePatientClinicalCondition.PrescribedDosage.Contains(filter.Dosage));
+                query = query.Where(c => c.Medicine != null &&
+                                         c.Medicine.Contains(filter.Medicine));
             }
 
-            if (!string.IsNullOrEmpty(filter.Responsible))
+            if (!string.IsNullOrWhiteSpace(filter.Dosage))
             {
-                ret = ret.Where(c =>
-                    c.Responsible != null &&
-                    c.Responsible.Name.Contains(filter.Responsible));
+                query = query.Where(c => c.Dosage != null &&
+                                         c.Dosage.Contains(filter.Dosage));
             }
 
-            var result = await ret.Select(c => new PatientFilterDTO
-            {
-                Name = c.Patient.Name,
-                Illness = c.ClinicalCondition.Name,
-                Medicine = c.Medicine.Name,
-                Dosage = c.MedicinePatientClinicalCondition.PrescribedDosage,
-                Responsible = c.Responsible != null ? c.Responsible.Name : null
-            }).ToListAsync();
+            var ret = new PagedPatientDTO();
 
-            return result;
+            ret.Page = page;
+
+            ret.Count = await query.CountAsync();
+
+            ret.TotalPages = ret.Count % ret.ItensPerPage > 0
+                ? (ret.Count / ret.ItensPerPage) + 1
+                : ret.Count / ret.ItensPerPage;
+
+            ret.Patients = await query
+                .OrderByDescending(c => c.Id)
+                .Skip((page - 1) * ret.ItensPerPage)
+                .Take(ret.ItensPerPage)
+                .ToListAsync();
+
+            return ret;
         }
+        
 
         public async Task<List<Patient>> GetPatientById(long id)
         {

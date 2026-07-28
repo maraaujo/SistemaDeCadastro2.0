@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Pageds;
 
 namespace SistemaDeCadastro.Controller.V1
 {

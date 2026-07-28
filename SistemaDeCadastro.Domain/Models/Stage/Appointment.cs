@@ -19,7 +19,8 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public DateTime DateTime { get; set; }
 
         public string Responsible { get; set; }
-
+        public long? InstitutionId { get; set; }
+        public virtual Institution Institution { get; set; }
         public string Status { get; set; }
 
         public string Observations { get; set; }

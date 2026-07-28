@@ -10,12 +10,21 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 {
     public class PatientFilterDTO
     {
-        public string Name { get; set; }
-        public string Illness { get; set; }
-        public string Medicine { get; set; }
-        public string Dosage { get; set; }
-        public string Responsible { get; set; }
-        public int Time { get; set; }
-        public bool Done { get; set; }
+        
+            public long? Id { get; set; }
+
+            public string? Name { get; set; }
+
+            public string? ResponsibleName { get; set; }
+
+            public string? ClinicalCondition { get; set; }
+
+            public string? Medicine { get; set; }
+
+            public string? Dosage { get; set; }
+
+            public TimeSpan? Time { get; set; }
+        
+        public int Page { get; set; } = 1;
     }
 }

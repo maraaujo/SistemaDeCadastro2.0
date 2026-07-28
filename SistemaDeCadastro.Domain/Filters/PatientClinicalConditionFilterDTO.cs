@@ -4,7 +4,7 @@ namespace SistemaDeCadastro.Domain.Filters
 {
     public class PatientClinicalConditionFilterDTO
     {
-        public long Id { get; set; }
+        public long? Id { get; set; }
         public long? PatientId { get; set; }
         public string PatientName { get; set; }
         public long? ClinicalConditionId { get; set; }

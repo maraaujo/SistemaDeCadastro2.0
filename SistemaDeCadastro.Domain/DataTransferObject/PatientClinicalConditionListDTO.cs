@@ -10,6 +10,6 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long ClinicalConditionId { get; set; }
         public string ClinicalConditionName { get; set; }
         public DateTime? DiagnosisDate { get; set; }
-        public string Observations { get; set; }
+        public string? Observations { get; set; }
     }
 }

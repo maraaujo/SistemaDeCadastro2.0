@@ -44,7 +44,7 @@ namespace SistemaDeCadastro.Infra.Repository
                         };
             if(!string.IsNullOrEmpty(filter.PatientName))
             {
-                query = query.Where(a => a.PatientName.Contains(filter.PatientName));
+                query = query.Where(a => a.PatientName.ToLower().Contains(filter.PatientName.ToLower()));
             }
             if(filter.PatientId.HasValue)
             {
@@ -52,7 +52,7 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             if(!string.IsNullOrEmpty(filter.AppointmentType))
             {
-                query = query.Where(a => a.AppointmentType.Contains(filter.AppointmentType));
+                query = query.Where(a => a.AppointmentType.ToLower().Contains(filter.AppointmentType.ToLower()));
             }
             if (filter.DateTime.HasValue)
             {
@@ -63,15 +63,15 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             if (!string.IsNullOrEmpty(filter.Responsible))
             {
-                query = query.Where(a => a.Responsible.Contains(filter.Responsible));
+                query = query.Where(a => a.Responsible.ToLower().Contains(filter.Responsible.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Status))
             {
-                query = query.Where(a => a.Status.Contains(filter.Status));
+                query = query.Where(a => a.Status.ToLower().Contains(filter.Status.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.Observations))
             {
-                query = query.Where(a => a.Observations.Contains(filter.Observations));
+                query = query.Where(a => a.Observations.ToLower().Contains(filter.Observations.ToLower()));
             }
             var ret = new PagedAppointmentDTO();
             ret.Page = page;

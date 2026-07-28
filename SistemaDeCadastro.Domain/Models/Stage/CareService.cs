@@ -23,7 +23,8 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public string Referral { get; set; }
 
         public string Observations { get; set; }
-
+        public long? InstitutionId { get; set; }
+        public virtual Institution Institution { get; set; }
         public virtual Appointment Appointment { get; set; }
 
         public virtual Patient Patient { get; set; }

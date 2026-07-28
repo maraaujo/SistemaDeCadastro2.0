@@ -63,19 +63,19 @@ namespace SistemaDeCadastro.Infra.Repository
             }
             if (!string.IsNullOrEmpty(filter.Name))
             {
-                query = query.Where(m => m.Name.Contains(filter.Name));
+                query = query.Where(m => m.Name.ToLower().Contains(filter.Name.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.Description))
             {
-                query = query.Where(m => m.Description.Contains(filter.Description));
+                query = query.Where(m => m.Description.ToLower().Contains(filter.Description.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.Dosage))
             {
-                query = query.Where(m => m.Dosage.Contains(filter.Dosage));
+                query = query.Where(m => m.Dosage.ToLower().Contains(filter.Dosage.ToLower()));
             }
             if(!string.IsNullOrEmpty(filter.AdministrationRoute))
             {
-                query = query.Where(m => m.AdministrationRoute.Contains(filter.AdministrationRoute));
+                query = query.Where(m => m.AdministrationRoute.ToLower().Contains(filter.AdministrationRoute.ToLower()));
             }
             var ret = new PagedMedicineDTO();
 

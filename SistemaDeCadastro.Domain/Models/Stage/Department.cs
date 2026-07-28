@@ -13,7 +13,8 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public string Name { get; set; }
 
         public string Description { get; set; }
-
+        public long? InstitutionId { get; set; }
+        public virtual Institution Institution { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
     }
 }

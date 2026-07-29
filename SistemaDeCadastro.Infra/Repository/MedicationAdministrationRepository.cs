@@ -4,10 +4,9 @@ using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
-using SistemaDeCadastro.Infra.Repository;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-namespace SistemaDeCadastro.Infra
+namespace SistemaDeCadastro.Infra.Repository
 {
     public class MedicationAdministrationRepository : BaseRepository<MedicationAdministration>, IMedicationAdministrationRepository
     {
@@ -36,13 +35,12 @@ namespace SistemaDeCadastro.Infra
         {
             await this.Update(medicationAdministration);
         }
-        public async Task Delete(long id)
+        public async Task Delete(MedicationAdministration medicationAdministration)
         {
-            var medicationAdministration = await this.GetById(id);
-            if (medicationAdministration != null)
-            {
+            
+           
                 await this.Delete(medicationAdministration);
-            }
+        
 
         }
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter)

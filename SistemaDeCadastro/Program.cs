@@ -66,7 +66,8 @@ builder.Services.AddScoped<ISubscriptionApp, SubscriptionApp>();
 builder.Services.AddScoped<ISubscriptionPaymentApp, SubscriptionPaymentApp>();
 builder.Services.AddScoped<IPlanApp, PlanApp>();
 builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
-
+builder.Services.AddScoped<IMedicationAdministrationApp, MedicationAdministrationApp>();
+builder.Services.AddScoped<IInternalAssistantApp, InternalAssistantApp>();
 // Repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IResponsibleRepository, ResponsibleRepository>();
@@ -91,6 +92,8 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ISubscriptionPaymentRepository, SubscriptionPaymentRepository>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IInstitutionRepository, InstitutionRepository>();
+builder.Services.AddScoped<IMedicationAdministrationRepository, MedicationAdministrationRepository>();
+builder.Services.AddScoped<IInternalAssistantRepository, InternalAssistantRepository>();
 
 // Base Repository genérico
 builder.Services.AddScoped(

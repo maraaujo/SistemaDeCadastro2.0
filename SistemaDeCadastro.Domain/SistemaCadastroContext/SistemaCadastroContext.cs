@@ -19,7 +19,7 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<Responsible> Responsibles { get; set; }
     public virtual DbSet<Employee> Employees { get; set; }
     public virtual DbSet<Department> Departments { get; set; }
-
+    public virtual DbSet<MedicationAdministration> MedicationAdministrations { get; set; }
     public virtual DbSet<ClinicalCondition> ClinicalConditions { get; set; }
     public virtual DbSet<PatientClinicalCondition> PatientClinicalConditions { get; set; }
     public virtual DbSet<BloodType> BloodTypes { get; set; }
@@ -57,6 +57,62 @@ public partial class SistemaDeCadastroContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+        modelBuilder.Entity<MedicationAdministration>(entity =>
+        {
+            entity.ToTable("administracoes_medicamento");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id_administracao")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.MedicinePatientClinicalConditionId)
+                .HasColumnName("id_medicamento_acond");
+
+            entity.Property(e => e.PatientId)
+                .HasColumnName("id_acolhido");
+
+            entity.Property(e => e.EmployeeId)
+                .HasColumnName("id_funcionario");
+
+            entity.Property(e => e.ScheduledDateTime)
+                .HasColumnName("data_hora_prevista")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.AdministeredDateTime)
+                .HasColumnName("data_hora_administrada")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(e => e.Observations)
+                .HasColumnName("observacoes")
+                .HasColumnType("text");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("data_cadastro")
+                .HasColumnType("datetime");
+
+            entity.HasOne(e => e.MedicinePatientClinicalCondition)
+                .WithMany()
+                .HasForeignKey(e => e.MedicinePatientClinicalConditionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Patient)
+                .WithMany()
+                .HasForeignKey(e => e.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Employee)
+                .WithMany()
+                .HasForeignKey(e => e.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<Patient>(entity =>
         {
             entity.ToTable("acolhidos");

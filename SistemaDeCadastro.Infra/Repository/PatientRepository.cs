@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.Pageds;
@@ -37,12 +38,6 @@ namespace SistemaDeCadastro.Infra.Repository
                                      join b in _context.BloodTypes.AsNoTracking()
                                          on pa.BloodTypeId equals b.Id into bGroup
                                      from b in bGroup.DefaultIfEmpty()
-                                     join ip in _context.PatientIllnesses.AsNoTracking()
-                                         on pa.Id equals ip.PatientId into iGroup
-                                     from ip in iGroup.DefaultIfEmpty()
-                                     join il in _context.Illnesses.AsNoTracking()
-                                         on ip.IllnessId equals il.Id into ilGroup
-                                     from il in ilGroup.DefaultIfEmpty()
                                      join cr in _context.CareServices.AsNoTracking()
                                          on pa.Id equals cr.PatientId into crGroup
                                         from cr in crGroup.DefaultIfEmpty()
@@ -108,15 +103,7 @@ namespace SistemaDeCadastro.Infra.Repository
                                                  EndDate = mpcc != null ? mpcc.EndDate : null
                                              }
                                          },
-                                         Illnesses = new List<IllnessDTO>
-                                         {
-                                             new IllnessDTO
-                                             {
-                                                 Id = il != null ? il.Id : 0,
-                                                 Name = il != null ? il.Name : "doença não informada",
-                                                 Description = il != null ? il.Description : "descrição não informada"
-                                             }
-                                         },
+                                      
                                          CareService = new List<CareServiceListDTO>
                                          {
                                              new CareServiceListDTO
@@ -157,14 +144,6 @@ namespace SistemaDeCadastro.Infra.Repository
                     .SelectMany(d => d.CareService)
                     .Where(c => c.Id != 0)
                     .GroupBy(c => c.Id)
-                    .Select(g => g.First())
-                    .ToList(),
-
-
-                    Illnesses = details
-                    .SelectMany(d => d.Illnesses)
-                    .Where(i => i.Id != 0)
-                    .GroupBy(i => i.Id)
                     .Select(g => g.First())
                     .ToList(),
 
@@ -211,73 +190,25 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;
 
-            var query =
-                from pa in _context.Patients.AsNoTracking()
+          
 
-                join re in _context.Responsibles.AsNoTracking()
-                    on pa.Id equals re.PatientId into responsibleGroup
-                from re in responsibleGroup.DefaultIfEmpty()
-
-                join pcc in _context.PatientClinicalConditions.AsNoTracking()
-                    on pa.Id equals pcc.PatientId into pccGroup
-                from pcc in pccGroup.DefaultIfEmpty()
-
-                join cc in _context.ClinicalConditions.AsNoTracking()
-                    on pcc.ClinicalConditionId equals cc.Id into ccGroup
-                from cc in ccGroup.DefaultIfEmpty()
-
-                join mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
-                    on pcc.Id equals mpcc.PatientClinicalConditionId into mpccGroup
-                from mpcc in mpccGroup.DefaultIfEmpty()
-
-                join med in _context.Medicines.AsNoTracking()
-                    on mpcc.MedicineId equals med.Id into medGroup
-                from med in medGroup.DefaultIfEmpty()
-
-                select new PatientListDTO
-                {
-                    Id = pa.Id,
-                    Name = pa.Name,
-
-                    ResponsibleName = re != null ? re.Name : null,
-
-                    ClinicalCondition = cc != null ? cc.Name : null,
-
-                    Medicine = med != null ? med.Name : null,
-
-                    Dosage = mpcc != null ? mpcc.PrescribedDosage : null,
-
-                    Time = mpcc != null ? mpcc.AdministrationTime : null
-                };
+            var query =  _context.Patients.AsNoTracking();
+                
+           
+            if(filter.ClinicalConditionIds != null && filter.ClinicalConditionIds.Any())
+            {
+                //aqui ele vai filtrar os pacientes que possuem alguma condição clínica que esteja na lista de ids de condições clínicas
+                //sem precisar fazer join com a tabela de condições clínicas, pois ele vai usar a relação entre paciente e condição clínica
+                query = query.Where(p => p.PatientClinicalConditions.Any(c => filter.ClinicalConditionIds.Contains(c.ClinicalConditionId)));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
                 query = query.Where(c => c.Name.Contains(filter.Name));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.ResponsibleName))
-            {
-                query = query.Where(c => c.ResponsibleName != null &&
-                                         c.ResponsibleName.Contains(filter.ResponsibleName));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.ClinicalCondition))
-            {
-                query = query.Where(c => c.ClinicalCondition != null &&
-                                         c.ClinicalCondition.Contains(filter.ClinicalCondition));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.Medicine))
-            {
-                query = query.Where(c => c.Medicine != null &&
-                                         c.Medicine.Contains(filter.Medicine));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.Dosage))
-            {
-                query = query.Where(c => c.Dosage != null &&
-                                         c.Dosage.Contains(filter.Dosage));
-            }
+            
+            
 
             var ret = new PagedPatientDTO();
 
@@ -290,6 +221,16 @@ namespace SistemaDeCadastro.Infra.Repository
                 : ret.Count / ret.ItensPerPage;
 
             ret.Patients = await query
+                .Select(c => new PatientListDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    BirthDate = c.BirthDate,
+                    Phone = c.Phone,
+                    Document = c.Document,
+                    Cpf = c.Cpf,
+                })
+                .Where(c => c.Id != 0)
                 .OrderByDescending(c => c.Id)
                 .Skip((page - 1) * ret.ItensPerPage)
                 .Take(ret.ItensPerPage)
@@ -311,8 +252,6 @@ namespace SistemaDeCadastro.Infra.Repository
                 .Include(p => p.Responsibles)
                 .Include(p => p.PatientClinicalConditions)
                     .ThenInclude(pcc => pcc.ClinicalCondition)
-                .Include(p => p.PatientIllnesses)
-                    .ThenInclude(pi => pi.Illness)
                 .Include(p => p.PatientEmployees)
                     .ThenInclude(pe => pe.Employee)
                 .Include(p => p.Appointments)

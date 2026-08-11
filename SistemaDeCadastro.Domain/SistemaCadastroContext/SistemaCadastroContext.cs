@@ -23,19 +23,13 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<ClinicalCondition> ClinicalConditions { get; set; }
     public virtual DbSet<PatientClinicalCondition> PatientClinicalConditions { get; set; }
     public virtual DbSet<BloodType> BloodTypes { get; set; }
-    public virtual DbSet<Illness> Illnesses { get; set; }
-    public virtual DbSet<PatientIllness> PatientIllnesses { get; set; }
-
     public virtual DbSet<Medicine> Medicines { get; set; }
     public virtual DbSet<MedicinePatientClinicalCondition> MedicinePatientClinicalConditions { get; set; }
-
     public virtual DbSet<PatientEmployee> PatientEmployees { get; set; }
-
     public virtual DbSet<LoginAccount> LoginAccounts { get; set; }
     public virtual DbSet<AvailablePermission> AvailablePermissions { get; set; }
     public virtual DbSet<UserPermission> UserPermissions { get; set; }
     public virtual DbSet<AccessLog> AccessLogs { get; set; }
-
     public virtual DbSet<Appointment> Appointments { get; set; }
     public virtual DbSet<CareService> CareServices { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
@@ -594,64 +588,9 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Illness>(entity =>
-        {
-            entity.ToTable("doencas");
+        
 
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .HasColumnName("id_doenca")
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.Name)
-                .HasColumnName("nome")
-                .HasMaxLength(150)
-                .IsRequired();
-
-            entity.Property(e => e.Description)
-                .HasColumnName("descricao")
-                .HasColumnType("text");
-
-            entity.Property(e => e.Cid)
-                .HasColumnName("cid")
-                .HasMaxLength(20);
-        });
-
-        modelBuilder.Entity<PatientIllness>(entity =>
-        {
-            entity.ToTable("acolhido_doenca");
-
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .HasColumnName("id_acolhido_doenca")
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.PatientId)
-                .HasColumnName("id_acolhido");
-
-            entity.Property(e => e.IllnessId)
-                .HasColumnName("id_doenca");
-
-            entity.Property(e => e.DiagnosisDate)
-                .HasColumnName("data_diagnostico")
-                .HasColumnType("date");
-
-            entity.Property(e => e.Observations)
-                .HasColumnName("observacoes")
-                .HasColumnType("text");
-
-            entity.HasOne(e => e.Patient)
-                .WithMany(e => e.PatientIllnesses)
-                .HasForeignKey(e => e.PatientId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.Illness)
-                .WithMany(e => e.PatientIllnesses)
-                .HasForeignKey(e => e.IllnessId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
+        
 
         modelBuilder.Entity<Medicine>(entity =>
         {

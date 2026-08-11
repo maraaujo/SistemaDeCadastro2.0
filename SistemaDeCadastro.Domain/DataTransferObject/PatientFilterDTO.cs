@@ -22,6 +22,7 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
             public string? Medicine { get; set; }
 
             public string? Dosage { get; set; }
+        public List<long>? ClinicalConditionIds { get; set; }
 
             public TimeSpan? Time { get; set; }
         

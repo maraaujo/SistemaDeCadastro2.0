@@ -29,8 +29,6 @@ public class Patient
 
     public virtual ICollection<PatientClinicalCondition> PatientClinicalConditions { get; set; } = new List<PatientClinicalCondition>();
 
-    public virtual ICollection<PatientIllness> PatientIllnesses { get; set; } = new List<PatientIllness>();
-
     public virtual ICollection<PatientEmployee> PatientEmployees { get; set; } = new List<PatientEmployee>();
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();

@@ -13,7 +13,6 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IResponsibleRepository _responsibleRepository;
         private readonly IPatientEmployeeRepository _patientEmployeeRepository;
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
-        private readonly IPatientIllnessRepository _patientIllnessRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ICareServiceRepository _careServiceRepository;
         private readonly IPaymentRepository _paymentRepository;
@@ -22,7 +21,6 @@ namespace SistemaDeCadastro.APP.APP
             IResponsibleRepository responsibleRepository,
             IPatientEmployeeRepository patientEmployeeRepository,
             IPatientClinicalConditionRepository patientClinicalConditionRepository,
-            IPatientIllnessRepository patientIllnessRepository,
             IAppointmentRepository appointmentRepository,
             ICareServiceRepository careServiceRepository,
             IPaymentRepository paymentRepository,
@@ -33,7 +31,6 @@ namespace SistemaDeCadastro.APP.APP
             this._responsibleRepository = responsibleRepository;
             this._patientEmployeeRepository = patientEmployeeRepository;
             this._patientClinicalConditionRepository = patientClinicalConditionRepository;
-            this._patientIllnessRepository = patientIllnessRepository;
             this._appointmentRepository = appointmentRepository;
             this._careServiceRepository = careServiceRepository;
             this._paymentRepository = paymentRepository;
@@ -174,9 +171,7 @@ namespace SistemaDeCadastro.APP.APP
                 //}
                 if (patientClinicalConditions.Any()) await _patientClinicalConditionRepository.DeleteRange(patientClinicalConditions);
 
-                // Delete patient illnesses
-                var patientIllnesses = await _patientIllnessRepository.FindBy(pi => pi.PatientId == id);
-                if (patientIllnesses.Any()) await _patientIllnessRepository.DeleteRange(patientIllnesses);
+
 
                 // Delete responsibles
                 var responsibles = await _responsibleRepository.FindBy(r => r.PatientId == id);

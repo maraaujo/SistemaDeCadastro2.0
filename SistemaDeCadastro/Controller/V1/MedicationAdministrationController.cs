@@ -42,7 +42,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateMedicationAdministration")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateMedicationAdministration(UpdateMedicationAdministrationDTO entity)
         {
             // TODO: Ajustar IMedicationAdministrationApp e MedicationAdministrationApp para receber UpdateMedicationAdministrationDTO

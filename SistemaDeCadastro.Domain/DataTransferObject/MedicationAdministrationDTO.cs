@@ -13,7 +13,8 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long MedicinePatientClinicalConditionId { get; set; }
 
         public long PatientId { get; set; }
-
+        public string NamePatient { get; set; }
+        public string EmployeeName { get; set; }
         public long? EmployeeId { get; set; }
 
         public DateTime ScheduledDateTime { get; set; }

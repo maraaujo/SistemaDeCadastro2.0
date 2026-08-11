@@ -36,7 +36,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateInstitution")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateInstitution(UpdateInstitutionDTO entity)
         {
             var ret = await _app.Update(entity);

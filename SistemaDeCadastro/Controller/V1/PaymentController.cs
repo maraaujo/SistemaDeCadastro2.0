@@ -40,7 +40,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdatePayment")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdatePayment(UpdatePaymentDTO entity)
         {
             var ret = await _app.Update(entity);

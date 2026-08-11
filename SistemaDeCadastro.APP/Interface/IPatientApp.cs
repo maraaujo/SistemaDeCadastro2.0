@@ -12,9 +12,11 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> UpdatePatient(PatientDTO patient);
         Task<ApiResponse> DeletePatient(long id);
         Task GetPatientByAny(string patient);
-        Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter);        Task<List<DetailsPatientDTO>> DetailsPatient();
+        Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter);
+        Task<DetailsPatientDTO?> DetailsPatient(long id);
 
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
+        Task<List<Patient>> GetAllPatients();
 
     }
 }

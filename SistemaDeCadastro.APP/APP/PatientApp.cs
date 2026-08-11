@@ -39,14 +39,18 @@ namespace SistemaDeCadastro.APP.APP
             this._paymentRepository = paymentRepository;
            // this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
+    
+
+        public async Task<List<Patient>> GetAllPatients()
+            => await _patientRepository.GetAll();
 
         public async Task<List<Patient>> GetPatientById(long id)
             => await _patientRepository.GetPatientById(id);
         public async Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter)
             => await _patientRepository.FilterPatient(filter);
 
-        public async Task<List<DetailsPatientDTO>> DetailsPatient() =>
-            await _patientRepository.DetailsPatient();
+        public async Task<DetailsPatientDTO?> DetailsPatient(long id) =>
+            await _patientRepository.DetailsPatient(id);
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
             await _patientRepository.GetMedicineReminders();
         public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)

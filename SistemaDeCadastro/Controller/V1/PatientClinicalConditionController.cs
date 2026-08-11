@@ -24,6 +24,12 @@ namespace SistemaDeCadastro.Controller.V1
             var item = await _app.GetById(id);
             return Ok(item);
         }
+        [HttpGet("GetPatientClinicalConditionByPatientId/{id}")]
+        public async Task<IActionResult> GetPatientClinicalConditionByPatientId(long id)
+        {
+            var item = await _app.GetPatientClinicalConditionByPatientId(id);
+            return Ok(item);
+        }
 
         [HttpGet("GetAllPatientClinicalConditions")]
         public async Task<IActionResult> GetAllPatientClinicalConditions()
@@ -39,7 +45,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdatePatientClinicalCondition")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdatePatientClinicalCondition(PatientClinicalCondition entity)
         {
             var ret = await _app.Update(entity);

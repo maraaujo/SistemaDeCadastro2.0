@@ -4,6 +4,7 @@ using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
+using SistemaDeCadastro.Infra.Repository;
 
 namespace SistemaDeCadastro.APP.APP
 {
@@ -11,11 +12,19 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IMedicinePatientClinicalConditionRepository _repo;
         private readonly IPatientRepository _patientRepository;
-
-        public MedicinePatientClinicalConditionApp(IMedicinePatientClinicalConditionRepository repo, IPatientRepository patientRepository)
+        private readonly IMedicineRepository _medicineRepository;
+        private readonly IClinicalConditionRepository _clinicalConditionRepository;
+        private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
+        public MedicinePatientClinicalConditionApp(IMedicinePatientClinicalConditionRepository repo,
+            IPatientRepository patientRepository, IMedicineRepository 
+            medicineRepository, 
+            IClinicalConditionRepository clinicalConditionRepository, IPatientClinicalConditionRepository patientClinicalConditionRepository)
         {
             _repo = repo;
             _patientRepository = patientRepository;
+            _medicineRepository = medicineRepository;
+            _clinicalConditionRepository = clinicalConditionRepository;
+            _patientClinicalConditionRepository = patientClinicalConditionRepository;
         }
 
         public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAll();
@@ -25,11 +34,78 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> Create(CreateMedicinePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
-            try {
-                var newEntity = new MedicinePatientClinicalCondition
+            try
+            {
+                long medicineId;
+                long patientClinicalConditionId;
+
+                // 1. Se o medicamento não existir, cria um novo
+                if (entity.MedicineDTO.Id == 0)
                 {
-                    MedicineId = entity.MedicineId,
-                    PatientClinicalConditionId = entity.PatientClinicalConditionId,
+                    var medicine = new Medicine
+                    {
+                        Name = entity.MedicineDTO.Name,
+                        Dosage = entity.MedicineDTO.Dosage,
+                        Description = entity.MedicineDTO.Description,
+                        AdministrationRoute = entity.MedicineDTO.AdministrationRoute
+                    };
+
+                    await _medicineRepository.Create(medicine);
+
+                    medicineId = medicine.Id;
+                }
+                else
+                {
+                    medicineId = entity.MedicineDTO.Id;
+                }
+
+                // 2. Se o vínculo acolhido + condição clínica não existir, cria
+                if (entity.PatientClinicalConditionDTO.Id == 0)
+                {
+                    long clinicalConditionId;
+
+                    // 2.1 Se a condição clínica não existir, cria uma nova
+                    if (entity.PatientClinicalConditionDTO.ClinicalConditionId == 0)
+                    {
+                        var clinicalCondition = new ClinicalCondition
+                        {
+                            Name = entity.ClinicalConditionDTO.Name,
+                            Description = entity.ClinicalConditionDTO.Description,
+                            Type = entity.ClinicalConditionDTO.Type
+                        };
+
+                        await _clinicalConditionRepository.Create(clinicalCondition);
+
+                        clinicalConditionId = clinicalCondition.Id;
+                    }
+                    else
+                    {
+                        clinicalConditionId = entity.PatientClinicalConditionDTO.ClinicalConditionId;
+                    }
+
+                    // 2.2 Cria o vínculo da condição com o acolhido
+                     var patientClinicalCondition = new PatientClinicalCondition
+                    {
+                        PatientId = entity.PatientId,
+                        ClinicalConditionId = clinicalConditionId,
+                        DiagnosisDate = DateTime.Now,
+                        Observations = entity.PatientClinicalConditionDTO.Observations
+                    };
+
+                    await _patientClinicalConditionRepository.Create(patientClinicalCondition);
+
+                    patientClinicalConditionId = patientClinicalCondition.Id;
+                }
+                else
+                {
+                    patientClinicalConditionId = entity.PatientClinicalConditionDTO.Id;
+                }
+
+                // 3. Cria o medicamento programado
+                var medicinePatientClinicalCondition = new MedicinePatientClinicalCondition
+                {
+                    MedicineId = medicineId,
+                    PatientClinicalConditionId = patientClinicalConditionId,
                     PrescribedDosage = entity.PrescribedDosage,
                     Frequency = entity.Frequency,
                     AdministrationTime = entity.AdministrationTime,
@@ -38,13 +114,18 @@ namespace SistemaDeCadastro.APP.APP
                     EndDate = entity.EndDate,
                     Observations = entity.Observations
                 };
-                  await _repo.Create(newEntity);
-             
+
+                await _repo.Create(medicinePatientClinicalCondition);
+
+                ret.Success = true;
+                ret.Data = medicinePatientClinicalCondition.Id;
+                ret.Message = "Medicamento programado cadastrado com sucesso.";
             }
             catch (Exception ex)
             {
-                return new ApiResponse { Success = false, ErrorMessage = ex.Message };
-            }
+                ret.Success = false;
+                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+            }  
             return ret;
         }
 
@@ -90,30 +171,7 @@ namespace SistemaDeCadastro.APP.APP
         //implemntar job para ficar atualizando a lista de lembretes de medicamentos, e enviar notificação para o paciente
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
-            var items = await _repo.GetAll();
-            var result = new List<MedicineReminderDTO>();
-            foreach (var it in items)
-            {
-                var pcc = it.PatientClinicalCondition;
-                var patient = pcc?.Patient ?? (await _patientRepository.GetPatientById(pcc?.PatientId ?? 0)).FirstOrDefault();
-
-                var dto = new MedicineReminderDTO
-                {
-                    PatientId = patient?.Id ?? 0,
-                    PatientName = patient?.Name ?? string.Empty,
-                    MedicineName = it.Medicine?.Name ?? string.Empty,
-                    Dosage = it.PrescribedDosage,
-                    Frequency = it.Frequency,
-                    AdministrationTime = it.AdministrationTime,
-                    NextDoseDateTime = (it.AdministrationTime.HasValue) ? DateTime.Today.Add(it.AdministrationTime.Value) : DateTime.Now,
-                    ResponsibleEmployeeName = it.ResponsibleEmployee?.Name ?? string.Empty,
-                };
-                dto.MinutesRemaining = (int)(dto.NextDoseDateTime - DateTime.Now).TotalMinutes;
-                dto.AlertText = dto.MinutesRemaining <= 0 ? "Due now" : $"In {dto.MinutesRemaining} minutes";
-                result.Add(dto);
-            }
-
-            return result;
+                return await _repo.GetMedicineReminders();
         }
        public async Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
         {

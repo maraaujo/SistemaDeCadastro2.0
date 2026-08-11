@@ -42,7 +42,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateDepartment")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateDepartment(UpdateDepartmentDTO department)
         {
             var ret = await _departmentApp.Update(department);

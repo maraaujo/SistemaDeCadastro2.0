@@ -39,7 +39,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateAvailablePermission")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateAvailablePermission(UpdateAvailablePermissionDTO entity)
         {
             var ret = await _app.Update(entity);

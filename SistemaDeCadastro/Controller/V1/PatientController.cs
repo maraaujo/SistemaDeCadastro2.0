@@ -33,6 +33,12 @@ namespace SistemaDeCadastro.Controller.V1
             var patient = await _patientApp.GetPatientById(id);
             return Ok(patient);
         }
+        [HttpGet("GetAllPatients")]
+        public async Task<IActionResult> GetAllPatients()
+        {
+            var patients = await _patientApp.GetAllPatients();
+            return Ok(patients);
+        }
         [HttpGet("GetByAny")]
         public async Task<IActionResult> GetPatientByAny(string patient)
         {
@@ -57,13 +63,13 @@ namespace SistemaDeCadastro.Controller.V1
 
             return Ok(response);
         }
-        [HttpGet("GetPatientDetails")]
-        public async Task<IActionResult> DetailsPatient()
+        [HttpGet("GetPatientDetails/{id}")]
+        public async Task<IActionResult> DetailsPatient(long id)
         {
             ApiResponse response = new ApiResponse();
             try
             {
-                response.Data = await this._patientApp.DetailsPatient();
+                response.Data = await this._patientApp.DetailsPatient(id);
                 response.Success = true;
             }
             catch (Exception err)
@@ -80,7 +86,7 @@ namespace SistemaDeCadastro.Controller.V1
             var ret = await _patientApp.CreatePatient(patient);
             return Ok(ret);
         }
-        [HttpPut("Updatpatient")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> Updatepatient(PatientDTO patient)
         {
             var ret = await _patientApp.UpdatePatient(patient);

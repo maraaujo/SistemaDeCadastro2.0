@@ -4,6 +4,7 @@ using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.Pageds;
 using SistemaDeCadastro.Infra.Interface;
+using SistemaDeCadastro.Infra.Repository;
 
 namespace SistemaDeCadastro.APP.APP
 {
@@ -16,7 +17,8 @@ namespace SistemaDeCadastro.APP.APP
             _repo = repo;
             _patientRepo = patientRepo;
         }
-
+        public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
+        => await _repo.GetPatientClinicalConditionByPatientId(id);
         public async Task<List<PatientClinicalCondition>> GetAll() => await _repo.GetAll();
 
         public async Task<PatientClinicalCondition?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();

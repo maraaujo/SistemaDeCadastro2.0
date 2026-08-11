@@ -47,12 +47,16 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             var page = filter.Page <= 0 ? 1 : filter.Page; 
             var query = from m in _context.MedicationAdministrations
+                        join p in _context.Patients on m.PatientId equals p.Id
+                        join e in _context.Employees on m.EmployeeId equals e.Id 
                         select new MedicationAdministrationDTO
                         {
                             Id = m.Id,
                             MedicinePatientClinicalConditionId = m.MedicinePatientClinicalConditionId,
                             PatientId = m.PatientId,
+                            NamePatient = p.Name,
                             EmployeeId = m.EmployeeId,
+                            EmployeeName = e.Name,
                             ScheduledDateTime = m.ScheduledDateTime,
                             AdministeredDateTime = m.AdministeredDateTime,
                             Status = m.Status,

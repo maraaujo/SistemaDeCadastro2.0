@@ -8,11 +8,12 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long PatientId { get; set; }
         public string PatientName { get; set; }
         public long UserId { get; set; }
-        public string UserEmail { get; set; }
+        
         public string AppointmentType { get; set; }
         public DateTime DateTime { get; set; }
         public string Responsible { get; set; }
         public string Status { get; set; }
+        public long Institution { get; set; }
         public string Observations { get; set; }
     }
 }

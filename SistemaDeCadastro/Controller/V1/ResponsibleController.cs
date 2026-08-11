@@ -41,7 +41,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateResponsible")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateResponsible(UpdateResponsibleDTO responsible)
         {
             var ret = await _responsibleApp.Update(responsible);

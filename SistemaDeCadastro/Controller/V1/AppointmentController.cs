@@ -44,7 +44,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateAppointment")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateAppointment(UpdateAppointmentDTO entity)
         {
             // TODO: Ajustar IAppointmentApp e AppointmentApp para receber UpdateAppointmentDTO

@@ -49,7 +49,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateLoginAccount")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateLoginAccount(UpdateLoginAccountDTO entity)
         {
             var ret = await _app.Update(entity);

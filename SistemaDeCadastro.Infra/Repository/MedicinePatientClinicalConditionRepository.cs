@@ -23,7 +23,77 @@ namespace SistemaDeCadastro.Infra.Repository
             _context = context;
         }
 
+        public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
+        {
+            var now = DateTime.Now;
+            var today = now.Date;
 
+            var query =
+                from mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
+
+                join medicine in _context.Medicines.AsNoTracking()
+                    on mpcc.MedicineId equals medicine.Id
+
+                join pcc in _context.PatientClinicalConditions.AsNoTracking()
+                    on mpcc.PatientClinicalConditionId equals pcc.Id
+
+                join patient in _context.Patients.AsNoTracking()
+                    on pcc.PatientId equals patient.Id
+
+                join employee in _context.Employees.AsNoTracking()
+                    on mpcc.ResponsibleEmployeeId equals (long?)employee.Id into employeeGroup
+                from employee in employeeGroup.DefaultIfEmpty()
+
+                where mpcc.AdministrationTime != null
+                      && (mpcc.StartDate == null || mpcc.StartDate <= today)
+                      && (mpcc.EndDate == null || mpcc.EndDate >= today)
+
+                select new
+                {
+                    PatientId = patient.Id,
+                    PatientName = patient.Name,
+                    MedicineName = medicine.Name,
+                    Dosage = mpcc.PrescribedDosage,
+                    Frequency = mpcc.Frequency,
+                    AdministrationTime = mpcc.AdministrationTime,
+                    ResponsibleEmployeeName = employee != null ? employee.Name : "Não informado"
+                };
+
+            var items = await query.ToListAsync();
+
+            var result = items.Select(item =>
+            {
+                var nextDoseDateTime = today.Add(item.AdministrationTime.Value);
+                var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
+
+                string alertText;
+
+                if (minutesRemaining < 0)
+                    alertText = $"Atrasado há {Math.Abs(minutesRemaining)} minutos";
+                else if (minutesRemaining == 0)
+                    alertText = "Administrar agora";
+                else
+                    alertText = $"Em {minutesRemaining} minutos";
+
+                return new MedicineReminderDTO
+                {
+                    PatientId = item.PatientId,
+                    PatientName = item.PatientName,
+                    MedicineName = item.MedicineName,
+                    Dosage = item.Dosage,
+                    Frequency = item.Frequency,
+                    AdministrationTime = item.AdministrationTime,
+                    NextDoseDateTime = nextDoseDateTime,
+                    MinutesRemaining = minutesRemaining,
+                    AlertText = alertText,
+                    ResponsibleEmployeeName = item.ResponsibleEmployeeName
+                };
+            })
+            .OrderBy(x => x.MinutesRemaining)
+            .ToList();
+
+            return result;
+        }
         public async Task<MedicinePatientClinicalCondition?> GetById(long id)
         {
             return await _context.MedicinePatientClinicalConditions

@@ -41,9 +41,11 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("Update")]
-        public async Task<IActionResult> Update(UpdateMedicinePatientClinicalConditionDTO entity)
+        [HttpPut("Update/{id}")]
+        public async Task<IActionResult> Update(long id, UpdateMedicinePatientClinicalConditionDTO entity)
         {
+            entity.Id = id;
+
             var ret = await _app.Update(entity);
             return Ok(ret);
         }

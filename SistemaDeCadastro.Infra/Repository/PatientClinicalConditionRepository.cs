@@ -22,7 +22,28 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             return await _context.PatientClinicalConditions.FirstOrDefaultAsync(pcc => pcc.Id == id);
         }
+        public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
+        {
+           
+            var dto = await _context.PatientClinicalConditions
+                .Include(pcc => pcc.ClinicalCondition)
+                .Where(pcc => pcc.PatientId == id)
+                .Select(pcc => new PatientClinicalConditionDTO
+                {
+                    Id = pcc.Id,
+                    PatientId = pcc.PatientId,
+                    ClinicalCondition = pcc.ClinicalCondition.Name,
+                    ClinicalConditionId = pcc.ClinicalConditionId,
+                    DiagnosisDate = pcc.DiagnosisDate,
+                    Observations = pcc.Observations
+             
+                })
+                .FirstAsync();
 
+            return dto;
+
+
+        }
         public async Task<PatientClinicalCondition?> GetWithPatientConditionAndMedicines(long id)
         {
             return await _context.PatientClinicalConditions

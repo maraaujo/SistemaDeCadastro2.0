@@ -14,8 +14,8 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public string Dosage { get; set; }
         public string Frequency { get; set; }
         public TimeSpan? AdministrationTime { get; set; }
-        public DateTime NextDoseDateTime { get; set; }
         public string ResponsibleEmployeeName { get; set; }
+        public DateTime NextDoseDateTime { get; set; }
         public int MinutesRemaining { get; set; }
         public string AlertText { get; set; } = string.Empty;
     }

@@ -1,3 +1,4 @@
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Domain.Pageds;
@@ -11,5 +12,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<MedicinePatientClinicalCondition?> GetById(long id);
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
         Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter);
+        Task<List<MedicineReminderDTO>> GetMedicineReminders();
     }
 }

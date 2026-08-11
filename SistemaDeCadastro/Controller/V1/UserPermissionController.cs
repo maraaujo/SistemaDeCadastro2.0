@@ -39,7 +39,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateUserPermission")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateUserPermission(UpdateUserPermissionDTO entity)
         {
             var ret = await _app.Update(entity);

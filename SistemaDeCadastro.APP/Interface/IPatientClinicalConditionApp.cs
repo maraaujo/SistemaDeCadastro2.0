@@ -13,5 +13,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Update(PatientClinicalCondition entity);
         Task<ApiResponse> Delete(long id);
         Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter);
+        Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id);
     }
 }

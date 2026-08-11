@@ -41,7 +41,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateClinicalCondition")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateClinicalCondition(UpdateClinicalConditionDTO clinicalCondition)
         {
             var ret = await _clinicalConditionApp.Update(clinicalCondition);

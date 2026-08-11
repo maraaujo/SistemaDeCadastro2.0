@@ -6,6 +6,7 @@ using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Net.WebRequestMethods;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaDeCadastro.Infra.Repository
 {
@@ -19,31 +20,185 @@ namespace SistemaDeCadastro.Infra.Repository
             _context = context;
         }
 
-        public async Task<List<DetailsPatientDTO>> DetailsPatient()
+        public async Task<DetailsPatientDTO?> DetailsPatient(long id)
         {
             try
             {
-                
-                var result = await (
-                    from p in _context.Patients
-                    join pcc in _context.PatientClinicalConditions
-                        on p.Id equals pcc.PatientId
-                    join cc in _context.ClinicalConditions
-                        on pcc.ClinicalConditionId equals cc.Id
-                    join mpcc in _context.MedicinePatientClinicalConditions
-                        on pcc.Id equals mpcc.PatientClinicalConditionId
-                    join med in _context.Medicines
-                        on mpcc.MedicineId equals med.Id
-                    select new DetailsPatientDTO
-                    {
-                        Name = p.Name,
-                        IllnessName = cc.Name,
-                        MedicineName = med.Name,
-                        Dosage = mpcc.PrescribedDosage
-                    }
-                ).ToListAsync();
+                var details = await (from pa in _context.Patients.AsNoTracking()
+                                     join re in _context.Responsibles.AsNoTracking()
+                                         on pa.Id equals re.PatientId into responsibleGroup
+                                     from re in responsibleGroup.DefaultIfEmpty()
+                                     join pcc in _context.PatientClinicalConditions.AsNoTracking()
+                                         on pa.Id equals pcc.PatientId into pccGroup
+                                     from pcc in pccGroup.DefaultIfEmpty()
+                                     join ap in _context.Appointments.AsNoTracking()
+                                         on pa.Id equals ap.PatientId into appGroup
+                                     from ap in appGroup.DefaultIfEmpty()         
+                                     join b in _context.BloodTypes.AsNoTracking()
+                                         on pa.BloodTypeId equals b.Id into bGroup
+                                     from b in bGroup.DefaultIfEmpty()
+                                     join ip in _context.PatientIllnesses.AsNoTracking()
+                                         on pa.Id equals ip.PatientId into iGroup
+                                     from ip in iGroup.DefaultIfEmpty()
+                                     join il in _context.Illnesses.AsNoTracking()
+                                         on ip.IllnessId equals il.Id into ilGroup
+                                     from il in ilGroup.DefaultIfEmpty()
+                                     join cr in _context.CareServices.AsNoTracking()
+                                         on pa.Id equals cr.PatientId into crGroup
+                                        from cr in crGroup.DefaultIfEmpty()
+                                     join cc in _context.ClinicalConditions.AsNoTracking()
+                                         on pcc.ClinicalConditionId equals cc.Id into ccGroup
+                                     from cc in ccGroup.DefaultIfEmpty()
+                                     join mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
+                                         on pcc.Id equals mpcc.PatientClinicalConditionId into mpccGroup
+                                     from mpcc in mpccGroup.DefaultIfEmpty()
+                                     join med in _context.Medicines.AsNoTracking()
+                                         on mpcc.MedicineId equals med.Id into medGroup
+                                     from med in medGroup.DefaultIfEmpty()
+                                     where pa.Id == id
+                                     
+                                     select new DetailsPatientDTO
+                                     {
+                                         Patient = new PatientDTO
+                                         {
+                                             Id = pa.Id,
+                                             Name = pa.Name,
+                                             Document = pa.Document,
+                                             Cpf = pa.Cpf,
+                                             Observations = pa.Observations,
+                                             BirthDate = pa.BirthDate,
+                                             Gender = pa.Gender
+                                         },
+                                         BloodType = new BloodTypeDTO
+                                         {
+                                             Id = b != null ? b.Id : 0,
+                                             Name = b != null ? b.Name : "tipo sanguíneo não informado",
+                                         },
+                                         Responsibles = new List<ResponsibleListDTO>
+                                         {
+                                             new ResponsibleListDTO
+                                             {
+                                                 Id = re != null ? re.Id : 0,
+                                                 Name = re != null ? re.Name : "nome não informado",
+                                                 Phone = re != null ? re.Phone : "telefone não informado",
+                                                 Relationship = re != null ? re.Relationship : "relação não informada",
+                                                 Address = re != null ? re.Address : "endereço não informado"
+                                             }
+                                         },
+                                         ClinicalConditions = new List<ClinicalConditionDTO>
+                                         {
+                                             new ClinicalConditionDTO
+                                             {
+                                                 Id = cc != null ? cc.Id : 0,
+                                                 Name = cc != null ? cc.Name : "condição clínica não informada",
+                                                 Type = cc != null ? cc.Type : "tipo não informado",
+                                                 Description = cc != null ? cc.Description : "descrição não informada"
+                                             }
+                                         },
+                                         Medicines = new List<MedicineDTO>
+                                         {
+                                             new MedicineDTO
+                                             {
+                                                 Id = med != null ? med.Id : 0,
+                                                 Name = med != null ? med.Name : "medicamento não informado",
+                                                 Description = med != null ? med.Description : "descrição não informada",
+                                                 Dosage = mpcc != null ? mpcc.PrescribedDosage : "dosagem não informada",
+                                                 AdministrationRoute = med != null ? med.AdministrationRoute : "a",
+                                                 StartDate = mpcc != null ? mpcc.StartDate : null,
+                                                 EndDate = mpcc != null ? mpcc.EndDate : null
+                                             }
+                                         },
+                                         Illnesses = new List<IllnessDTO>
+                                         {
+                                             new IllnessDTO
+                                             {
+                                                 Id = il != null ? il.Id : 0,
+                                                 Name = il != null ? il.Name : "doença não informada",
+                                                 Description = il != null ? il.Description : "descrição não informada"
+                                             }
+                                         },
+                                         CareService = new List<CareServiceListDTO>
+                                         {
+                                             new CareServiceListDTO
+                                             {
+                                                 Id = cr != null ? cr.Id : 0,
+                                                 ServiceDate = cr != null ? cr.ServiceDate : DateTime.MinValue,
+                                             Referral = cr != null ? cr.Referral : "encaminhamento não informado",
+                                                 Description = cr != null ? cr.Description : "observações não informadas"
+                                             }
+                                         },
+                                         Appointments = ap != null ? new List<AppointmentListDTO>
+                                         {
+                                             new AppointmentListDTO
+                                             {
+                                                 Id = ap != null ? ap.Id : 0,
+                                                 Status = ap != null ? ap.Status : "status não informado",
+                                                 DateTime = ap != null ? ap.DateTime : DateTime.MinValue,
+                                                 Observations = ap != null ? ap.Observations : "observações não informadas",
+                                             }
+                                         } : new List<AppointmentListDTO>()
+                                         //esse ou (:) é para caso não tenha nenhum agendamento,
+                                         //ele vai retornar uma lista vazia, ao invés de retornar null
+                                     }).ToListAsync(); // <- materialize the query
+
+                if (!details.Any())
+                {
+                    return null;
+                }
+                var result = new DetailsPatientDTO
+                {
+                    //pega o primeiro paciente da lista, que é o único paciente que vai ser retornado
+                    Patient = details.First().Patient,
+                    BloodType = details.First().BloodType,
+                    //aqui ele vai pegar todos os responsáveis, condições clínicas, medicamentos e agendamentos
+                    //porem, ele vai agrupar por id
+                    //.Select(g => g.First()) pega o primeiro elemento de cada grupo, ou seja, ele vai eliminar os duplicados
+                    CareService = details
+                    .SelectMany(d => d.CareService)
+                    .Where(c => c.Id != 0)
+                    .GroupBy(c => c.Id)
+                    .Select(g => g.First())
+                    .ToList(),
+
+
+                    Illnesses = details
+                    .SelectMany(d => d.Illnesses)
+                    .Where(i => i.Id != 0)
+                    .GroupBy(i => i.Id)
+                    .Select(g => g.First())
+                    .ToList(),
+
+                    Responsibles = details
+                    .SelectMany(d => d.Responsibles)
+                    .Where(r => r.Id != 0)
+                    .GroupBy(r => r.Id)
+                    .Select(g => g.First())
+                    .ToList(),
+
+                      ClinicalConditions = details
+                    .SelectMany(d => d.ClinicalConditions)
+                    .Where(c => c.Id != 0)
+                    .GroupBy(c => c.Id)
+                    .Select(g => g.First())
+                    .ToList(),
+
+                      Medicines = details
+                    .SelectMany(d => d.Medicines)
+                    .Where(m => m.Id != 0)
+                    .GroupBy(m => m.Id)
+                    .Select(g => g.First())
+                    .ToList(),
+
+                     Appointments = details
+                    .SelectMany(d => d.Appointments)
+                    .Where(a => a.Id != 0)
+                    .GroupBy(a => a.Id)
+                    .Select(g => g.First())
+                    .ToList()
+                            };
 
                 return result;
+
             }
             catch (Exception ex)
             {
@@ -168,101 +323,70 @@ namespace SistemaDeCadastro.Infra.Repository
         //em tempos para ficar atualizando a tela de lembrete de medicamentos
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
-            var result = new List<MedicineReminderDTO>();
-
             var now = DateTime.Now;
             var today = now.Date;
-
-            var connection = _context.Database.GetDbConnection();
-            var shouldCloseConnection = connection.State != System.Data.ConnectionState.Open;
-
-            if (shouldCloseConnection)
-                await connection.OpenAsync();
-
-            try
+            var query = from mpcc in _context.MedicinePatientClinicalConditions
+                        join m in _context.Medicines on mpcc.MedicineId equals m.Id
+                        join pc in _context.PatientClinicalConditions on mpcc.PatientClinicalConditionId equals pc.Id
+                        join p in _context.Patients on pc.PatientId equals p.Id
+                        join e in _context.Employees on mpcc.ResponsibleEmployeeId equals (long?)e.Id into employeeGroup
+                        from e in employeeGroup.DefaultIfEmpty()
+                        select new MedicineReminderDTO
+                        {
+                            PatientId = p.Id,
+                            PatientName = p.Name,
+                            MedicineName = m.Name,
+                            Dosage = mpcc.PrescribedDosage,
+                            Frequency = mpcc.Frequency,
+                            AdministrationTime = mpcc.AdministrationTime,
+                            ResponsibleEmployeeName = e != null ? e.Name : "Não informado"
+                        };
+            var data = await query.ToListAsync();
+            var  reminders = data.Select(item =>
             {
-                using var command = connection.CreateCommand();
-
-                command.CommandText = @"
-            SELECT 
-                p.id_acolhido AS PatientId,
-                p.nome AS PatientName,
-                med.nome AS MedicineName,
-                mpcc.dosagem_prescrita AS Dosage,
-                mpcc.frequencia AS Frequency,
-                mpcc.horario_administracao AS AdministrationTime,
-                f.nome AS ResponsibleEmployeeName
-            FROM medicamento_acolhido_condicaoclinica mpcc
-            INNER JOIN medicamentos med 
-                ON med.id_medicamento = mpcc.id_medicamento
-            INNER JOIN acolhido_condicaoclinica pcc 
-                ON pcc.id_acolhido_condicao = mpcc.id_acolhido_condicao
-            INNER JOIN acolhidos p 
-                ON p.id_acolhido = pcc.id_acolhido
-            LEFT JOIN funcionarios f 
-                ON f.id_funcionario = mpcc.id_funcionario_responsavel
-            WHERE mpcc.horario_administracao IS NOT NULL
-              AND (mpcc.data_fim IS NULL OR mpcc.data_fim >= CURDATE())
-        ";
-
-                using var reader = await command.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
+                // Calcular o próximo horário de administração
+                // com base na frequência e no horário de administração
+                var nextDoseDateTime = today.Add(item.AdministrationTime.Value);
+                // Ajustar o próximo horário de administração com base na frequência
+                var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
+                // Gerar o texto de alerta com base no tempo restante
+                string alertText;
+                //aqui você pode personalizar as mensagens de alerta
+                //com base no tempo restante
+                if (minutesRemaining < 0)
+                    //esse math.abs é para pegar o valor absoluto
+                    //do tempo restante, ou seja, se for negativo ele vai transformar em positivo
+                    alertText = $"Atrasado há {Math.Abs(minutesRemaining)} minutos";
+                else if (minutesRemaining == 0)
+                    alertText = "Administrar agora";
+                else if (minutesRemaining <= 5)
+                    alertText = "Faltam 5 minutos ou menos";
+                else if (minutesRemaining <= 15)
+                    alertText = "Faltam 15 minutos ou menos";
+                else if (minutesRemaining <= 30)
+                    alertText = "Faltam 30 minutos ou menos";
+                else if (minutesRemaining <= 60)
+                    alertText = "Falta 1 hora ou menos";
+                else
+                    alertText = $"Faltam {minutesRemaining} minutos";
+                return new MedicineReminderDTO
                 {
-                    var administrationTime = reader["AdministrationTime"] == DBNull.Value
-                        ? (TimeSpan?)null
-                        : (TimeSpan)reader["AdministrationTime"];
+                    PatientId = item.PatientId,
+                    PatientName = item.PatientName,
+                    MedicineName = item.MedicineName,
+                    Dosage = item.Dosage,
+                    Frequency = item.Frequency,
+                    AdministrationTime = item.AdministrationTime,
+                    NextDoseDateTime = nextDoseDateTime,
+                    ResponsibleEmployeeName = item.ResponsibleEmployeeName,
+                    MinutesRemaining = minutesRemaining,
+                    AlertText = alertText
+                };
+            }).OrderBy(x => x.MinutesRemaining).ToList();
 
-                    if (administrationTime == null)
-                        continue;
-
-                    var nextDoseDateTime = today.Add(administrationTime.Value);
-
-                    if (nextDoseDateTime < now)
-                        nextDoseDateTime = nextDoseDateTime.AddDays(1);
-
-                    var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
-
-                    string alertText;
-
-                    if (minutesRemaining <= 5)
-                        alertText = "Faltam 5 minutos ou menos";
-                    else if (minutesRemaining <= 15)
-                        alertText = "Faltam 15 minutos ou menos";
-                    else if (minutesRemaining <= 30)
-                        alertText = "Faltam 30 minutos ou menos";
-                    else if (minutesRemaining <= 60)
-                        alertText = "Falta 1 hora ou menos";
-                    else
-                        alertText = $"Faltam {minutesRemaining} minutos";
-
-                    result.Add(new MedicineReminderDTO
-                    {
-                        PatientId = Convert.ToInt64(reader["PatientId"]),
-                        PatientName = reader["PatientName"]?.ToString(),
-                        MedicineName = reader["MedicineName"]?.ToString(),
-                        Dosage = reader["Dosage"]?.ToString(),
-                        Frequency = reader["Frequency"]?.ToString(),
-                        AdministrationTime = administrationTime,
-                        NextDoseDateTime = nextDoseDateTime,
-                        ResponsibleEmployeeName = reader["ResponsibleEmployeeName"] == DBNull.Value
-                            ? "Não informado"
-                            : reader["ResponsibleEmployeeName"]?.ToString(),
-                        MinutesRemaining = minutesRemaining,
-                        AlertText = alertText
-                    });
-                }
-            }
-            finally
-            {
-                if (shouldCloseConnection)
-                    await connection.CloseAsync();
-            }
-
-            return result
-                .OrderBy(x => x.MinutesRemaining)
-                .ToList();
+            return reminders;
         }
+        
 
         public async Task CreatePatient(Patient patient)
         {

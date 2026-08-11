@@ -47,7 +47,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpPut("UpdateAccessLog")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateAccessLog(UpdateAccessLogDTO entity)
         {
             var ret = await _app.Update(entity);

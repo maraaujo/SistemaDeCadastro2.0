@@ -16,6 +16,8 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ICareServiceRepository _careServiceRepository;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IMedicineRepository _medicineRepository;
+        
         public PatientApp(
             IPatientRepository patientRepository,
             IResponsibleRepository responsibleRepository,
@@ -24,7 +26,8 @@ namespace SistemaDeCadastro.APP.APP
             IAppointmentRepository appointmentRepository,
             ICareServiceRepository careServiceRepository,
             IPaymentRepository paymentRepository,
-            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository
+            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository,
+            IMedicineRepository _medicineRepository
             )
         {
             this._patientRepository = patientRepository;
@@ -34,6 +37,7 @@ namespace SistemaDeCadastro.APP.APP
             this._appointmentRepository = appointmentRepository;
             this._careServiceRepository = careServiceRepository;
             this._paymentRepository = paymentRepository;
+            this._medicineRepository = _medicineRepository;
            // this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
     
@@ -93,8 +97,15 @@ namespace SistemaDeCadastro.APP.APP
                         }
 
                     }
-                }
-            }
+                    if (patient.ClinicalConditions != null && patient.ClinicalConditions.Any())
+                    {
+                        //percorre a lista de condições clinicas
+                        //e cria cada um deles, associando ao paciente recém-criado
+                        foreach (var clinicalCoDto in patient.ClinicalConditions)
+                        {
+                            var newClinical = 
+                        }
+                    }
 
             catch (Exception err)
             {

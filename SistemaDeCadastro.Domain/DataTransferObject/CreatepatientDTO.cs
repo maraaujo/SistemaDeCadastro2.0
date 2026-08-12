@@ -27,8 +27,6 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 
         public List<CreatePatientClinicalConditionDTO> ClinicalConditions { get; set; } = new();
 
-        public List<CreateMedicineDTO> Medicines { get; set; } = new();
-
-        public List<CreatePatientMedicineDTO> PatientMedicines { get; set; } = new();
+        public List<CreatePatientMedicineDTO> ScheduledMedicines { get; set; } = new();
     }
 }

@@ -21,7 +21,7 @@ namespace SistemaDeCadastro.Controller.V1
             this._employeeApp = employeeApp;
         }
 
-        [HttpGet("GetEmployeeById")]
+        [HttpGet("GetEmployeeById/{id}")]
         public async Task<IActionResult> GetEmployeeById(long id)
         {
             var employee = await _employeeApp.GetById(id);

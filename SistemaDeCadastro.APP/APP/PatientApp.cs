@@ -17,7 +17,7 @@ namespace SistemaDeCadastro.APP.APP
         private readonly ICareServiceRepository _careServiceRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IMedicineRepository _medicineRepository;
-        
+        private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
         public PatientApp(
             IPatientRepository patientRepository,
             IResponsibleRepository responsibleRepository,
@@ -38,7 +38,7 @@ namespace SistemaDeCadastro.APP.APP
             this._careServiceRepository = careServiceRepository;
             this._paymentRepository = paymentRepository;
             this._medicineRepository = _medicineRepository;
-           // this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
+           this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
     
 
@@ -59,6 +59,7 @@ namespace SistemaDeCadastro.APP.APP
             ApiResponse ret = new();
             try
             {
+                var clinicalConditionMap = new Dictionary<long, long>();
                 if (patient.Id == 0)
                 {
                     var newPatient = new Patient
@@ -103,9 +104,41 @@ namespace SistemaDeCadastro.APP.APP
                         //e cria cada um deles, associando ao paciente recém-criado
                         foreach (var clinicalCoDto in patient.ClinicalConditions)
                         {
-                            var newClinical = 
+                            var newClinical = new PatientClinicalCondition
+                            {
+                                PatientId = newPatient.Id,
+                                ClinicalConditionId = clinicalCoDto.ClinicalConditionId,
+                                DiagnosisDate = clinicalCoDto.DiagnosisDate,
+                                Observations = clinicalCoDto.Observations
+                            };
+                            await _patientClinicalConditionRepository.Create(newClinical);
+                            clinicalConditionMap[clinicalCoDto.ClinicalConditionId] = newClinical.Id;
                         }
                     }
+
+                    if (patient.ScheduledMedicines != null && patient.ScheduledMedicines.Any())
+                    {
+                        foreach (var medicineDto in patient.ScheduledMedicines)
+                        {
+                            var newMedicine = new MedicinePatientClinicalCondition
+                            {
+                                PatientClinicalConditionId = clinicalConditionMap[medicineDto.ClinicalConditionId],
+                                MedicineId = medicineDto.MedicineId,
+                                ResponsibleEmployeeId = medicineDto.ResponsibleEmployeeId,
+                                Frequency = medicineDto.Frequency,
+                                StartDate = medicineDto.StartDate,
+                                EndDate = medicineDto.EndDate,
+                                Observations = medicineDto.Observations,
+                                AdministrationTime = medicineDto.AdministrationTime,
+                                PrescribedDosage = medicineDto.PrescribedDosage
+                            };
+                            await _medicinePatientClinicalConditionRepository.Create(newMedicine);
+                        }
+
+                    }
+                    return ret;
+                }
+            }
 
             catch (Exception err)
             {
@@ -128,17 +161,109 @@ namespace SistemaDeCadastro.APP.APP
                     updatePatient.Name = patient.Name ?? updatePatient.Name;
                     updatePatient.Document = patient.Document ?? updatePatient.Document;
                     updatePatient.Phone = patient.Phone ?? updatePatient.Phone;
-                    updatePatient.BloodTypeId = patient.IdBloodType != 0 ? patient.IdBloodType : updatePatient.BloodTypeId;
+                    updatePatient.BloodTypeId = patient.BloodTypeId != 0 ? patient.BloodTypeId : updatePatient.BloodTypeId;
                     // optional fields if provided in DTO
-                    if (patient.BirthDate != null) updatePatient.BirthDate = patient.BirthDate.Value;
+                    if (patient.BirthDate != null) updatePatient.BirthDate = patient.BirthDate;
                     if (!string.IsNullOrWhiteSpace(patient.Gender)) updatePatient.Gender = patient.Gender;
                     if (!string.IsNullOrWhiteSpace(patient.Cpf)) updatePatient.Cpf = patient.Cpf;
                     if (!string.IsNullOrWhiteSpace(patient.Observations)) updatePatient.Observations = patient.Observations;
-
                     await this._patientRepository.Update(updatePatient);
+
+                    // Update responsibles
+                    if (patient.Responsibles != null && patient.Responsibles.Any())
+                    {
+                        foreach (var responsibleDto in patient.Responsibles)
+                        {
+                            var existingResponsible = updatePatient.Responsibles.FirstOrDefault(r => r.Id == responsibleDto.Id);
+                            if (existingResponsible != null)
+                            {
+                                existingResponsible.Name = responsibleDto.Name ?? existingResponsible.Name;
+                                existingResponsible.Phone = responsibleDto.Phone ?? existingResponsible.Phone;
+                                existingResponsible.Relationship = responsibleDto.Relationship ?? existingResponsible.Relationship;
+                                existingResponsible.Address = responsibleDto.Address ?? existingResponsible.Address;
+                                await _responsibleRepository.Update(existingResponsible);
+                            }
+                            else
+                            {
+                                var newResponsible = new Responsible
+                                {
+                                    PatientId = updatePatient.Id,
+                                    Name = responsibleDto.Name,
+                                    Phone = responsibleDto.Phone,
+                                    Relationship = responsibleDto.Relationship,
+                                    Address = responsibleDto.Address
+                                };
+                                await _responsibleRepository.Create(newResponsible);
+                            }
+                        }
+                    }
+                    // Update clinical conditions
+                    if (patient.ClinicalConditions != null && patient.ClinicalConditions.Any())
+                    {
+                        foreach (var clinicalConditionDto in patient.ClinicalConditions)
+                        {
+                            var existingClinicalCondition = updatePatient.PatientClinicalConditions.FirstOrDefault(cc => cc.Id == clinicalConditionDto.Id);
+                            if (existingClinicalCondition != null)
+                            {
+                                existingClinicalCondition.ClinicalConditionId = clinicalConditionDto.ClinicalConditionId != 0 ? clinicalConditionDto.ClinicalConditionId : existingClinicalCondition.ClinicalConditionId;
+                                existingClinicalCondition.DiagnosisDate = clinicalConditionDto.DiagnosisDate ?? existingClinicalCondition.DiagnosisDate;
+                                existingClinicalCondition.Observations = clinicalConditionDto.Observations ?? existingClinicalCondition.Observations;
+                                await _patientClinicalConditionRepository.Update(existingClinicalCondition);
+                            }
+                            else
+                            {
+                                var newClinicalCondition = new PatientClinicalCondition
+                                {
+                                    PatientId = updatePatient.Id,
+                                    ClinicalConditionId = clinicalConditionDto.ClinicalConditionId,
+                                    DiagnosisDate = clinicalConditionDto.DiagnosisDate,
+                                    Observations = clinicalConditionDto.Observations
+                                };
+                                await _patientClinicalConditionRepository.Create(newClinicalCondition);
+                            }
+                        }
+                    }
+                    // Update scheduled medicines
+                    if (patient.ScheduledMedicines != null && patient.ScheduledMedicines.Any())
+                    {
+                        foreach (var medicineDto in patient.ScheduledMedicines)
+                        {
+                            var existingMedicine = updatePatient.PatientClinicalConditions
+                                .SelectMany(cc => cc.Medicines)
+                                .FirstOrDefault(m => m.Id == medicineDto.Id);
+                            if (existingMedicine != null)
+                            {
+                                existingMedicine.MedicineId = medicineDto.MedicineId != 0 ? medicineDto.MedicineId : existingMedicine.MedicineId;
+                                existingMedicine.ResponsibleEmployeeId = medicineDto.ResponsibleEmployeeId != 0 ? medicineDto.ResponsibleEmployeeId : existingMedicine.ResponsibleEmployeeId;
+                                existingMedicine.Frequency = medicineDto.Frequency ?? existingMedicine.Frequency;
+                                existingMedicine.StartDate = medicineDto.StartDate ?? existingMedicine.StartDate;
+                                existingMedicine.EndDate = medicineDto.EndDate ?? existingMedicine.EndDate;
+                                existingMedicine.Observations = medicineDto.Observations ?? existingMedicine.Observations;
+                                existingMedicine.AdministrationTime = medicineDto.AdministrationTime ?? existingMedicine.AdministrationTime;
+                                existingMedicine.PrescribedDosage = medicineDto.PrescribedDosage ?? existingMedicine.PrescribedDosage;
+                                await _medicinePatientClinicalConditionRepository.Update(existingMedicine);
+                            }
+                            else
+                            {
+                                var newMedicine = new MedicinePatientClinicalCondition
+                                {
+                                    PatientClinicalConditionId = updatePatient.PatientClinicalConditions.FirstOrDefault()?.Id ?? 0,
+                                    MedicineId = medicineDto.MedicineId,
+                                    ResponsibleEmployeeId = medicineDto.ResponsibleEmployeeId,
+                                    Frequency = medicineDto.Frequency,
+                                    StartDate = medicineDto.StartDate,
+                                    EndDate = medicineDto.EndDate,
+                                    Observations = medicineDto.Observations,
+                                    AdministrationTime = medicineDto.AdministrationTime,
+                                    PrescribedDosage = medicineDto.PrescribedDosage
+                                };
+                                await _medicinePatientClinicalConditionRepository.Create(newMedicine);
+                            }
+                        }
+                    }
                 }
 
-            }
+                }
             catch (Exception err)
             {
                 ret.ErrorMessage = err.Message;

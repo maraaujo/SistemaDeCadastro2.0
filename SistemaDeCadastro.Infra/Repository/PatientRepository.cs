@@ -120,6 +120,8 @@ namespace SistemaDeCadastro.Infra.Repository
                                              {
                                                  Id = ap != null ? ap.Id : 0,
                                                  Status = ap != null ? ap.Status : "status não informado",
+                                                 // use nullable FK InstitutionId to avoid accessing a null navigation property
+                                                 Institution = ap != null ? (ap.InstitutionId ?? 0) : 0,
                                                  DateTime = ap != null ? ap.DateTime : DateTime.MinValue,
                                                  Observations = ap != null ? ap.Observations : "observações não informadas",
                                              }

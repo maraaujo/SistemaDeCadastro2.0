@@ -50,7 +50,7 @@ namespace SistemaDeCadastro.APP.APP
             await _patientRepository.DetailsPatient(id);
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
             await _patientRepository.GetMedicineReminders();
-        public async Task<ApiResponse> CreatePatient(CreatepatientDTO patient)
+        public async Task<ApiResponse> CreatePatient(CreatePatientDTO patient)
         {
             ApiResponse ret = new();
             try

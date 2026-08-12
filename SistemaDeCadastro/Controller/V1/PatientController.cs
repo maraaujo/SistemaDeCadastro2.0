@@ -81,7 +81,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(response);
         }
         [HttpPost("CreatePatient")]
-        public async Task<IActionResult> CreatePatient(CreatepatientDTO patient)
+        public async Task<IActionResult> CreatePatient(CreatePatientDTO patient)
         {
             var ret = await _patientApp.CreatePatient(patient);
             return Ok(ret);

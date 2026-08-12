@@ -8,7 +8,7 @@ namespace SistemaDeCadastro.APP.Interface
     public interface IPatientApp
     {
         Task<List<Patient>> GetPatientById(long id);
-        Task<ApiResponse> CreatePatient(CreatepatientDTO patient);
+        Task<ApiResponse> CreatePatient(CreatePatientDTO patient);
         Task<ApiResponse> UpdatePatient(PatientDTO patient);
         Task<ApiResponse> DeletePatient(long id);
         Task GetPatientByAny(string patient);

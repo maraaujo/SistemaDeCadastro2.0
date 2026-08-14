@@ -39,6 +39,7 @@ namespace SistemaDeCadastro.APP.APP
                     AdmissionDate = DateTime.Now,
                     DepartmentId = entity.DepartmentId
                 };
+                await _employeeRepository.Create(employee);
             } catch (Exception ex) 
             {
             ret.ErrorMessage = ex.Message;

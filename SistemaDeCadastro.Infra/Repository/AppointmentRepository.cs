@@ -1,5 +1,6 @@
 using Azure;
 using Microsoft.EntityFrameworkCore;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Filters;
  using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
@@ -20,11 +21,45 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             _context = context;
         }
-
-        public async Task<Appointment?> GetById(long id)
+        public async Task<List<AppointmentListDTO>> GetAllAppointment()
         {
-            return await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
+            var ret = await (from a in _context.Appointments
+                      select new AppointmentListDTO
+                      {
+                          Id = a.Id,
+                          PatientId = a.PatientId,
+                          PatientName = a.Patient.Name,
+                          UserId = a.UserId,
+                          AppointmentType = a.AppointmentType,
+                          Observations = a.Observations,
+                          DateTime = a.DateTime,
+                          Responsible = a.Responsible,
+                          Status = a.Status
+                      }).ToListAsync();
+
+            return  ret;
+        } 
+
+        public async Task<AppointmentDTO> GetById(long id)
+        {
+            var ret = await (from a in _context.Appointments
+                      where a.Id == id
+                      select new AppointmentDTO
+                      {
+                          Id = a.Id,
+                          PatientId = a.PatientId,
+                          PatientName = a.Patient.Name,
+                          UserId = a.UserId,
+                          AppointmentType = a.AppointmentType,
+                          Observations = a.Observations,
+                          DateTime = a.DateTime,
+                          Responsible = a.Responsible,
+                          Status = a.Status
+                      }).FirstOrDefaultAsync();
+
+            return  ret ;
         }
+
         public async Task<PagedAppointmentDTO> GetPagedAppointmentByFilter(AppointmentFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;
@@ -38,6 +73,7 @@ namespace SistemaDeCadastro.Infra.Repository
                             PatientName = p.Name,
                             UserId = a.UserId,
                             AppointmentType = a.AppointmentType,
+                            Observations = a.Observations,
                             DateTime = a.DateTime,
                             Responsible = a.Responsible,
                             Status = a.Status

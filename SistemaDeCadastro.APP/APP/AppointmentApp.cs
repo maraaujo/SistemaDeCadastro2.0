@@ -16,9 +16,9 @@ namespace SistemaDeCadastro.APP.APP
             _repo = repo;
         }
 
-        public async Task<List<Appointment>> GetAll() => await _repo.GetAll();
+        public async Task<List<AppointmentListDTO>> GetAllAppointment() => await _repo.GetAllAppointment();
 
-        public async Task<Appointment?> GetById(long id) => (await _repo.FindBy(a => a.Id == id)).FirstOrDefault();
+        public async Task<AppointmentDTO?> GetById(long id) => await _repo.GetById(id);
 
         public async Task<ApiResponse> Create(CreateAppointmentDTO entity)
         {
@@ -34,6 +34,7 @@ namespace SistemaDeCadastro.APP.APP
                 //aqui eu estou atribuindo os valores do DTO para a entidade Appointment, que será salva no banco de dados
                 var appointment = new Appointment
                 {
+                    UserId = entity.UserId,
                     PatientId = entity.PatientId,
                     AppointmentType = entity.AppointmentType,
                     DateTime = entity.DateTime,

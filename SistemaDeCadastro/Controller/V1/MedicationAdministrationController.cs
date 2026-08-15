@@ -37,7 +37,6 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpPost("CreateMedicationAdministration")]
         public async Task<IActionResult> CreateMedicationAdministration(CreateMedicationAdministrationDTO entity)
         {
-            // TODO: Ajustar IMedicationAdministrationApp e MedicationAdministrationApp para receber CreateMedicationAdministrationDTO
             var ret = await _app.Create(entity);
             return Ok(ret);
         }

@@ -22,7 +22,7 @@ namespace SistemaDeCadastro.Controller.V1
             this._app = app;
         }
 
-        [HttpGet("GetAppointmentById")]
+        [HttpGet("GetAppointmentById/{id}")]
         public async Task<IActionResult> GetAppointmentById(long id)
         {
             var item = await _app.GetById(id);
@@ -32,7 +32,7 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpGet("GetAllAppointments")]
         public async Task<IActionResult> GetAllAppointments()
         {
-            var items = await _app.GetAll();
+            var items = await _app.GetAllAppointment();
             return Ok(items);
         }
 

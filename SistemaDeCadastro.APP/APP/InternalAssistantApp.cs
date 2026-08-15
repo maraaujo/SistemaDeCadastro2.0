@@ -22,81 +22,72 @@ public class InternalAssistantApp : IInternalAssistantApp
         try
         {
             var referenceDate = dto.ReferenceDate ?? DateTime.Now;
+            var question = NormalizeText(dto.Question);
 
-            var administrations = await _repo.GetMedicationAdministrationContext(
-                dto.PatientId,
-                referenceDate
-            );
-
-            if (administrations == null || !administrations.Any())
+            if (!string.IsNullOrWhiteSpace(question))
             {
+                if (IsPatientsQuestion(question))
+                    return await AnswerPatientsQuestion();
+
+                if (IsMedicinesQuestion(question))
+                    return await AnswerMedicinesQuestion();
+
+                if (IsAllAppointmentsQuestion(question))
+                    return await AnswerAllAppointmentsQuestion();
+
+                if (IsDelayedMedicinesQuestion(question))
+                    return await AnswerDelayedMedicinesQuestion();
+
+                if (IsPendingMedicinesQuestion(question))
+                    return await AnswerPendingMedicinesQuestion();
+
+                if (IsTodayAdministrationsQuestion(question))
+                    return await AnswerTodayAdministrationsQuestion();
+
+                if (IsTodayAppointmentsQuestion(question))
+                    return await AnswerTodayAppointmentsQuestion();
+
+                if (IsNextAppointmentsQuestion(question))
+                    return await AnswerNextAppointmentsQuestion();
+
+                if (IsDailySummaryQuestion(question))
+                    return await AnswerDailySummaryQuestion();
+
+                if (IsPatientsByMedicineQuestion(question))
+                    return await AnswerPatientsByMedicineQuestion(question);
+
+                if (IsPatientsByClinicalConditionQuestion(question))
+                    return await AnswerPatientsByClinicalConditionQuestion(question);
+
+                if (IsSinglePatientSummaryQuestion(question))
+                    return await AnswerSinglePatientSummaryQuestion(question);
+
                 ret.Success = true;
                 ret.Data = new InternalAssistantAnswerDTO
                 {
-                    Answer = "Não encontrei registros de administração de medicamentos para este acolhido na data informada."
+                    Answer = "Ainda não consegui entender essa pergunta. Você pode perguntar sobre pacientes, medicamentos, administrações ou agendamentos."
                 };
 
                 return ret;
             }
 
-            var patientName = administrations.First().PatientName;
-
-            var administered = administrations
-                .Where(x => x.Status == "Administered")
-                .ToList();
-
-            var notAdministered = administrations
-                .Where(x => x.Status != "Administered")
-                .ToList();
-
-            var answer = new StringBuilder();
-
-            answer.AppendLine($"Resumo do acolhido {patientName} em {referenceDate:dd/MM/yyyy}:");
-            answer.AppendLine();
-
-            if (notAdministered.Any())
+            if (dto.PatientId.HasValue && dto.PatientId.Value > 0)
             {
-                answer.AppendLine("Nem todos os medicamentos foram administrados.");
-
-                foreach (var item in notAdministered)
-                {
-                    answer.AppendLine(
-                        $"- {item.MedicineName} {item.PrescribedDosage}, previsto para {item.ScheduledDateTime:HH:mm}, status: {item.Status}."
-                    );
-                }
-            }
-            else
-            {
-                answer.AppendLine("Sim, todos os medicamentos registrados para essa data foram administrados.");
-            }
-
-            answer.AppendLine();
-
-            answer.AppendLine("Registros encontrados:");
-
-            foreach (var item in administrations)
-            {
-                var administeredText = item.AdministeredDateTime.HasValue
-                    ? item.AdministeredDateTime.Value.ToString("HH:mm")
-                    : "não registrado";
-
-                answer.AppendLine(
-                    $"- {item.MedicineName} {item.PrescribedDosage}, previsto para {item.ScheduledDateTime:HH:mm}, administrado: {administeredText}, responsável: {item.EmployeeName}. Observação: {item.Observations}"
+                return await AnswerPatientMedicationAdministrationsByDate(
+                    dto.PatientId.Value,
+                    referenceDate
                 );
             }
 
-            ret.Success = true;
-            ret.Data = new InternalAssistantAnswerDTO
-            {
-                Answer = answer.ToString()
-            };
+            ret.Success = false;
+            ret.ErrorMessage = "Informe uma pergunta ou um acolhido para consulta.";
+            return ret;
         }
         catch (Exception ex)
         {
             ret.Success = false;
             ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+            return ret;
         }
-
-        return ret;
     }
 }

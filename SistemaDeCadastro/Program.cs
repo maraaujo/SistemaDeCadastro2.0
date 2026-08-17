@@ -23,11 +23,14 @@ builder.Services.AddCors(options =>
 });
 
 // Connection String
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("Connection string 'DefaultConnection' não encontrada.");
+    throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' não encontrada."
+    );
 }
 
 // DbContext
@@ -35,10 +38,13 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
 {
     options.UseMySql(
         connectionString,
-        new MySqlServerVersion(new Version(8, 0, 46))
+        ServerVersion.AutoDetect(connectionString)
     );
 
-    options.LogTo(Console.WriteLine, LogLevel.Information);
+    options.LogTo(
+        Console.WriteLine,
+        LogLevel.Information
+    );
 });
 
 // APPs

@@ -38,17 +38,6 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<Subscription> Subscriptions { get; set; }
     public virtual DbSet<SubscriptionPayment> SubscriptionPayments { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseMySql(
-            "server=127.0.0.1;port=3306;database=sistema_cadastro_tcc;user=sistema_user;password=irmaos03;",
-                new MySqlServerVersion(new Version(8, 0, 46))
-            );
-        }
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 

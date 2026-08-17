@@ -8,7 +8,7 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 {
     public class AskInternalAssistantDTO
     {
-        public long PatientId { get; set; }
+        public long? PatientId { get; set; }
 
         public string Question { get; set; }
 

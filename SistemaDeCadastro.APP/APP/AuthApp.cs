@@ -91,6 +91,7 @@ namespace SistemaDeCadastro.APP.APP
                 new System.Security.Claims.Claim("UserId", user.UserId.ToString()),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email ?? string.Empty),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.UserType ?? string.Empty)
+                new Claim("institutionId", user.InstitutionId.ToString()),
             };
 
             var securityKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyBytes);

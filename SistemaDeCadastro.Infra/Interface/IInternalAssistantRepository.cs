@@ -9,6 +9,7 @@ namespace SistemaDeCadastro.Infra.Interface
 {
     public interface IInternalAssistantRepository
     {
-       // Task<List<MedicationAdministrationContextDTO>> GetMedicationAdministrationContext(long? patientId, DateTime referenceDate);
+      
+
     }
 }

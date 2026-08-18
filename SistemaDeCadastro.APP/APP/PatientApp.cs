@@ -10,11 +10,11 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientApp : IPatientApp
     {
         private readonly IPatientRepository _patientRepository;
+        private readonly ICurrentUserServiceContext _currentUserService;
         private readonly IResponsibleRepository _responsibleRepository;
         private readonly IPatientEmployeeRepository _patientEmployeeRepository;
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
         private readonly IAppointmentRepository _appointmentRepository;
-        private readonly ICareServiceRepository _careServiceRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IMedicineRepository _medicineRepository;
         private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
@@ -24,10 +24,10 @@ namespace SistemaDeCadastro.APP.APP
             IPatientEmployeeRepository patientEmployeeRepository,
             IPatientClinicalConditionRepository patientClinicalConditionRepository,
             IAppointmentRepository appointmentRepository,
-            ICareServiceRepository careServiceRepository,
             IPaymentRepository paymentRepository,
             IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository,
-            IMedicineRepository _medicineRepository
+            IMedicineRepository _medicineRepository,
+            ICurrentUserServiceContext currentUserService
             )
         {
             this._patientRepository = patientRepository;
@@ -35,10 +35,10 @@ namespace SistemaDeCadastro.APP.APP
             this._patientEmployeeRepository = patientEmployeeRepository;
             this._patientClinicalConditionRepository = patientClinicalConditionRepository;
             this._appointmentRepository = appointmentRepository;
-            this._careServiceRepository = careServiceRepository;
             this._paymentRepository = paymentRepository;
             this._medicineRepository = _medicineRepository;
            this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
+           this._currentUserService = currentUserService;
         }
     
 
@@ -59,6 +59,14 @@ namespace SistemaDeCadastro.APP.APP
             ApiResponse ret = new();
             try
             {
+                var institutionId = _currentUserService.InstitutionId;
+
+                if (!institutionId.HasValue)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
+                    return ret;
+                }
                 var clinicalConditionMap = new Dictionary<long, long>();
                 if (patient.Id == 0)
                 {
@@ -72,6 +80,7 @@ namespace SistemaDeCadastro.APP.APP
                         Cpf = patient.Cpf,
                         Observations = patient.Observations,
                         CreatedAt = DateTime.Now,
+                        InstitutionId = institutionId,
                         BloodTypeId = patient.BloodTypeId
                     };
 
@@ -279,8 +288,7 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 // Delete care services directly linked to patient
-                var careServices = await _careServiceRepository.FindBy(c => c.PatientId == id);
-                if (careServices.Any()) await _careServiceRepository.DeleteRange(careServices);
+
 
                 // Find appointments for patient and delete related payments and care services
                 var appointments = await _appointmentRepository.FindBy(a => a.PatientId == id);
@@ -289,8 +297,6 @@ namespace SistemaDeCadastro.APP.APP
                     var payments = await _paymentRepository.FindBy(p => p.AppointmentId == ap.Id);
                     if (payments.Any()) await _paymentRepository.DeleteRange(payments);
 
-                    var services = await _careServiceRepository.FindBy(c => c.AppointmentId == ap.Id);
-                    if (services.Any()) await _careServiceRepository.DeleteRange(services);
                 }
                 if (appointments.Any()) await _appointmentRepository.DeleteRange(appointments);
 

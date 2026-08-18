@@ -14,6 +14,7 @@ public class Medicine
     public string Description { get; set; }
 
     public string AdministrationRoute { get; set; }
-
+    public long? InstitutionId { get; set; }
+    public virtual Institution Institution { get; set; }
     public virtual ICollection<MedicinePatientClinicalCondition> PatientClinicalConditionMedicines { get; set; } = new List<MedicinePatientClinicalCondition>();
 }

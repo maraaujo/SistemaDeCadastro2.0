@@ -14,7 +14,12 @@ namespace SistemadeCadastro.Test
                 new MySqlServerVersion(new Version(8, 0, 46))
             );
 
-            return new SistemaDeCadastroContext(optionsBuilder.Options);
+            return new SistemaDeCadastroContext(optionsBuilder.Options, new TestCurrentUserService());
         }
+    }
+
+    internal class TestCurrentUserService : SistemaDeCadastro.APP.Interface.ICurrentUserServiceContext
+    {
+        public long? InstitutionId => null;
     }
 }

@@ -7,6 +7,7 @@ using SistemaDeCadastro.Infra.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -65,6 +66,7 @@ namespace SistemaDeCadastro.APP.APP
                     UserId = user.UserId,
                     Email = user.Email,
                     UserType = user.UserType,
+                    InstitutionId = user.InstitutionId,
                     Token = token
                 };
                 return response;
@@ -90,8 +92,8 @@ namespace SistemaDeCadastro.APP.APP
             {
                 new System.Security.Claims.Claim("UserId", user.UserId.ToString()),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email ?? string.Empty),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.UserType ?? string.Empty)
-                new Claim("institutionId", user.InstitutionId.ToString()),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.UserType ?? string.Empty),
+                new System.Security.Claims.Claim("institutionId", user.InstitutionId.ToString()),
             };
 
             var securityKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyBytes);

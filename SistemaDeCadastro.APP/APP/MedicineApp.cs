@@ -11,9 +11,11 @@ namespace SistemaDeCadastro.APP.APP
     public class MedicineApp : IMedicineApp
     {
         private readonly IMedicineRepository _medicineRepository;
-        public MedicineApp(IMedicineRepository medicineRepository)
+        private readonly ICurrentUserServiceContext _currentUserService;
+        public MedicineApp(IMedicineRepository medicineRepository, ICurrentUserServiceContext currentUserService)
         {
             this._medicineRepository = medicineRepository;  
+            this._currentUserService = currentUserService;
         }
 
         public async Task<List<Medicine>> GetAll() =>
@@ -34,6 +36,16 @@ namespace SistemaDeCadastro.APP.APP
                 newMedicine.Dosage = medicine.Dosage;
                 newMedicine.Name = medicine.Name;
                 newMedicine.AdministrationRoute = medicine.AdministrationRoute;
+                var institutionId = _currentUserService.InstitutionId;
+
+                if (!institutionId.HasValue)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
+                    return ret;
+                }
+
+                newMedicine.InstitutionId = institutionId.Value;
                 await this._medicineRepository.CreateMedicine(newMedicine);
             }
             catch (Exception err)

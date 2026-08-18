@@ -11,6 +11,7 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public long UserId { get; set; }
 
         public string Email { get; set; }
+        public long? InstitutionId { get; set; }
 
         public string UserType { get; set; }
 

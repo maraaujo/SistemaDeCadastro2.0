@@ -10,10 +10,14 @@ namespace SistemaDeCadastro.APP.APP
     public class AppointmentApp : IAppointmentApp
     {
         private readonly IAppointmentRepository _repo;
+        private readonly IPatientRepository _patientRepository;
+        private readonly ICurrentUserServiceContext _currentUserService;
 
-        public AppointmentApp(IAppointmentRepository repo)
+        public AppointmentApp(IAppointmentRepository repo, IPatientRepository patientRepository, ICurrentUserServiceContext currentUserService)
         {
             _repo = repo;
+            _patientRepository = patientRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<List<AppointmentListDTO>> GetAllAppointment() => await _repo.GetAllAppointment();
@@ -28,10 +32,29 @@ namespace SistemaDeCadastro.APP.APP
                 if (entity == null || entity.PatientId <= 0 )
                 {
                     ret.Success = false;
-                    ret.ErrorMessage = "Paciente não encontrado";
+                    ret.ErrorMessage = "Paciente não informado";
                     return ret;
                 }
-                //aqui eu estou atribuindo os valores do DTO para a entidade Appointment, que será salva no banco de dados
+
+                var institutionId = _currentUserService.InstitutionId;
+
+                if (!institutionId.HasValue)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
+                    return ret;
+                }
+
+                var patient = (await _patientRepository.GetPatientById(entity.PatientId)).FirstOrDefault();
+
+                if (patient == null || patient.InstitutionId != institutionId.Value)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Paciente não encontrado para a instituição do usuário logado.";
+                    return ret;
+                }
+
+                // Atribui os valores do DTO para a entidade Appointment e forçar InstitutionId vindo do usuário logado
                 var appointment = new Appointment
                 {
                     UserId = entity.UserId,
@@ -40,8 +63,10 @@ namespace SistemaDeCadastro.APP.APP
                     DateTime = entity.DateTime,
                     Responsible = entity.Responsible,
                     Status = entity.Status,
-                    Observations = entity.Observations
+                    Observations = entity.Observations,
+                    InstitutionId = institutionId.Value
                 };
+
                 await _repo.Create(appointment);
                 ret.Success = true;
             }

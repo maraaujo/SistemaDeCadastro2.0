@@ -46,7 +46,7 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
         LogLevel.Information
     );
 });
-
+builder.Services.AddHttpContextAccessor();
 // APPs
 builder.Services.AddScoped<IAuthApp, AuthApp>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
@@ -64,14 +64,14 @@ builder.Services.AddScoped<IAvailablePermissionApp, AvailablePermissionApp>();
 builder.Services.AddScoped<IUserPermissionApp, UserPermissionApp>();
 builder.Services.AddScoped<IAccessLogApp, AccessLogApp>();
 builder.Services.AddScoped<IAppointmentApp, AppointmentApp>();
-builder.Services.AddScoped<ICareServiceApp, CareServiceApp>();
 builder.Services.AddScoped<IPaymentApp, PaymentApp>();
 builder.Services.AddScoped<ISubscriptionApp, SubscriptionApp>();
 builder.Services.AddScoped<ISubscriptionPaymentApp, SubscriptionPaymentApp>();
 builder.Services.AddScoped<IPlanApp, PlanApp>();
 builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
 builder.Services.AddScoped<IMedicationAdministrationApp, MedicationAdministrationApp>();
-builder.Services.AddScoped<IInternalAssistantApp, InternalAssistantApp>();
+builder.Services.AddScoped<ICurrentUserServiceContext, CurrentUserServiceContext>();
+
 // Repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IResponsibleRepository, ResponsibleRepository>();
@@ -88,7 +88,6 @@ builder.Services.AddScoped<IAvailablePermissionRepository, AvailablePermissionRe
 builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
 builder.Services.AddScoped<IAccessLogRepository, AccessLogRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<ICareServiceRepository, CareServiceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ISubscriptionPaymentRepository, SubscriptionPaymentRepository>();

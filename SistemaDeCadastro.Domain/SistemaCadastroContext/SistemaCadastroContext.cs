@@ -1,20 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 
 namespace SistemaDeCadastro.Domain.SistemaCadastroContext;
 
 public partial class SistemaDeCadastroContext : DbContext
 {
+    private readonly ICurrentUserServiceContext _currentUserService;
     public SistemaDeCadastroContext()
     {
     }
 
-    public SistemaDeCadastroContext(DbContextOptions<SistemaDeCadastroContext> options)
-        : base(options)
+    public SistemaDeCadastroContext( DbContextOptions<SistemaDeCadastroContext> options,
+     ICurrentUserServiceContext currentUserService)
+     : base(options)
     {
+        _currentUserService = currentUserService;
     }
-
+    private long? CurrentInstitutionId => _currentUserService.InstitutionId;
     public virtual DbSet<Patient> Patients { get; set; }
     public virtual DbSet<Responsible> Responsibles { get; set; }
     public virtual DbSet<Employee> Employees { get; set; }
@@ -40,6 +44,25 @@ public partial class SistemaDeCadastroContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Patient>()
+        .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<Employee>()
+            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<Department>()
+            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<Appointment>()
+            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<Medicine>()
+            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+        modelBuilder.Entity<MedicationAdministration>()
+    .HasQueryFilter(x =>
+        CurrentInstitutionId != null &&
+        x.Patient.InstitutionId == CurrentInstitutionId
+    );
 
         modelBuilder.Entity<MedicationAdministration>(entity =>
         {
@@ -590,7 +613,13 @@ public partial class SistemaDeCadastroContext : DbContext
             entity.Property(e => e.Id)
                 .HasColumnName("id_medicamento")
                 .ValueGeneratedOnAdd();
+            entity.Property(e => e.InstitutionId)
+                .HasColumnName("id_instituicao");
 
+            entity.HasOne(e => e.Institution)
+                .WithMany()
+                .HasForeignKey(e => e.InstitutionId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.Property(e => e.Name)
                 .HasColumnName("nome")
                 .HasMaxLength(150)

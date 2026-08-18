@@ -9,10 +9,11 @@ namespace SistemaDeCadastro.APP.APP
     public class EmployeeApp : IEmployeeApp
     {
         private readonly IEmployeeRepository _employeeRepository;
-
-        public EmployeeApp(IEmployeeRepository employeeRepository)
+        private readonly ICurrentUserServiceContext _currentUserService;
+        public EmployeeApp(IEmployeeRepository employeeRepository, ICurrentUserServiceContext currentUserService)
         {
             _employeeRepository = employeeRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<List<Employee>> GetAll() => await _employeeRepository.GetAll();
@@ -23,6 +24,14 @@ namespace SistemaDeCadastro.APP.APP
         {
             var ret = new ApiResponse();
             try { 
+                var institutionId = _currentUserService.InstitutionId;
+
+                if (!institutionId.HasValue)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
+                    return ret;
+                }
                 if(entity.DepartmentId == null)
                 {
                     ret.Success = false;
@@ -38,6 +47,7 @@ namespace SistemaDeCadastro.APP.APP
                     Email = entity.Email,
                     AdmissionDate = DateTime.Now,
                     DepartmentId = entity.DepartmentId
+                    ,InstitutionId = institutionId.Value
                 };
                 await _employeeRepository.Create(employee);
             } catch (Exception ex) 

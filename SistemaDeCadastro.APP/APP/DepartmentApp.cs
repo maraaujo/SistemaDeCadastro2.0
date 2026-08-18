@@ -10,10 +10,12 @@ namespace SistemaDeCadastro.APP.APP
     public class DepartmentApp : IDepartmentApp
     {
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly ICurrentUserServiceContext _currentUserService;
 
-        public DepartmentApp(IDepartmentRepository departmentRepository)
+        public DepartmentApp(IDepartmentRepository departmentRepository, ICurrentUserServiceContext currentUserService)
         {
             _departmentRepository = departmentRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<List<Department>> GetAll() => await _departmentRepository.GetAll();
@@ -25,10 +27,19 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try
             {
+                var institutionId = _currentUserService.InstitutionId;
+
+                if (!institutionId.HasValue)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
+                    return ret;
+                }
                 var department = new Department
                 {
                     Name = entity.Name,
                     Description = entity.Description
+                    ,InstitutionId = institutionId.Value
                 };
                 await _departmentRepository.Create(department);
                 ret.Success = true;

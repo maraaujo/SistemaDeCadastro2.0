@@ -45,22 +45,22 @@ public partial class SistemaDeCadastroContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Patient>()
-        .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+        .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
 
         modelBuilder.Entity<Employee>()
-            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
 
         modelBuilder.Entity<Department>()
-            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
 
         modelBuilder.Entity<Appointment>()
-            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
 
         modelBuilder.Entity<Medicine>()
-            .HasQueryFilter(x => x.InstitutionId == CurrentInstitutionId);
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
         modelBuilder.Entity<MedicationAdministration>()
     .HasQueryFilter(x =>
-        CurrentInstitutionId != null &&
+        CurrentInstitutionId == null ||
         x.Patient.InstitutionId == CurrentInstitutionId
     );
 

@@ -29,7 +29,7 @@ var connectionString = builder.Configuration
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' não encontrada."
+        "Connection string 'DefaultConnection' nï¿½o encontrada."
     );
 }
 
@@ -70,6 +70,7 @@ builder.Services.AddScoped<ISubscriptionPaymentApp, SubscriptionPaymentApp>();
 builder.Services.AddScoped<IPlanApp, PlanApp>();
 builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
 builder.Services.AddScoped<IMedicationAdministrationApp, MedicationAdministrationApp>();
+builder.Services.AddScoped<IAdminOverviewApp, AdminOverviewApp>();
 builder.Services.AddScoped<ICurrentUserServiceContext, CurrentUserServiceContext>();
 
 // Repositories
@@ -95,8 +96,9 @@ builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IInstitutionRepository, InstitutionRepository>();
 builder.Services.AddScoped<IMedicationAdministrationRepository, MedicationAdministrationRepository>();
 builder.Services.AddScoped<IInternalAssistantRepository, InternalAssistantRepository>();
+builder.Services.AddScoped<IAdminOverviewRepository, AdminOverviewRepository>();
 
-// Base Repository genérico
+// Base Repository genï¿½rico
 builder.Services.AddScoped(
     typeof(IBaseRepository<>),
     typeof(BaseRepository<>)
@@ -117,17 +119,17 @@ var jwtAudience = jwtSection.GetValue<string>("Audience");
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("JWT Key não configurada no appsettings.json.");
+    throw new InvalidOperationException("JWT Key nï¿½o configurada no appsettings.json.");
 }
 
 if (string.IsNullOrWhiteSpace(jwtIssuer))
 {
-    throw new InvalidOperationException("JWT Issuer não configurado no appsettings.json.");
+    throw new InvalidOperationException("JWT Issuer nï¿½o configurado no appsettings.json.");
 }
 
 if (string.IsNullOrWhiteSpace(jwtAudience))
 {
-    throw new InvalidOperationException("JWT Audience não configurado no appsettings.json.");
+    throw new InvalidOperationException("JWT Audience nï¿½o configurado no appsettings.json.");
 }
 
 // Authentication JWT
@@ -169,7 +171,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+// Policy do back-office: somente o administrador do SaaS (usuario autenticado,
+// com papel administrativo E sem vinculo a uma instituicao) enxerga a visao global.
+// Os papeis aceitos sao configuraveis (AdminBackoffice:Roles); o padrao e "Administrador".
+var adminRoles = builder.Configuration
+    .GetSection("AdminBackoffice:Roles")
+    .Get<string[]>();
+
+if (adminRoles == null || adminRoles.Length == 0)
+{
+    adminRoles = new[] { "Administrador" };
+}
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SaasAdmin", policy =>
+        policy.RequireAssertion(context =>
+        {
+            var user = context.User;
+
+            if (user?.Identity?.IsAuthenticated != true)
+                return false;
+
+            // Precisa possuir um dos papeis administrativos configurados.
+            if (!adminRoles.Any(role => user.IsInRole(role)))
+                return false;
+
+            // Usuarios vinculados a uma instituicao NAO acessam a visao global
+            // (preserva o isolamento entre tenants). Admin da plataforma nao tem instituicao.
+            var institutionId =
+                user.FindFirst("institutionId")?.Value ??
+                user.FindFirst("InstitutionId")?.Value;
+
+            return string.IsNullOrWhiteSpace(institutionId);
+        }));
+});
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -187,7 +223,7 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        Description = "Cole apenas o token JWT. Não precisa escrever Bearer."
+        Description = "Cole apenas o token JWT. Nï¿½o precisa escrever Bearer."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement

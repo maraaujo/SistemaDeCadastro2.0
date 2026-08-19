@@ -22,16 +22,33 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Connection String
-var connectionString = builder.Configuration
+// Connection String (lê senha de variável de ambiente se ausente)
+var baseConnection = builder.Configuration
     .GetConnectionString("DefaultConnection");
 
-if (string.IsNullOrWhiteSpace(connectionString))
+if (string.IsNullOrWhiteSpace(baseConnection))
 {
     throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' n�o encontrada."
+        "Connection string 'DefaultConnection' não encontrada."
     );
 }
+
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+// Se a senha não estiver na connection string, exige variável de ambiente
+if (!baseConnection.Contains("password=", StringComparison.OrdinalIgnoreCase) &&
+    !baseConnection.Contains("pwd=", StringComparison.OrdinalIgnoreCase))
+{
+    if (string.IsNullOrWhiteSpace(dbPassword))
+    {
+        throw new InvalidOperationException(
+            "Senha do banco não encontrada. Defina a variável de ambiente 'DB_PASSWORD'."
+        );
+    }
+    if (!baseConnection.EndsWith(";")) baseConnection += ";";
+    baseConnection += $"password={dbPassword};";
+}
+
+var connectionString = baseConnection;
 
 // DbContext
 builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>

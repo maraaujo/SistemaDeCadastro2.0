@@ -21,9 +21,10 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> Create(CreateLoginAccountDTO entity)
         {
             var ret = new ApiResponse();
+
             try
             {
-                if (string.IsNullOrWhiteSpace(entity.Email) || string.IsNullOrWhiteSpace(entity.PasswordHash))
+                if (string.IsNullOrWhiteSpace(entity.Email) || string.IsNullOrWhiteSpace(entity.Password))
                 {
                     ret.Success = false;
                     ret.ErrorMessage = "Email e Senha devem ser preenchidos.";
@@ -31,6 +32,7 @@ namespace SistemaDeCadastro.APP.APP
                 }
 
                 var existing = await _repo.FindBy(l => l.Email == entity.Email);
+
                 if (existing.Any())
                 {
                     ret.Success = false;
@@ -38,19 +40,22 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
-                var hashed = BCrypt.Net.BCrypt.HashPassword(entity.PasswordHash);
+                var hashed = BCrypt.Net.BCrypt.HashPassword(entity.Password);
 
                 var loginAccount = new LoginAccount
                 {
-                    UserId = entity.UserId,
                     Email = entity.Email,
                     PasswordHash = hashed,
+                    
                     UserType = entity.UserType,
+                    InstitutionId = entity.InstitutionId,
                     LastLogin = null,
                     Active = true
                 };
-
+              
                 await _repo.Create(loginAccount);
+                loginAccount.UserId = loginAccount.Id;
+                await _repo.Update(loginAccount);
                 ret.Success = true;
                 ret.Message = "Usuário criado com sucesso.";
                 ret.Data = new
@@ -59,6 +64,7 @@ namespace SistemaDeCadastro.APP.APP
                     UserId = loginAccount.UserId,
                     Email = loginAccount.Email,
                     UserType = loginAccount.UserType,
+                    InstitutionId = loginAccount.InstitutionId,
                     Active = loginAccount.Active
                 };
             }
@@ -67,9 +73,9 @@ namespace SistemaDeCadastro.APP.APP
                 ret.Success = false;
                 ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
             }
+
             return ret;
         }
-
         public async Task<ApiResponse> Update(UpdateLoginAccountDTO entity)
         {
             var ret = new ApiResponse();

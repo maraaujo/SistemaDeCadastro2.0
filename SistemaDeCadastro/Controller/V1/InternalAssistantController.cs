@@ -18,5 +18,10 @@ public class InternalAssistantController : ControllerBase
         _internalAssistantApp = internalAssistantApp;
     }
 
-
+    [HttpPost("Ask")]
+    public async Task<IActionResult> Ask(AskInternalAssistantDTO askInternalAssistantDTO)
+    {
+        var ret = await _internalAssistantApp.Ask(askInternalAssistantDTO);
+        return Ok(ret);
+    }
 }

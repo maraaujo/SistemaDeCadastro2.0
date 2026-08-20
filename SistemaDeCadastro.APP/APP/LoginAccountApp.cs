@@ -16,7 +16,7 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<List<LoginAccount>> GetAll() => await _repo.GetAll();
 
-        public async Task<LoginAccount?> GetById(long id) => (await _repo.FindBy(l => l.Id == id)).FirstOrDefault();
+        public async Task<LoginAccount> GetById(long id) =>  (await _repo.FindBy(l => l.Id == id)).FirstOrDefault();
 
         public async Task<ApiResponse> Create(CreateLoginAccountDTO entity)
         {
@@ -81,12 +81,7 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try
             {
-                if (entity == null)
-                {
-                    ret.Success = false;
-                    ret.ErrorMessage = "Entity is null.";
-                    return ret;
-                }
+                
 
                 var existing = (await _repo.FindBy(l => l.Id == entity.Id)).FirstOrDefault();
                 if (existing == null)
@@ -97,11 +92,12 @@ namespace SistemaDeCadastro.APP.APP
                 }
 
 
-                existing.UserId = entity.UserId;
+                
                 existing.Email = entity.Email;
+                existing.Name = entity.Name;
                 existing.UserType = entity.UserType;
                 existing.LastLogin = entity.LastLogin;
-                existing.Active = entity.Active;
+                existing.Active = entity.Active ?? true;
                
 
                 await _repo.Update(existing);

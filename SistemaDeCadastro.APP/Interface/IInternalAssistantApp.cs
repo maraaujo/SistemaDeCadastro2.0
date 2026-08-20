@@ -10,5 +10,6 @@ namespace SistemaDeCadastro.APP.Interface
 {
     public interface IInternalAssistantApp
     {
+        Task<ApiResponse> Ask(AskInternalAssistantDTO dto);
     }
 }

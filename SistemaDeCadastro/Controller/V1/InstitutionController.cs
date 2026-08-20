@@ -15,7 +15,7 @@ namespace SistemaDeCadastro.Controller.V1
             _app = app;
         }
 
-        [HttpGet("GetInstitutionById")]
+        [HttpGet("GetInstitutionById/{id}")]
         public async Task<IActionResult> GetInstitutionById(long id)
         {
             var ret = await _app.GetById(id);

@@ -89,7 +89,7 @@ builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
 builder.Services.AddScoped<IMedicationAdministrationApp, MedicationAdministrationApp>();
 builder.Services.AddScoped<IAdminOverviewApp, AdminOverviewApp>();
 builder.Services.AddScoped<ICurrentUserServiceContext, CurrentUserServiceContext>();
-
+builder.Services.AddScoped<IInternalAssistantApp, InternalAssistantApp>();
 // Repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IResponsibleRepository, ResponsibleRepository>();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public long Id { get; set; }
 
         public long UserId { get; set; }
-
+        public string Name { get; set; }
         public string Email { get; set; }
       
         public string PasswordHash { get; set; }

@@ -723,6 +723,10 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasColumnName("email")
                 .HasMaxLength(150)
                 .IsRequired();
+            entity.Property(e => e.Name)
+                     .HasColumnName("nome")
+                     .HasMaxLength(150)
+                     .IsRequired();
 
             entity.HasIndex(e => e.Email)
                 .IsUnique();

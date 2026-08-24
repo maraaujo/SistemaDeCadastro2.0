@@ -14,8 +14,6 @@ namespace SistemaDeCadastro.APP.Interface
         Task GetPatientByAny(string patient);
         Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter);
         Task<DetailsPatientDTO?> DetailsPatient(long id);
-
-        Task<List<MedicineReminderDTO>> GetMedicineReminders();
         Task<List<Patient>> GetAllPatients();
 
     }

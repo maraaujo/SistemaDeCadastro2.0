@@ -12,6 +12,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<MedicinePatientClinicalCondition?> GetById(long id);
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
         Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter);
-        Task<List<MedicineReminderDTO>> GetMedicineReminders();
+        
     }
 }

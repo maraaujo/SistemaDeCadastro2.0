@@ -19,39 +19,7 @@ namespace SistemadeCadastro.Test
             return new SistemaDeCadastroContext(options, new TestCurrentUserService());
         }
 
-        [Fact]
-        public async Task GetMedicineReminders_Returns_List()
-        {
-            using var context = CreateContext("mpcc_reminders");
-            var patient = new Patient { Name = "MP1", Document = "d", Phone = "0", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
-            context.Patients.Add(patient);
-            var med = new Medicine { Name = "MedA", Description = "d", Dosage = "10", AdministrationRoute = "oral" };
-            context.Medicines.Add(med);
-            var pcc = new PatientClinicalCondition { PatientId = patient.Id, ClinicalConditionId = 0, DiagnosisDate = System.DateTime.Today, Observations = "obs" };
-            context.PatientClinicalConditions.Add(pcc);
-            await context.SaveChangesAsync();
-
-            var mpcc = new MedicinePatientClinicalCondition
-            {
-                PatientClinicalConditionId = pcc.Id,
-                MedicineId = med.Id,
-                ResponsibleEmployeeId = null,
-                Frequency = "daily",
-                AdministrationTime = System.TimeSpan.FromHours(9),
-                PrescribedDosage = "10mg",
-                Observations = "",
-                StartDate = System.DateTime.Today,
-                EndDate = System.DateTime.Today.AddDays(1)
-            };
-            context.MedicinePatientClinicalConditions.Add(mpcc);
-            await context.SaveChangesAsync();
-
-            var repo = new MedicinePatientClinicalConditionRepository(context);
-            var reminders = await repo.GetMedicineReminders();
-
-            Assert.NotEmpty(reminders);
-        }
-
+    
         [Fact]
         public async Task GetByPatientClinicalConditionId_Returns_List()
         {

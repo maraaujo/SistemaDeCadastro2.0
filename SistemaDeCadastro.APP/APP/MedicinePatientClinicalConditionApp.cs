@@ -169,10 +169,7 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         //implemntar job para ficar atualizando a lista de lembretes de medicamentos, e enviar notificação para o paciente
-        public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
-        {
-                return await _repo.GetMedicineReminders();
-        }
+     
        public async Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
         {
             return await _repo.GetMedicinePatientClinicalConditionByFilter(filter);

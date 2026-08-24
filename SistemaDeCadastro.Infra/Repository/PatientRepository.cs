@@ -263,71 +263,7 @@ namespace SistemaDeCadastro.Infra.Repository
         }
         //vou ter que fazer um job para ficar chamando esse metodo de tempos
         //em tempos para ficar atualizando a tela de lembrete de medicamentos
-        public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
-        {
-            var now = DateTime.Now;
-            var today = now.Date;
-            var query = from mpcc in _context.MedicinePatientClinicalConditions
-                        join m in _context.Medicines on mpcc.MedicineId equals m.Id
-                        join pc in _context.PatientClinicalConditions on mpcc.PatientClinicalConditionId equals pc.Id
-                        join p in _context.Patients on pc.PatientId equals p.Id
-                        join e in _context.Employees on mpcc.ResponsibleEmployeeId equals (long?)e.Id into employeeGroup
-                        from e in employeeGroup.DefaultIfEmpty()
-                        select new MedicineReminderDTO
-                        {
-                            PatientId = p.Id,
-                            PatientName = p.Name,
-                            MedicineName = m.Name,
-                            Dosage = mpcc.PrescribedDosage,
-                            Frequency = mpcc.Frequency,
-                            AdministrationTime = mpcc.AdministrationTime,
-                            ResponsibleEmployeeName = e != null ? e.Name : "Não informado"
-                        };
-            var data = await query.ToListAsync();
-            var  reminders = data.Select(item =>
-            {
-                // Calcular o próximo horário de administração
-                // com base na frequência e no horário de administração
-                var nextDoseDateTime = today.Add(item.AdministrationTime.Value);
-                // Ajustar o próximo horário de administração com base na frequência
-                var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
-                // Gerar o texto de alerta com base no tempo restante
-                string alertText;
-                //aqui você pode personalizar as mensagens de alerta
-                //com base no tempo restante
-                if (minutesRemaining < 0)
-                    //esse math.abs é para pegar o valor absoluto
-                    //do tempo restante, ou seja, se for negativo ele vai transformar em positivo
-                    alertText = $"Atrasado há {Math.Abs(minutesRemaining)} minutos";
-                else if (minutesRemaining == 0)
-                    alertText = "Administrar agora";
-                else if (minutesRemaining <= 5)
-                    alertText = "Faltam 5 minutos ou menos";
-                else if (minutesRemaining <= 15)
-                    alertText = "Faltam 15 minutos ou menos";
-                else if (minutesRemaining <= 30)
-                    alertText = "Faltam 30 minutos ou menos";
-                else if (minutesRemaining <= 60)
-                    alertText = "Falta 1 hora ou menos";
-                else
-                    alertText = $"Faltam {minutesRemaining} minutos";
-                return new MedicineReminderDTO
-                {
-                    PatientId = item.PatientId,
-                    PatientName = item.PatientName,
-                    MedicineName = item.MedicineName,
-                    Dosage = item.Dosage,
-                    Frequency = item.Frequency,
-                    AdministrationTime = item.AdministrationTime,
-                    NextDoseDateTime = nextDoseDateTime,
-                    ResponsibleEmployeeName = item.ResponsibleEmployeeName,
-                    MinutesRemaining = minutesRemaining,
-                    AlertText = alertText
-                };
-            }).OrderBy(x => x.MinutesRemaining).ToList();
 
-            return reminders;
-        }
         
 
         public async Task CreatePatient(Patient patient)

@@ -12,6 +12,7 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public string PatientName { get; set; }
         public string MedicineName { get; set; }
         public string Dosage { get; set; }
+        public long MedicinePatientClinicalConditionId { get; set; }
         public string Frequency { get; set; }
         public TimeSpan? AdministrationTime { get; set; }
         public string ResponsibleEmployeeName { get; set; }

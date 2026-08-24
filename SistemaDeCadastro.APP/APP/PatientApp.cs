@@ -52,8 +52,7 @@ namespace SistemaDeCadastro.APP.APP
 
         public async Task<DetailsPatientDTO?> DetailsPatient(long id) =>
             await _patientRepository.DetailsPatient(id);
-        public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
-            await _patientRepository.GetMedicineReminders();
+
         public async Task<ApiResponse> CreatePatient(CreatePatientDTO patient)
         {
             ApiResponse ret = new();

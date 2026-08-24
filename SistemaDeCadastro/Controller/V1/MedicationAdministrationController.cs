@@ -21,7 +21,7 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpGet("GetMedicationAdministrationById")]
-        public async Task<IActionResult> GetMedicationAdministrationById    (long id)
+        public async Task<IActionResult> GetMedicationAdministrationById(long id)
         {
             var item = await _app.GetById(id);
             return Ok(item);
@@ -60,6 +60,12 @@ namespace SistemaDeCadastro.Controller.V1
         {
             var pagedMedicationAdministrations = await _app.GetMedicationAdministrationByFilter(filter);
             return Ok(pagedMedicationAdministrations);
+        }
+        [HttpGet("GetMedicineReminders")]
+        public async Task<IActionResult> GetMedicineReminders()
+        {
+            var ret = await _app.GetMedicineReminders();
+            return Ok(ret);
         }
     }
 }

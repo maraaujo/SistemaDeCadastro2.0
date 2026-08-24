@@ -133,37 +133,6 @@ namespace SistemadeCadastro.Test
             Assert.NotNull(entity.BloodType);
         }
 
-        [Fact]
-        public async Task GetMedicineReminders_Returns_List()
-        {
-            using var context = CreateContext("patient_reminders");
-            var patient = new Patient { Name = "Rem1", Document = "d", Phone = "p", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
-            context.Patients.Add(patient);
-
-            var med = new Medicine { Name = "MedRem", Description = "D", Dosage = "10", AdministrationRoute = "oral" };
-            context.Medicines.Add(med);
-
-            var pcc = new PatientClinicalCondition { PatientId = patient.Id, ClinicalConditionId = 0, DiagnosisDate = System.DateTime.Today, Observations = "obs" };
-            context.PatientClinicalConditions.Add(pcc);
-            await context.SaveChangesAsync();
-
-            var mpcc = new MedicinePatientClinicalCondition
-            {
-                PatientClinicalConditionId = pcc.Id,
-                MedicineId = med.Id,
-                ResponsibleEmployeeId = null,
-                Frequency = "daily",
-                AdministrationTime = System.TimeSpan.FromHours(8),
-                PrescribedDosage = "5mg",
-                StartDate = System.DateTime.Today,
-            };
-            context.MedicinePatientClinicalConditions.Add(mpcc);
-            await context.SaveChangesAsync();
-
-            var repo = new PatientRepository(context);
-            var reminders = await repo.GetMedicineReminders();
-
-            Assert.NotEmpty(reminders);
-        }
+        
     }
 }

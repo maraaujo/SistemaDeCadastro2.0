@@ -15,7 +15,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Delete(long id);
 
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
-        Task<List<MedicineReminderDTO>> GetMedicineReminders();
+      
         Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter);
     }
 }

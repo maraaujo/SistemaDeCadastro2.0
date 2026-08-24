@@ -18,5 +18,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Create(CreateMedicationAdministrationDTO medicationAdministration);
         Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration);
         Task<ApiResponse> Delete(MedicationAdministration medicationAdministration);
+        Task<List<MedicineReminderDTO>> GetMedicineReminders();
+
     }
 }

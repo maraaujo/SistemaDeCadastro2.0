@@ -20,6 +20,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<DetailsPatientDTO?> DetailsPatient(long id);
         Task<Patient?> GetByIdWithRelations(long id);
 
-        Task<List<MedicineReminderDTO>> GetMedicineReminders();
+        
     }
 }

@@ -1,9 +1,10 @@
 ﻿using SistemaDeCadastro.APP.Interface;
+using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
-using SistemaDeCadastro.Infra.Interface;
-using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Pageds;
+using SistemaDeCadastro.Infra.Interface;
+using SistemaDeCadastro.Infra.Repository;
 
 namespace SistemaDeCadastro.APP.APP
 {
@@ -21,24 +22,47 @@ namespace SistemaDeCadastro.APP.APP
             await this._medicationAdministrationRepository.GetMedicationAdministrationByFilter(filter); 
         public async Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status) =>
             await this._medicationAdministrationRepository.GetMedicationAdministrationByStatus(status);
-
-        public async Task<ApiResponse> Create(CreateMedicationAdministrationDTO medicationAdministration)
+        public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
+    await _medicationAdministrationRepository.GetMedicineReminders();
+        public async Task<ApiResponse> Create(
+     CreateMedicationAdministrationDTO medicationAdministration)
         {
             ApiResponse ret = new();
+
             try
             {
-                MedicationAdministration medicationAdministration1 = new()
+                var now = DateTime.Now;
+
+                MedicationAdministration administration = new()
                 {
-                    MedicinePatientClinicalConditionId = medicationAdministration.MedicinePatientClinicalConditionId,
-                    PatientId = medicationAdministration.PatientId,
-                    EmployeeId = medicationAdministration.EmployeeId,
-                    ScheduledDateTime = medicationAdministration.ScheduledDateTime,
-                    AdministeredDateTime = medicationAdministration.AdministeredDateTime,
-                    Status = medicationAdministration.Status,
-                    Observations = medicationAdministration.Observations,
-                    CreatedAt = DateTime.Now
+                    MedicinePatientClinicalConditionId =
+                        medicationAdministration.MedicinePatientClinicalConditionId,
+
+                    PatientId =
+                        medicationAdministration.PatientId,
+
+                    EmployeeId =
+                        medicationAdministration.EmployeeId,
+
+                    // Horário previsto da dose.
+                    // Deve vir do NextDoseDateTime do lembrete.
+                    ScheduledDateTime =
+                        medicationAdministration.ScheduledDateTime,
+
+                    // Horário em que realmente foi administrado.
+                    AdministeredDateTime = now,
+
+                    // O backend define o status.
+                    Status = "Administered",
+
+                    Observations =
+                        medicationAdministration.Observations ?? string.Empty,
+
+                    CreatedAt = now
                 };
-                await this._medicationAdministrationRepository.Create(medicationAdministration1);
+
+                await _medicationAdministrationRepository.Create(administration);
+
                 ret.Success = true;
                 ret.Message = "Medication administration created successfully.";
             }
@@ -47,6 +71,7 @@ namespace SistemaDeCadastro.APP.APP
                 ret.Success = false;
                 ret.Message = "An error occurred while creating the medication administration.";
             }
+
             return ret;
         }
         public async Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration){

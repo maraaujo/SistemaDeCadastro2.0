@@ -64,12 +64,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("GetMedicineReminders")]
-        public async Task<IActionResult> GetMedicineReminders()
-        {
-            var ret = await _app.GetMedicineReminders();
-            return Ok(ret);
-        }
+        
         [HttpPost("GetMedicinePatientClinicalConditionByFilter")]
         public async Task<IActionResult> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
         {

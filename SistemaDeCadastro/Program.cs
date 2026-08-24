@@ -55,7 +55,7 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
 {
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString)
+        ServerVersion.Parse("8.4.8-mysql")
     );
 
     options.LogTo(

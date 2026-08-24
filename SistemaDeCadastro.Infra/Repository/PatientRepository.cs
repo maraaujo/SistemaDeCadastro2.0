@@ -229,6 +229,7 @@ namespace SistemaDeCadastro.Infra.Repository
                     Name = c.Name,
                     BirthDate = c.BirthDate,
                     Phone = c.Phone,
+                    Gender = c.Gender,
                     Document = c.Document,
                     Cpf = c.Cpf,
                 })

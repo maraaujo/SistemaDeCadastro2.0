@@ -42,7 +42,7 @@ namespace SistemaDeCadastro.APP.APP
                     answer = await AnswerDelayedMedicinesQuestion(dto);
                 }
                 //medicamento paciente 
-                else if (IsPatientMedicineQuestion(question))
+                 if (dto.PatientId !=  0)
                 {
                     answer = await AnswerPatientMedicineQuestion(dto);
                 }
@@ -85,6 +85,7 @@ namespace SistemaDeCadastro.APP.APP
         {
             return question.Contains("medicamentos do acolhido")
                 || question.Contains("remedios do acolhido")
+                || question.Contains("Quais medicamentos estão vinculados a este paciente")
                 || question.Contains("medicamentos esse acolhido")
                 || question.Contains("medicamentos esse paciente")
                 || question.Contains("quais medicamentos ele usa")

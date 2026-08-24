@@ -171,8 +171,8 @@ namespace SistemaDeCadastro.APP.APP
                     updatePatient.Document = patient.Document ?? updatePatient.Document;
                     updatePatient.Phone = patient.Phone ?? updatePatient.Phone;
                     updatePatient.BloodTypeId = patient.BloodTypeId != 0 ? patient.BloodTypeId : updatePatient.BloodTypeId;
-                    // optional fields if provided in DTO
-                    if (patient.BirthDate != null) updatePatient.BirthDate = patient.BirthDate;
+
+                    if (patient.BirthDate != null) updatePatient.BirthDate = patient.BirthDate ?? DateTime.Now; ;
                     if (!string.IsNullOrWhiteSpace(patient.Gender)) updatePatient.Gender = patient.Gender;
                     if (!string.IsNullOrWhiteSpace(patient.Cpf)) updatePatient.Cpf = patient.Cpf;
                     if (!string.IsNullOrWhiteSpace(patient.Observations)) updatePatient.Observations = patient.Observations;

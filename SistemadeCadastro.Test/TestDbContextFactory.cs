@@ -9,10 +9,9 @@ namespace SistemadeCadastro.Test
         {
             var optionsBuilder = new DbContextOptionsBuilder<SistemaDeCadastroContext>();
 
-            //optionsBuilder.UseMySql(
-            //   "server=127.0.0.1;port=3306;database=sistema_cadastro_tcc;user=sistema_user;password=irmaos03;",
-            //    new MySqlServerVersion(new Version(8, 0, 46))
-            //);
+            optionsBuilder.UseMySql(
+                new MySqlServerVersion(new Version(8, 4, 8)))
+           ;
 
             return new SistemaDeCadastroContext(optionsBuilder.Options, new TestCurrentUserService());
         }

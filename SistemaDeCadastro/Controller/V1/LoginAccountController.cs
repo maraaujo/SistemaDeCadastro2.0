@@ -27,7 +27,7 @@ namespace SistemaDeCadastro.Controller.V1
             
             return Ok(ret);
         }
-        [HttpGet("GetLoginAccountById")]
+        [HttpGet("GetLoginAccountById/{id}")]
         public async Task<IActionResult> GetLoginAccountById(long id)
         {
             var item = await _app.GetById(id);

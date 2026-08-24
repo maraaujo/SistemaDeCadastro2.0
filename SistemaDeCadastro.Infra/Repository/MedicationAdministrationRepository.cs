@@ -26,10 +26,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return await this.FindBy(c => c.Status == status);
         }
 
-        public async Task Create(CreateMedicationAdministrationDTO medicationAdministration)
-        {
-            await this.Create(medicationAdministration);
-        }
+  
 
         public async Task Update(UpdateMedicationAdministrationDTO medicationAdministration)
         {
@@ -208,45 +205,28 @@ namespace SistemaDeCadastro.Infra.Repository
                                     → já foi administrado
                                 */
                                 var alreadyAdministered = administrationsToday.Any(a =>
-                a.MedicinePatientClinicalConditionId ==
-                    item.MedicinePatientClinicalConditionId &&
+                                     a.MedicinePatientClinicalConditionId == item.MedicinePatientClinicalConditionId &&
+                                     a.PatientId == item.PatientId &&
+                                     (
+                                         a.AdministeredDateTime != null ||
+                                         (!string.IsNullOrWhiteSpace(a.Status) &&
+                                          (
+                                              a.Status.Equals("Administrado", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Administrada", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Realizado", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Realizada", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Ministrado", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Ministrada", StringComparison.OrdinalIgnoreCase) ||
+                                              a.Status.Equals("Administered", StringComparison.OrdinalIgnoreCase)
+                                          ))
+                                     )
+                                 );
 
-                a.PatientId == item.PatientId &&
-
-                (
-                    // Registro novo: compara a dose prevista corretamente
-                    a.ScheduledDateTime == nextDoseDateTime
-
-                    ||
-
-                    // Compatibilidade com registros antigos que foram
-                    // gravados com horário 00:00:00
-                    (
-                        a.ScheduledDateTime.Date == today &&
-                        a.ScheduledDateTime.TimeOfDay == TimeSpan.Zero &&
-                        a.AdministeredDateTime != null &&
-                        a.AdministeredDateTime.Value.Date == today
-                    )
-                ) &&
-
-                (
-                    a.AdministeredDateTime != null ||
-
-                    (!string.IsNullOrWhiteSpace(a.Status) &&
-                     (
-                         a.Status.Equals("Administrado", StringComparison.OrdinalIgnoreCase) ||
-                         a.Status.Equals("Realizado", StringComparison.OrdinalIgnoreCase) ||
-                         a.Status.Equals("Ministrado", StringComparison.OrdinalIgnoreCase) ||
-                         a.Status.Equals("Administered", StringComparison.OrdinalIgnoreCase)
-                     ))
-                )
-            );
-
-                    /*
-                        Se já foi administrado hoje, não deve aparecer mais na tela
-                        de Próximos Medicamentos.
-                    */
-                    if (alreadyAdministered)
+                                /*
+                                    Se já foi administrado hoje, não deve aparecer mais na tela
+                                    de Próximos Medicamentos.
+                                */
+                                if (alreadyAdministered)
                         return null;
 
                     var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;

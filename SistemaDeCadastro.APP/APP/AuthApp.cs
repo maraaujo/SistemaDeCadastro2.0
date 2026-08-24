@@ -48,6 +48,7 @@ namespace SistemaDeCadastro.APP.APP
                 if (!BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
                 {
                     response.Success = false;
+
                     response.Message = "E-mail ou senha inválidos.";
                     return response;
                 }
@@ -65,6 +66,7 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     UserId = user.UserId,
                     Email = user.Email,
+                    Name = user.Name,
                     UserType = user.UserType,
                     InstitutionId = user.InstitutionId,
                     Token = token

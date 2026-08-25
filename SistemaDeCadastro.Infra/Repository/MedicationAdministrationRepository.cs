@@ -26,8 +26,11 @@ namespace SistemaDeCadastro.Infra.Repository
             return await this.FindBy(c => c.Status == status);
         }
 
-  
 
+        public async Task Create(CreateMedicationAdministrationDTO medicationAdministration)
+        {
+            await this.Create(medicationAdministration);
+        }
         public async Task Update(UpdateMedicationAdministrationDTO medicationAdministration)
         {
             await this.Update(medicationAdministration);

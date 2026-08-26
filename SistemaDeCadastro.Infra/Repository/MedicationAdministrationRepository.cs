@@ -28,10 +28,6 @@ namespace SistemaDeCadastro.Infra.Repository
 
   
 
-        public async Task Update(UpdateMedicationAdministrationDTO medicationAdministration)
-        {
-            await this.Update(medicationAdministration);
-        }
         public async Task Delete(MedicationAdministration medicationAdministration)
         {
             

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.APP;
 using SistemaDeCadastro.APP.Interface;
@@ -8,6 +9,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class LoginAccountController : ControllerBase
     {
         private IConfiguration _configuration;
@@ -21,6 +23,7 @@ namespace SistemaDeCadastro.Controller.V1
             this._authApp = authApp;
         }
         [HttpPost("Login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginRequestDTO login)
         {
             var ret = await _authApp.Login(login);

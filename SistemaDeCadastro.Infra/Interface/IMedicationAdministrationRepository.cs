@@ -11,8 +11,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<MedicationAdministration>> GetById(long ind);
         Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status);
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
-        Task Create(CreateMedicationAdministrationDTO medicationAdministration);
-        Task Update(UpdateMedicationAdministrationDTO medicationAdministration);
         Task Delete(MedicationAdministration medicationAdministration);
     }
 }

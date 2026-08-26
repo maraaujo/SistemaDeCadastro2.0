@@ -14,9 +14,28 @@ namespace SistemaDeCadastro.APP.APP
             _repo = repo;
         }
 
-        public async Task<List<LoginAccount>> GetAll() => await _repo.GetAll();
+        public async Task<List<LoginAccountDTO>> GetAll() =>
+            (await _repo.GetAll()).Select(ToDTO).ToList();
 
-        public async Task<LoginAccount> GetById(long id) =>  (await _repo.FindBy(l => l.Id == id)).FirstOrDefault();
+        public async Task<LoginAccountDTO> GetById(long id)
+        {
+            var account = (await _repo.FindBy(l => l.Id == id)).FirstOrDefault();
+
+            return account == null ? null : ToDTO(account);
+        }
+
+        // Projeção segura: nunca expor PasswordHash em resposta de API.
+        private static LoginAccountDTO ToDTO(LoginAccount account) => new()
+        {
+            Id = account.Id,
+            UserId = account.UserId,
+            Name = account.Name,
+            Email = account.Email,
+            UserType = account.UserType,
+            InstitutionId = account.InstitutionId,
+            LastLogin = account.LastLogin,
+            Active = account.Active
+        };
 
         public async Task<ApiResponse> Create(CreateLoginAccountDTO entity)
         {
@@ -104,7 +123,7 @@ namespace SistemaDeCadastro.APP.APP
 
                 ret.Success = true;
                 ret.Message = "Usuário atualizado com sucesso.";
-                ret.Data = existing;
+                ret.Data = ToDTO(existing);
             }
             catch (Exception ex)
             {

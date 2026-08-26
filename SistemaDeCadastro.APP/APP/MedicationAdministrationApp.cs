@@ -49,11 +49,17 @@ namespace SistemaDeCadastro.APP.APP
                     ScheduledDateTime =
                         medicationAdministration.ScheduledDateTime,
 
-                    // Horário em que realmente foi administrado.
-                    AdministeredDateTime = now,
+                    // Horário em que realmente foi administrado (usa o valor enviado
+                    // pelo usuário; se não vier, assume o momento atual).
+                    AdministeredDateTime =
+                        medicationAdministration.AdministeredDateTime ?? now,
 
-                    // O backend define o status.
-                    Status = "Administered",
+                    // Usa o status escolhido pelo usuário (Administrado, Não administrado,
+                    // Atrasado, Cancelado); se não vier nenhum, assume "Administered".
+                    Status =
+                        string.IsNullOrWhiteSpace(medicationAdministration.Status)
+                            ? "Administered"
+                            : medicationAdministration.Status,
 
                     Observations =
                         medicationAdministration.Observations ?? string.Empty,

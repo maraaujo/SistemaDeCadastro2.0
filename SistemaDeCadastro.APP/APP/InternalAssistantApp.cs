@@ -41,8 +41,8 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     answer = await AnswerDelayedMedicinesQuestion(dto);
                 }
-                //medicamento paciente 
-                 if (dto.PatientId !=  0)
+                //medicamento paciente
+                else if (dto.PatientId !=  0)
                 {
                     answer = await AnswerPatientMedicineQuestion(dto);
                 }

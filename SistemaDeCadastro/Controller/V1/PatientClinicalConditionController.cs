@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
@@ -7,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PatientClinicalConditionController : ControllerBase
     {
         private IConfiguration _configuration;

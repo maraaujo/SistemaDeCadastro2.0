@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 
@@ -6,6 +7,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class InstitutionController : ControllerBase
     {
         private readonly IInstitutionApp _app;

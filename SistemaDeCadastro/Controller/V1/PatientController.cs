@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SistemaDeCadastro.APP.Interface;
@@ -10,6 +11,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PatientController : ControllerBase
     {
         private IConfiguration _configuration;

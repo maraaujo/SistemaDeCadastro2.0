@@ -8,6 +8,7 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MedicineController : ControllerBase
     {
         private IConfiguration _configuration;

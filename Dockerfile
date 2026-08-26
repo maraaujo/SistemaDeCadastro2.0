@@ -27,10 +27,10 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-# Porta esperada pelo Render
-ENV ASPNETCORE_URLS=http://+:10000
+# Porta padrão esperada pelo Google Cloud Run
+ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-EXPOSE 10000
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "SistemaDeCadastro.dll"]

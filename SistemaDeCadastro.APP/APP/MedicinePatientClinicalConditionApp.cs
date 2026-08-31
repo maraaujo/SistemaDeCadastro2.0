@@ -15,16 +15,19 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IMedicineRepository _medicineRepository;
         private readonly IClinicalConditionRepository _clinicalConditionRepository;
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
+        private readonly ICurrentUserServiceContext _currentUserService;
         public MedicinePatientClinicalConditionApp(IMedicinePatientClinicalConditionRepository repo,
-            IPatientRepository patientRepository, IMedicineRepository 
-            medicineRepository, 
-            IClinicalConditionRepository clinicalConditionRepository, IPatientClinicalConditionRepository patientClinicalConditionRepository)
+            IPatientRepository patientRepository, IMedicineRepository
+            medicineRepository,
+            IClinicalConditionRepository clinicalConditionRepository, IPatientClinicalConditionRepository patientClinicalConditionRepository,
+            ICurrentUserServiceContext currentUserService)
         {
             _repo = repo;
             _patientRepository = patientRepository;
             _medicineRepository = medicineRepository;
             _clinicalConditionRepository = clinicalConditionRepository;
             _patientClinicalConditionRepository = patientClinicalConditionRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAll();
@@ -47,7 +50,11 @@ namespace SistemaDeCadastro.APP.APP
                         Name = entity.MedicineDTO.Name,
                         Dosage = entity.MedicineDTO.Dosage,
                         Description = entity.MedicineDTO.Description,
-                        AdministrationRoute = entity.MedicineDTO.AdministrationRoute
+                        AdministrationRoute = entity.MedicineDTO.AdministrationRoute,
+                        // Carimba a instituicao do usuario logado (mesmo criterio do MedicineApp).
+                        // Sem isso, o medicamento fica com InstitutionId nulo e o filtro de tenant
+                        // o exclui das telas (listagem e proximos medicamentos) para usuarios de instituicao.
+                        InstitutionId = _currentUserService.InstitutionId
                     };
 
                     await _medicineRepository.Create(medicine);

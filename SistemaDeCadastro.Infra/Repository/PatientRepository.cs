@@ -37,10 +37,7 @@ namespace SistemaDeCadastro.Infra.Repository
                                      from ap in appGroup.DefaultIfEmpty()         
                                      join b in _context.BloodTypes.AsNoTracking()
                                          on pa.BloodTypeId equals b.Id into bGroup
-                                     from b in bGroup.DefaultIfEmpty()
-                                     join cr in _context.CareServices.AsNoTracking()
-                                         on pa.Id equals cr.PatientId into crGroup
-                                        from cr in crGroup.DefaultIfEmpty()
+                                     from b in bGroup.DefaultIfEmpty()                           
                                      join cc in _context.ClinicalConditions.AsNoTracking()
                                          on pcc.ClinicalConditionId equals cc.Id into ccGroup
                                      from cc in ccGroup.DefaultIfEmpty()
@@ -104,16 +101,6 @@ namespace SistemaDeCadastro.Infra.Repository
                                              }
                                          },
                                       
-                                         CareService = new List<CareServiceListDTO>
-                                         {
-                                             new CareServiceListDTO
-                                             {
-                                                 Id = cr != null ? cr.Id : 0,
-                                                 ServiceDate = cr != null ? cr.ServiceDate : DateTime.MinValue,
-                                             Referral = cr != null ? cr.Referral : "encaminhamento não informado",
-                                                 Description = cr != null ? cr.Description : "observações não informadas"
-                                             }
-                                         },
                                          Appointments = ap != null ? new List<AppointmentListDTO>
                                          {
                                              new AppointmentListDTO
@@ -192,7 +179,6 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;
 
-          
 
             var query =  _context.Patients.AsNoTracking();
                 

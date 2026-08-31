@@ -137,8 +137,8 @@ namespace SistemaDeCadastro.APP.APP
                     MedicineId = medicine.Id,
                     MedicineName = medicine.Name,
                     Dosage = mpcc.PrescribedDosage,
-                    Frequency = mpcc.Frequency,
-                    AdministrationTime = mpcc.AdministrationTime,
+                    mpcc.Frequency,
+                    mpcc.AdministrationTime,
                     ResponsibleEmployeeName = employee != null ? employee.Name : "Não informado"
                 }).ToListAsync();
             //var atrasado pe
@@ -232,8 +232,8 @@ namespace SistemaDeCadastro.APP.APP
                     PatientName = patient.Name,
                     MedicineName = medicine.Name,
                     Dosage = mpcc.PrescribedDosage,
-                    Frequency = mpcc.Frequency,
-                    AdministrationTime = mpcc.AdministrationTime,
+                    mpcc.Frequency,
+                    mpcc.AdministrationTime,
                     ConditionName = condition.Name,
                     ResponsibleEmployeeName = employee != null ? employee.Name : "Não informado"
                 }

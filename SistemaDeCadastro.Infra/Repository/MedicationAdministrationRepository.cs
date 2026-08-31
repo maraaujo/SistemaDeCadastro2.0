@@ -110,7 +110,12 @@ namespace SistemaDeCadastro.Infra.Repository
 
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
-            var now = DateTime.Now;
+            // O servidor pode rodar em UTC (ex.: Cloud Run). Calcula "agora" no fuso de
+            // Sao Paulo para que o horario previsto e o atraso batam com o horario local.
+            // Mantido como Unspecified (sem 'Z'/offset) para o front exibir a hora de parede.
+            var now = DateTime.SpecifyKind(
+                SistemaDeCadastro.Domain.Utils.DateTimeUtils.ConvertUtcToWallClock(DateTime.UtcNow),
+                DateTimeKind.Unspecified);
             var today = now.Date;
 
             /*

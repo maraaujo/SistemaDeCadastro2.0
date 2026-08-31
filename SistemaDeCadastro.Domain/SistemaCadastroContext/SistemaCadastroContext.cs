@@ -35,7 +35,6 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<UserPermission> UserPermissions { get; set; }
     public virtual DbSet<AccessLog> AccessLogs { get; set; }
     public virtual DbSet<Appointment> Appointments { get; set; }
-    public virtual DbSet<CareService> CareServices { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
     public virtual DbSet<Institution> Institutions { get; set; }
     public virtual DbSet<Plan> Plans { get; set; }
@@ -907,65 +906,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<CareService>(entity =>
-        {
-            entity.ToTable("atendimentos");
-
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .HasColumnName("id_atendimento")
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.AppointmentId)
-                .HasColumnName("id_agendamento");
-
-            entity.Property(e => e.PatientId)
-                .HasColumnName("id_acolhido");
-
-            entity.Property(e => e.UserId)
-                .HasColumnName("id_usuario");
-
-            entity.Property(e => e.InstitutionId)
-                .HasColumnName("id_instituicao");
-
-            entity.Property(e => e.Description)
-                .HasColumnName("descricao")
-                .HasColumnType("text");
-
-            entity.Property(e => e.ServiceDate)
-                .HasColumnName("data_atendimento")
-                .HasColumnType("datetime");
-
-            entity.Property(e => e.Referral)
-                .HasColumnName("encaminhamento")
-                .HasColumnType("text");
-
-            entity.Property(e => e.Observations)
-                .HasColumnName("observacoes")
-                .HasColumnType("text");
-
-            entity.HasOne(e => e.Appointment)
-                .WithMany(e => e.CareServices)
-                .HasForeignKey(e => e.AppointmentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.Patient)
-                .WithMany(e => e.CareServices)
-                .HasForeignKey(e => e.PatientId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.User)
-                .WithMany(e => e.CareServices)
-                .HasForeignKey(e => e.UserId)
-                .HasPrincipalKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.Institution)
-                .WithMany()
-                .HasForeignKey(e => e.InstitutionId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
+      
 
         modelBuilder.Entity<Payment>(entity =>
         {

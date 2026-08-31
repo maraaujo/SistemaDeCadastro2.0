@@ -7,6 +7,7 @@ using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 
@@ -22,7 +23,7 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             _context = context;
         }
-
+      
         public async Task<MedicinePatientClinicalCondition?> GetById(long id)
         {
             return await _context.MedicinePatientClinicalConditions

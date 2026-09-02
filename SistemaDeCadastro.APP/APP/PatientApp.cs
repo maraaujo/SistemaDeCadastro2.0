@@ -66,6 +66,13 @@ namespace SistemaDeCadastro.APP.APP
                     ret.ErrorMessage = "Não foi possível identificar a instituição do usuário logado.";
                     return ret;
                 }
+                if (patient.Cpf != null)
+                {
+                    var existingPatient =  _patientRepository.FindPatientByCPF(patient.Cpf);
+                    ret.Success = false;
+                    ret.ErrorMessage = "CPF já é atribuido a outro paciente";
+                    return ret;
+                }
                 var clinicalConditionMap = new Dictionary<long, long>();
                 if (patient.Id == 0)
                 {

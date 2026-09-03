@@ -109,7 +109,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .ToListAsync();
 
             var adherenceByInstitution = adherenceRows
-                .GroupBy(r => r.InstitutionId!.Value)
+                .GroupBy(r => r.InstitutionId!)
                 .Select(g => AdherenceOf(g.Select(x => (x.ScheduledDateTime, x.AdministeredDateTime))))
                 .ToList();
 
@@ -293,7 +293,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .GroupBy(p => p.InstitutionId)
                 .Select(g => new { InstitutionId = g.Key, Count = g.Count() })
                 .ToListAsync();
-            var residentDict = residentCounts.ToDictionary(r => r.InstitutionId!.Value, r => r.Count);
+            var residentDict = residentCounts.ToDictionary(r => r.InstitutionId, r => r.Count);
 
             var adherenceRows = await _context.MedicationAdministrations.AsNoTracking()
                 .IgnoreQueryFilters()
@@ -301,7 +301,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .Select(m => new { InstitutionId = m.Patient.InstitutionId, m.ScheduledDateTime, m.AdministeredDateTime })
                 .ToListAsync();
             var adherenceDict = adherenceRows
-                .GroupBy(r => r.InstitutionId!.Value)
+                .GroupBy(r => r.InstitutionId)
                 .ToDictionary(g => g.Key, g => AdherenceOf(g.Select(x => (x.ScheduledDateTime, x.AdministeredDateTime))));
 
             var rows = institutions.Select(i =>

@@ -23,7 +23,7 @@ public class Patient
     public long? BloodTypeId { get; set; }
 
     public virtual BloodType BloodType { get; set; }
-    public long? InstitutionId { get; set; }
+    public long InstitutionId { get; set; }
     public virtual Institution Institution { get; set; }
     public virtual ICollection<Responsible> Responsibles { get; set; } = new List<Responsible>();
 

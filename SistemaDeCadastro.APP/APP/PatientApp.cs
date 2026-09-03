@@ -68,7 +68,7 @@ namespace SistemaDeCadastro.APP.APP
                 }
                 if (patient.Cpf != null)
                 {
-                    var existingPatient =  _patientRepository.FindPatientByCPF(patient.Cpf);
+                    var existingPatient =  _patientRepository.FindPatientByCPF(patient.Cpf, institutionId);
                     ret.Success = false;
                     ret.ErrorMessage = "CPF já é atribuido a outro paciente";
                     return ret;

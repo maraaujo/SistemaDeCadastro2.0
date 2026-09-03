@@ -228,7 +228,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return ret;
         }
         
-        public async Task<Patient>? FindPatientByCPF(string cpf, int institutionId)
+        public async Task<Patient>? FindPatientByCPF(string cpf, long institutionId)
         {
             var existingPatient = await FindBy(c => c.Cpf == cpf && c.InstitutionId == institutionId);
             return existingPatient.FirstOrDefault();

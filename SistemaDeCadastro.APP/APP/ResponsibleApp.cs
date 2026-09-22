@@ -2,6 +2,7 @@ using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
+using SistemaDeCadastro.Domain.Validators;
 namespace SistemaDeCadastro.APP.APP
 {
     public class ResponsibleApp : IResponsibleApp
@@ -22,12 +23,19 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try
             {
-                
+                if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 var responsible = new Responsible
                 {
                     Name = entity.Name,
                     Relationship = entity.Relationship,
-                    Phone = entity.Phone,
+                    // Armazena apenas os números; a máscara fica para o frontend.
+                    Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone),
                     Address = entity.Address,
                     PatientId = entity.PatientId
                 };
@@ -44,12 +52,20 @@ namespace SistemaDeCadastro.APP.APP
         {
             var ret = new ApiResponse();
             try { 
+            if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+            {
+                ret.Success = false;
+                ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                return ret;
+            }
+
             var existingResponsible = (await _responsibleRepository.FindBy(r => r.Id == entity.Id)).FirstOrDefault();
             if (existingResponsible != null)
             {
                 existingResponsible.Name = entity.Name;
                 existingResponsible.Relationship = entity.Relationship;
-                existingResponsible.Phone = entity.Phone;
+                // Armazena apenas os números; a máscara fica para o frontend.
+                existingResponsible.Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone);
                 existingResponsible.Address = entity.Address;
                 existingResponsible.PatientId = entity.PatientId;
                 await _responsibleRepository.Update(existingResponsible);

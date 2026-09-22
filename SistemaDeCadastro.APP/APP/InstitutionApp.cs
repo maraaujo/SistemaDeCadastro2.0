@@ -1,6 +1,7 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Validators;
 using SistemaDeCadastro.Infra.Interface;
 using System.Linq;
 
@@ -20,12 +21,20 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try
             {
+                if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 var institution = new Institution
                 {
                     Name = entity.Name,
                     Cnpj = entity.Cnpj,
                     Email = entity.Email,
-                    Phone = entity.Phone,
+                    // Armazena apenas os números; a máscara fica para o frontend.
+                    Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone),
                     Active = entity.Active,
                     CreatedAt = DateTime.Now
                 };
@@ -57,10 +66,18 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 existing.Name = entity.Name;
                 existing.Cnpj = entity.Cnpj;
                 existing.Email = entity.Email;
-                existing.Phone = entity.Phone;
+                // Armazena apenas os números; a máscara fica para o frontend.
+                existing.Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone);
                 existing.Active = entity.Active;
 
                 await _repo.Update(existing);

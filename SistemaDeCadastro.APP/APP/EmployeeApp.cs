@@ -3,7 +3,8 @@ using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
 using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Domain.Filters;
-using SistemaDeCadastro.Domain.Pageds;  
+using SistemaDeCadastro.Domain.Pageds;
+using SistemaDeCadastro.Domain.Validators;
 namespace SistemaDeCadastro.APP.APP
 {
     public class EmployeeApp : IEmployeeApp
@@ -38,12 +39,28 @@ namespace SistemaDeCadastro.APP.APP
                     ret.ErrorMessage = "Departamento do funcionário é obrigatório.";
                     return ret;
                 }
+
+                if (!string.IsNullOrWhiteSpace(entity.Cpf) && !CpfValidator.IsValid(entity.Cpf))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = CpfValidator.MensagemInvalido;
+                    return ret;
+                }
+
+                if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 var employee = new Employee
                 {
                     Name = entity.Name,
-                    Cpf = entity.Cpf,
+                    // Armazena apenas os números; a máscara fica para o frontend.
+                    Cpf = string.IsNullOrWhiteSpace(entity.Cpf) ? entity.Cpf : CpfValidator.Normalize(entity.Cpf),
                     Position = entity.Position,
-                    Phone = entity.Phone,
+                    Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone),
                     Email = entity.Email,
                     AdmissionDate = DateTime.Now,
                     DepartmentId = entity.DepartmentId
@@ -69,11 +86,27 @@ namespace SistemaDeCadastro.APP.APP
                     ret.Success = false;
                     ret.ErrorMessage = "Funcionário não encontrado.";
                     return ret;
-                }   
+                }
+
+                if (!string.IsNullOrWhiteSpace(entity.Cpf) && !CpfValidator.IsValid(entity.Cpf))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = CpfValidator.MensagemInvalido;
+                    return ret;
+                }
+
+                if (!string.IsNullOrWhiteSpace(entity.Phone) && !PhoneValidator.IsValid(entity.Phone))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 existingEmployee.Name = entity.Name;
-                existingEmployee.Cpf = entity.Cpf;
+                // Armazena apenas os números; a máscara fica para o frontend.
+                existingEmployee.Cpf = string.IsNullOrWhiteSpace(entity.Cpf) ? entity.Cpf : CpfValidator.Normalize(entity.Cpf);
                 existingEmployee.Position = entity.Position;
-                existingEmployee.Phone = entity.Phone;
+                existingEmployee.Phone = string.IsNullOrWhiteSpace(entity.Phone) ? entity.Phone : PhoneValidator.Normalize(entity.Phone);
                 existingEmployee.Email = entity.Email;
                 existingEmployee.DepartmentId = entity.DepartmentId;
                 await _employeeRepository.Update(existingEmployee);

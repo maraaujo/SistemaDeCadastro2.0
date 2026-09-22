@@ -7,6 +7,7 @@ using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.SistemaCadastroContext;
 using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Infra.Repository;
+using SistemaDeCadastro.Infra.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -120,6 +121,14 @@ builder.Services.AddScoped(
     typeof(IBaseRepository<>),
     typeof(BaseRepository<>)
 );
+
+// ViaCEP (integração externa via IHttpClientFactory / typed client)
+builder.Services.AddHttpClient<IViaCepClient, ViaCepClient>(client =>
+{
+    client.BaseAddress = new Uri("https://viacep.com.br/");
+    // Timeout curto: a indisponibilidade da API externa não pode travar o sistema.
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 // AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

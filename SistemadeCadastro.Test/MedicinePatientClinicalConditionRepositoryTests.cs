@@ -24,7 +24,7 @@ namespace SistemadeCadastro.Test
         public async Task GetByPatientClinicalConditionId_Returns_List()
         {
             using var context = CreateContext("mpcc_by_pcc");
-            var patient = new Patient { Name = "MP2", Document = "d2", Phone = "0", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "MP2", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             var med = new Medicine { Name = "MedB", Description = "d", Dosage = "20", AdministrationRoute = "oral" };
             context.Medicines.Add(med);

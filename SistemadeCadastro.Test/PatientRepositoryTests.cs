@@ -31,8 +31,6 @@ namespace SistemadeCadastro.Test
             var patient = new Patient
             {
                 Name = "Paciente Test",
-                Document = "DOC123",
-                Phone = "99999999",
                 Gender = "M",
                 Cpf = "00011122233",
                 Observations = "obs",
@@ -89,8 +87,8 @@ namespace SistemadeCadastro.Test
         {
             using var context = CreateContext("patient_filter");
 
-            var patient1 = new Patient { Name = "Alice", Document = "d1", Phone = "1", Gender = "F", Cpf = "c1", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
-            var patient2 = new Patient { Name = "Bob", Document = "d2", Phone = "2", Gender = "M", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient1 = new Patient { Name = "Alice", Gender = "F", Cpf = "c1", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient2 = new Patient { Name = "Bob", Gender = "M", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.AddRange(patient1, patient2);
 
             var cc = new ClinicalCondition { Name = "CondX", Type = "T", Description = "D" };
@@ -102,7 +100,7 @@ namespace SistemadeCadastro.Test
             await context.SaveChangesAsync();
 
             var repo = new PatientRepository(context);
-            var filter = new SistemaDeCadastro.Domain.DataTransferObject.PatientFilterDTO { Page = 1, Name = "Alice", ClinicalConditionIds = new System.Collections.Generic.List<long> { cc.Id } };
+            var filter = new SistemaDeCadastro.Domain.DataTransferObject.PatientFilterDTO { Page = 1, ClinicalConditionIds = new System.Collections.Generic.List<long> { cc.Id } };
             var paged = await repo.FilterPatient(filter);
 
             Assert.Single(paged.Patients);
@@ -116,7 +114,7 @@ namespace SistemadeCadastro.Test
             var blood = new BloodType { Name = "B+" };
             context.BloodTypes.Add(blood);
 
-            var patient = new Patient { Name = "WithRel", Document = "d", Phone = "p", Gender = "F", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, BloodType = blood };
+            var patient = new Patient { Name = "WithRel", Gender = "F", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, BloodType = blood };
             context.Patients.Add(patient);
             await context.SaveChangesAsync();
 

@@ -23,7 +23,7 @@ namespace SistemadeCadastro.Test
         public async Task GetPatientClinicalConditionByPatientId_Returns_DTO()
         {
             using var context = CreateContext("pcc_by_patient");
-            var patient = new Patient { Name = "PCP", Document = "d", Phone = "0", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "PCP", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             var cc = new ClinicalCondition { Name = "Cond", Type = "T", Description = "D" };
             context.ClinicalConditions.Add(cc);
@@ -44,7 +44,7 @@ namespace SistemadeCadastro.Test
         public async Task GetWithPatientConditionAndMedicines_Returns_Entity()
         {
             using var context = CreateContext("pcc_with_rel");
-            var patient = new Patient { Name = "PCP2", Document = "d2", Phone = "0", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "PCP2", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             var cc = new ClinicalCondition { Name = "Cond2", Type = "T2", Description = "D2" };
             context.ClinicalConditions.Add(cc);

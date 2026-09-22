@@ -26,10 +26,10 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 
         public long? BloodTypeId { get; set; }
 
-        public List<UpdateResponsibleDTO>? Responsibles { get; set; } = new();
+        public List<UpdateResponsibleDTO>? Responsibles { get; set; } 
 
-        public List<UpdatePatientClinicalConditionDTO>? ClinicalConditions { get; set; } = new();
+        public List<UpdatePatientClinicalConditionDTO>? ClinicalConditions { get; set; } 
 
-        public List<UpdatePatientMedicineDTO>? ScheduledMedicines { get; set; } = new();
+        public List<UpdatePatientMedicineDTO>? ScheduledMedicines { get; set; }
     }
 }

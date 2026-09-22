@@ -94,10 +94,6 @@ namespace SistemaDeCadastro.Infra.Repository
                 query = query.Where(mp => mp.ResponsibleEmployeeId == filter.ResponsibleEmployeeId.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.PatientName))
-            {
-                query = query.Where(mp => mp.PatientName.ToLower().Contains(filter.PatientName.ToLower()));
-            }
 
             if (!string.IsNullOrWhiteSpace(filter.MedicineName))
             {

@@ -35,7 +35,7 @@ namespace SistemadeCadastro.Test
         public async Task GetMedicationAdministrationByStatus_Returns_List()
         {
             using var context = CreateContext("medadmin_status", 1);
-            var patient = new Patient { Name = "PX", Document = "d", Phone = "0", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
+            var patient = new Patient { Name = "PX", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
             context.Patients.Add(patient);
             var employee = new Employee { Name = "E1", Cpf = "111", Position = "P", Phone = "0", Email = "e@e.com", AdmissionDate = System.DateTime.Now, InstitutionId = 1 };
             context.Employees.Add(employee);
@@ -74,7 +74,7 @@ namespace SistemadeCadastro.Test
         public async Task GetMedicationAdministrationByFilter_Returns_Paged()
         {
             using var context = CreateContext("medadmin_filter", 1);
-            var patient = new Patient { Name = "PX2", Document = "d2", Phone = "0", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
+            var patient = new Patient { Name = "PX2", Gender = "F", Cpf = "c2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
             context.Patients.Add(patient);
             var employee = new Employee { Name = "E2", Cpf = "222", Position = "P2", Phone = "0", Email = "e2@e.com", AdmissionDate = System.DateTime.Now, InstitutionId = 1 };
             context.Employees.Add(employee);
@@ -111,7 +111,7 @@ namespace SistemadeCadastro.Test
         public async Task GetMedicineReminders_Returns_List()
         {
             using var context = CreateContext("mpcc_reminders");
-            var patient = new Patient { Name = "MP1", Document = "d", Phone = "0", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "MP1", Gender = "M", Cpf = "c", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             var med = new Medicine { Name = "MedA", Description = "d", Dosage = "10", AdministrationRoute = "oral" };
             context.Medicines.Add(med);

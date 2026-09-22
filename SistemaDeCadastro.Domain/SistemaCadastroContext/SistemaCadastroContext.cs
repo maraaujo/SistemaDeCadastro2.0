@@ -133,16 +133,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasMaxLength(150)
                 .IsRequired();
 
-            entity.Property(e => e.Phone)
-                .HasColumnName("telefone")
-                .HasMaxLength(20)
-                .IsRequired();
-
-            entity.Property(e => e.Document)
-                .HasColumnName("documento")
-                .HasMaxLength(12)
-                .IsRequired();
-
+           
             entity.Property(e => e.BirthDate)
                 .HasColumnName("data_nascimento")
                 .HasColumnType("date");

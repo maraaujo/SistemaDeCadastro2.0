@@ -55,7 +55,7 @@ namespace SistemaDeCadastro.Infra.Repository
                                          {
                                              Id = pa.Id,
                                              Name = pa.Name,
-                                             Document = pa.Document,
+                                
                                              Cpf = pa.Cpf,
                                              Observations = pa.Observations,
                                              BirthDate = pa.BirthDate,
@@ -66,17 +66,23 @@ namespace SistemaDeCadastro.Infra.Repository
                                              Id = b != null ? b.Id : 0,
                                              Name = b != null ? b.Name : "tipo sanguíneo não informado",
                                          },
-                                         Responsibles = new List<ResponsibleListDTO>
-                                         {
-                                             new ResponsibleListDTO
-                                             {
-                                                 Id = re != null ? re.Id : 0,
-                                                 Name = re != null ? re.Name : "nome não informado",
-                                                 Phone = re != null ? re.Phone : "telefone não informado",
-                                                 Relationship = re != null ? re.Relationship : "relação não informada",
-                                                 Address = re != null ? re.Address : "endereço não informado"
-                                             }
-                                         },
+                                          // Responsáveis: se não existir, retorna lista vazia
+                                          Responsibles = re != null
+                                              ? new List<ResponsibleListDTO>
+                                              {
+                                                  new ResponsibleListDTO
+                                                  {
+                                                      Id = re.Id,
+                                                      Name = re.Name,
+                                                      Phone = re.Phone,
+                                                      Relationship = re.Relationship,
+                                                      Address = re.Address
+                                                  }
+                                              }
+                                              : new List<ResponsibleListDTO>(),
+
+                             
+                                       
                                          ClinicalConditions = new List<ClinicalConditionDTO>
                                          {
                                              new ClinicalConditionDTO
@@ -129,15 +135,10 @@ namespace SistemaDeCadastro.Infra.Repository
                     //aqui ele vai pegar todos os responsáveis, condições clínicas, medicamentos e agendamentos
                     //porem, ele vai agrupar por id
                     //.Select(g => g.First()) pega o primeiro elemento de cada grupo, ou seja, ele vai eliminar os duplicados
-                    CareService = details
-                    .SelectMany(d => d.CareService)
-                    .Where(c => c.Id != 0)
-                    .GroupBy(c => c.Id)
-                    .Select(g => g.First())
-                    .ToList(),
+
 
                     Responsibles = details
-                    .SelectMany(d => d.Responsibles)
+                    .SelectMany(d => d.Responsibles ?? Enumerable.Empty<ResponsibleListDTO>())
                     .Where(r => r.Id != 0)
                     .GroupBy(r => r.Id)
                     .Select(g => g.First())
@@ -190,13 +191,12 @@ namespace SistemaDeCadastro.Infra.Repository
                 query = query.Where(p => p.PatientClinicalConditions.Any(c => filter.ClinicalConditionIds.Contains(c.ClinicalConditionId)));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.Name))
+            if (filter.PatientId.HasValue)
             {
-                query = query.Where(c => c.Name.Contains(filter.Name));
+                query = query.Where(mp => mp.Id == filter.PatientId.Value);
             }
 
-            
-            
+
 
             var ret = new PagedPatientDTO();
 
@@ -214,9 +214,7 @@ namespace SistemaDeCadastro.Infra.Repository
                     Id = c.Id,
                     Name = c.Name,
                     BirthDate = c.BirthDate,
-                    Phone = c.Phone,
                     Gender = c.Gender,
-                    Document = c.Document,
                     Cpf = c.Cpf,
                 })
                 .Where(c => c.Id != 0)

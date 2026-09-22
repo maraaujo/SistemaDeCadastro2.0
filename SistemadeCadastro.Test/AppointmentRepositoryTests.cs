@@ -23,7 +23,7 @@ namespace SistemadeCadastro.Test
         public async Task GetAllAppointment_Returns_MappedDtos()
         {
             using var context = CreateContext("appt_all");
-            var patient = new Patient { Name = "P1", Document = "1", Phone = "0", Gender = "M", Cpf = "1", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "P1", Gender = "M", Cpf = "1", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             await context.SaveChangesAsync();
 
@@ -42,7 +42,7 @@ namespace SistemadeCadastro.Test
         public async Task GetById_Returns_AppointmentDTO()
         {
             using var context = CreateContext("appt_byid");
-            var patient = new Patient { Name = "P2", Document = "2", Phone = "0", Gender = "M", Cpf = "2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
+            var patient = new Patient { Name = "P2", Gender = "M", Cpf = "2", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now };
             context.Patients.Add(patient);
             await context.SaveChangesAsync();
 

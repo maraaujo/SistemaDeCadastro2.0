@@ -12,10 +12,18 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IPatientClinicalConditionRepository _repo;
         private readonly IPatientRepository _patientRepo;
-        public PatientClinicalConditionApp(IPatientClinicalConditionRepository repo, IPatientRepository patientRepo)
+        private readonly IMedicinePatientClinicalConditionRepository _medicineRepo;
+        private readonly IMedicationAdministrationRepository _medicationAdministrationRepo;
+        public PatientClinicalConditionApp(
+            IPatientClinicalConditionRepository repo,
+            IPatientRepository patientRepo,
+            IMedicinePatientClinicalConditionRepository medicineRepo,
+            IMedicationAdministrationRepository medicationAdministrationRepo)
         {
             _repo = repo;
             _patientRepo = patientRepo;
+            _medicineRepo = medicineRepo;
+            _medicationAdministrationRepo = medicationAdministrationRepo;
         }
         public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
         => await _repo.GetPatientClinicalConditionByPatientId(id);
@@ -65,7 +73,29 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; }
+            try
+            {
+                var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
+                if (e != null)
+                {
+                    // Remove os dependentes antes, senão as FKs bloqueiam a exclusão:
+                    // condição clínica <- medicamentos <- administrações de medicamento.
+                    var medicines = await _medicineRepo.FindBy(m => m.PatientClinicalConditionId == id);
+                    if (medicines.Any())
+                    {
+                        var medicineIds = medicines.Select(m => m.Id).ToList();
+                        var administrations = await _medicationAdministrationRepo
+                            .FindBy(a => medicineIds.Contains(a.MedicinePatientClinicalConditionId));
+                        if (administrations.Any())
+                            await _medicationAdministrationRepo.DeleteRange(administrations);
+
+                        await _medicineRepo.DeleteRange(medicines);
+                    }
+
+                    await _repo.Delete(e);
+                }
+                ret.Success = true;
+            }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
             return ret;
         }

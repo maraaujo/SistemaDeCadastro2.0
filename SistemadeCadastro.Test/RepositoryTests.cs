@@ -82,8 +82,6 @@ namespace SistemadeCadastro.Test
             var patient = new Patient
             {
                 Name = "Paciente X",
-                Document = "111",
-                Phone = "00000000",
                 Gender = "M",
                 Cpf = "00000000000",
                 Observations = "obs",

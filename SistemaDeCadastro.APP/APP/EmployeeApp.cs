@@ -67,10 +67,11 @@ namespace SistemaDeCadastro.APP.APP
                     ,InstitutionId = institutionId.Value
                 };
                 await _employeeRepository.Create(employee);
-            } catch (Exception ex) 
+                ret.Success = true;
+            } catch (Exception ex)
             {
             ret.ErrorMessage = ex.Message;
-            ret.Success = true;
+            ret.Success = false;
             }
             return ret;
         }
@@ -110,12 +111,12 @@ namespace SistemaDeCadastro.APP.APP
                 existingEmployee.Email = entity.Email;
                 existingEmployee.DepartmentId = entity.DepartmentId;
                 await _employeeRepository.Update(existingEmployee);
-
+                ret.Success = true;
             }
             catch (Exception ex)
             {
                 ret.ErrorMessage = ex.Message;
-                ret.Success = true;
+                ret.Success = false;
             }
             return ret;
         }

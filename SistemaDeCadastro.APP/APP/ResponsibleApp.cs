@@ -39,6 +39,9 @@ namespace SistemaDeCadastro.APP.APP
                     Address = entity.Address,
                     PatientId = entity.PatientId
                 };
+
+                await _responsibleRepository.Create(responsible);
+                ret.Success = true;
             }
             catch (Exception ex)
             {

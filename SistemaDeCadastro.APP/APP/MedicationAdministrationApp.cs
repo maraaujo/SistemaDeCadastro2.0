@@ -11,9 +11,13 @@ namespace SistemaDeCadastro.APP.APP
     public class MedicationAdministrationApp : IMedicationAdministrationApp
     {
         private readonly IMedicationAdministrationRepository _medicationAdministrationRepository;
-        public MedicationAdministrationApp(IMedicationAdministrationRepository medicationAdministrationRepository)
+        private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
+        public MedicationAdministrationApp(
+            IMedicationAdministrationRepository medicationAdministrationRepository,
+            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository)
         {
             this._medicationAdministrationRepository = medicationAdministrationRepository;
+            this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
         }
 
         public async Task<List<MedicationAdministration>> GetById(long ind) =>
@@ -24,6 +28,8 @@ namespace SistemaDeCadastro.APP.APP
             await this._medicationAdministrationRepository.GetMedicationAdministrationByStatus(status);
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
     await _medicationAdministrationRepository.GetMedicineReminders();
+        public async Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId) =>
+            await _medicationAdministrationRepository.GetDailyMedicationReport(referenceDate, patientId);
         public async Task<ApiResponse> Create(
      CreateMedicationAdministrationDTO medicationAdministration)
         {
@@ -31,7 +37,30 @@ namespace SistemaDeCadastro.APP.APP
 
             try
             {
-                var now = DateTime.Now;
+                // Usa o horario de parede de Sao Paulo, independente do fuso do servidor
+                // (ex.: UTC no Cloud Run), para que os registros batam com o horario local.
+                var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
+
+                // Horario previsto da dose. Deve vir do NextDoseDateTime do lembrete; se nao
+                // vier (0001-01-01 ou 00:00), deriva do horario planejado do medicamento
+                // programado (hoje + horario_administracao) para a tela de historico nao
+                // ficar sem o "horario previsto".
+                var scheduled = medicationAdministration.ScheduledDateTime;
+                if (scheduled == default || scheduled.TimeOfDay == TimeSpan.Zero)
+                {
+                    var mpcc = await _medicinePatientClinicalConditionRepository
+                        .GetById(medicationAdministration.MedicinePatientClinicalConditionId);
+
+                    if (mpcc?.AdministrationTime != null)
+                    {
+                        var baseDate = scheduled == default ? now.Date : scheduled.Date;
+                        scheduled = baseDate.Add(mpcc.AdministrationTime.Value);
+                    }
+                    else if (scheduled == default)
+                    {
+                        scheduled = now;
+                    }
+                }
 
                 MedicationAdministration administration = new()
                 {
@@ -45,9 +74,7 @@ namespace SistemaDeCadastro.APP.APP
                         medicationAdministration.EmployeeId,
 
                     // Horário previsto da dose.
-                    // Deve vir do NextDoseDateTime do lembrete.
-                    ScheduledDateTime =
-                        medicationAdministration.ScheduledDateTime,
+                    ScheduledDateTime = scheduled,
 
                     // Horário em que realmente foi administrado (usa o valor enviado
                     // pelo usuário; se não vier, assume o momento atual).

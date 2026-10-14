@@ -41,7 +41,10 @@ namespace SistemaDeCadastro.Infra.Repository
             var page = filter.Page <= 0 ? 1 : filter.Page; 
             var query = from m in _context.MedicationAdministrations
                         join p in _context.Patients on m.PatientId equals p.Id
-                        join e in _context.Employees on m.EmployeeId equals e.Id 
+                        join e in _context.Employees on m.EmployeeId equals e.Id
+                        join mpcc in _context.MedicinePatientClinicalConditions
+                            on m.MedicinePatientClinicalConditionId equals mpcc.Id into mpccGroup
+                        from mpcc in mpccGroup.DefaultIfEmpty()
                         select new MedicationAdministrationDTO
                         {
                             Id = m.Id,
@@ -54,7 +57,10 @@ namespace SistemaDeCadastro.Infra.Repository
                             AdministeredDateTime = m.AdministeredDateTime,
                             Status = m.Status,
                             Observations = m.Observations,
-                            CreatedAt = m.CreatedAt
+                            CreatedAt = m.CreatedAt,
+                            // Horario planejado do medicamento programado (para exibir o
+                            // "horario previsto" e a "proxima medicacao" na tela de historico).
+                            AdministrationTime = mpcc != null ? mpcc.AdministrationTime : null
                         };
             if(filter.Id.HasValue)
             {
@@ -105,6 +111,24 @@ namespace SistemaDeCadastro.Infra.Repository
                 .Take(ret.ItensPerPage)
                 .ToListAsync();
 
+            // Preenche a "proxima medicacao" (hoje + horario planejado) com fuso explicito,
+            // e, para registros antigos cujo horario previsto veio zerado (00:00), usa o
+            // horario planejado do medicamento programado como horario previsto.
+            var today = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo().Date;
+            foreach (var dto in ret.MedicationAdministration)
+            {
+                if (dto.AdministrationTime.HasValue)
+                {
+                    dto.NextDoseDateTime = SistemaDeCadastro.Domain.Utils.DateTimeUtils
+                        .ToSaoPauloOffset(today.Add(dto.AdministrationTime.Value));
+
+                    if (dto.ScheduledDateTime.TimeOfDay == TimeSpan.Zero)
+                    {
+                        dto.ScheduledDateTime = dto.ScheduledDateTime.Date.Add(dto.AdministrationTime.Value);
+                    }
+                }
+            }
+
             return ret;
         }
 
@@ -113,9 +137,7 @@ namespace SistemaDeCadastro.Infra.Repository
             // O servidor pode rodar em UTC (ex.: Cloud Run). Calcula "agora" no fuso de
             // Sao Paulo para que o horario previsto e o atraso batam com o horario local.
             // Mantido como Unspecified (sem 'Z'/offset) para o front exibir a hora de parede.
-            var now = DateTime.SpecifyKind(
-                SistemaDeCadastro.Domain.Utils.DateTimeUtils.ConvertUtcToWallClock(DateTime.UtcNow),
-                DateTimeKind.Unspecified);
+            var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
             var today = now.Date;
 
             /*
@@ -230,22 +252,9 @@ namespace SistemaDeCadastro.Infra.Repository
                                 if (alreadyAdministered)
                         return null;
 
-                    var minutesRemaining = (int)(nextDoseDateTime - now).TotalMinutes;
+                    var minutesRemaining = (int)Math.Round((nextDoseDateTime - now).TotalMinutes);
 
-                    string alertText;
-
-                    if (minutesRemaining < 0)
-                    {
-                        alertText = $"Atrasado há {Math.Abs(minutesRemaining)} minutos";
-                    }
-                    else if (minutesRemaining == 0)
-                    {
-                        alertText = "Administrar agora";
-                    }
-                    else
-                    {
-                        alertText = $"Em {minutesRemaining} minutos";
-                    }
+                    var alertText = BuildAlertText(minutesRemaining);
 
                     return new MedicineReminderDTO
                     {
@@ -256,7 +265,8 @@ namespace SistemaDeCadastro.Infra.Repository
                         Dosage = item.Dosage,
                         Frequency = item.Frequency,
                         AdministrationTime = item.AdministrationTime,
-                        NextDoseDateTime = nextDoseDateTime,
+                        // Envia com fuso explicito (-03:00) para o front calcular o instante certo.
+                        NextDoseDateTime = SistemaDeCadastro.Domain.Utils.DateTimeUtils.ToSaoPauloOffset(nextDoseDateTime),
                         MinutesRemaining = minutesRemaining,
                         AlertText = alertText,
                         ResponsibleEmployeeName = item.ResponsibleEmployeeName
@@ -268,5 +278,134 @@ namespace SistemaDeCadastro.Infra.Repository
 
             return result;
         }
+
+        // Monta o texto de alerta em horas/minutos (ex.: "Em 2h 05min", "Atrasado há 1h 10min").
+        private static string BuildAlertText(int minutesRemaining)
+        {
+            if (minutesRemaining == 0)
+                return "Administrar agora";
+
+            var atrasado = minutesRemaining < 0;
+            var total = Math.Abs(minutesRemaining);
+            var horas = total / 60;
+            var minutos = total % 60;
+
+            string tempo;
+            if (horas > 0 && minutos > 0)
+                tempo = $"{horas}h {minutos:D2}min";
+            else if (horas > 0)
+                tempo = $"{horas}h";
+            else
+                tempo = $"{minutos} min";
+
+            return atrasado ? $"Atrasado há {tempo}" : $"Em {tempo}";
+        }
+
+        // Relatorio de medicamentos do dia: todos os medicamentos programados para a data de
+        // referencia (hoje, por padrao) com o status calculado (Administrado / Atrasado /
+        // Pendente). Opcionalmente filtra por um acolhido (paciente).
+        public async Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId)
+        {
+            var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
+            var day = (referenceDate ?? now).Date;
+
+            var administrationsOnDay = await _context.MedicationAdministrations
+                .AsNoTracking()
+                .Where(x =>
+                    x.ScheduledDateTime.Date == day ||
+                    (x.AdministeredDateTime != null && x.AdministeredDateTime.Value.Date == day))
+                .ToListAsync();
+
+            var query =
+                from mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
+                join medicine in _context.Medicines.AsNoTracking()
+                    on mpcc.MedicineId equals medicine.Id
+                join pcc in _context.PatientClinicalConditions.AsNoTracking()
+                    on mpcc.PatientClinicalConditionId equals pcc.Id
+                join patient in _context.Patients.AsNoTracking()
+                    on pcc.PatientId equals patient.Id
+                join employee in _context.Employees.AsNoTracking()
+                    on mpcc.ResponsibleEmployeeId equals (long?)employee.Id into employeeGroup
+                from employee in employeeGroup.DefaultIfEmpty()
+                where mpcc.AdministrationTime != null
+                      && (mpcc.StartDate == null || mpcc.StartDate.Value.Date <= day)
+                      && (mpcc.EndDate == null || mpcc.EndDate.Value.Date >= day)
+                      && (patientId == null || patient.Id == patientId.Value)
+                select new
+                {
+                    MedicinePatientClinicalConditionId = mpcc.Id,
+                    PatientId = patient.Id,
+                    PatientName = patient.Name,
+                    MedicineName = medicine.Name,
+                    Dosage = mpcc.PrescribedDosage,
+                    Frequency = mpcc.Frequency,
+                    AdministrationTime = mpcc.AdministrationTime,
+                    ResponsibleEmployeeName = employee != null ? employee.Name : "Não informado"
+                };
+
+            var items = await query.ToListAsync();
+
+            var result = items
+                .Select(item =>
+                {
+                    var scheduled = day.Add(item.AdministrationTime.Value);
+
+                    var administration = administrationsOnDay.FirstOrDefault(a =>
+                        a.MedicinePatientClinicalConditionId == item.MedicinePatientClinicalConditionId &&
+                        a.PatientId == item.PatientId &&
+                        (
+                            a.AdministeredDateTime != null ||
+                            (!string.IsNullOrWhiteSpace(a.Status) && IsAdministeredStatus(a.Status))
+                        ));
+
+                    string status;
+                    DateTimeOffset? administeredAt = null;
+                    string observations = string.Empty;
+
+                    if (administration != null)
+                    {
+                        status = "Administrado";
+                        observations = administration.Observations ?? string.Empty;
+                        if (administration.AdministeredDateTime != null)
+                            administeredAt = SistemaDeCadastro.Domain.Utils.DateTimeUtils
+                                .ToSaoPauloOffset(administration.AdministeredDateTime.Value);
+                    }
+                    else
+                    {
+                        status = scheduled < now ? "Atrasado" : "Pendente";
+                    }
+
+                    return new DailyMedicationReportItemDTO
+                    {
+                        MedicinePatientClinicalConditionId = item.MedicinePatientClinicalConditionId,
+                        PatientId = item.PatientId,
+                        PatientName = item.PatientName,
+                        MedicineName = item.MedicineName,
+                        Dosage = item.Dosage,
+                        Frequency = item.Frequency,
+                        ResponsibleEmployeeName = item.ResponsibleEmployeeName,
+                        AdministrationTime = item.AdministrationTime,
+                        ScheduledDateTime = SistemaDeCadastro.Domain.Utils.DateTimeUtils.ToSaoPauloOffset(scheduled),
+                        AdministeredDateTime = administeredAt,
+                        Status = status,
+                        Observations = observations
+                    };
+                })
+                .OrderBy(x => x.PatientName)
+                .ThenBy(x => x.ScheduledDateTime)
+                .ToList();
+
+            return result;
+        }
+
+        // Status (em pt-BR ou en) que indicam que a dose foi efetivamente administrada.
+        private static bool IsAdministeredStatus(string status) =>
+            status.Equals("Administrado", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Administrada", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Realizado", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Realizada", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Ministrado", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Ministrada", StringComparison.OrdinalIgnoreCase) ||
+            status.Equals("Administered", StringComparison.OrdinalIgnoreCase);
     }
 }

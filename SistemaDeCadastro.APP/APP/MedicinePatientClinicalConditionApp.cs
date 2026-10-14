@@ -42,28 +42,44 @@ namespace SistemaDeCadastro.APP.APP
                 long medicineId;
                 long patientClinicalConditionId;
 
-                // 1. Se o medicamento não existir, cria um novo
-                if (entity.MedicineDTO.Id == 0)
+                // 1. Resolve o medicamento.
+                if (entity.MedicineDTO.Id != 0)
                 {
-                    var medicine = new Medicine
-                    {
-                        Name = entity.MedicineDTO.Name,
-                        Dosage = entity.MedicineDTO.Dosage,
-                        Description = entity.MedicineDTO.Description,
-                        AdministrationRoute = entity.MedicineDTO.AdministrationRoute,
-                        // Carimba a instituicao do usuario logado (mesmo criterio do MedicineApp).
-                        // Sem isso, o medicamento fica com InstitutionId nulo e o filtro de tenant
-                        // o exclui das telas (listagem e proximos medicamentos) para usuarios de instituicao.
-                        InstitutionId = _currentUserService.InstitutionId
-                    };
-
-                    await _medicineRepository.Create(medicine);
-
-                    medicineId = medicine.Id;
+                    medicineId = entity.MedicineDTO.Id;
                 }
                 else
                 {
-                    medicineId = entity.MedicineDTO.Id;
+                    // Evita duplicados: reaproveita um medicamento ja existente com o mesmo
+                    // nome (ignora maiusc./minusc. e espacos). O filtro de instituicao ja e
+                    // aplicado pelo contexto (HasQueryFilter em Medicine).
+                    var nomeMedicamento = (entity.MedicineDTO.Name ?? string.Empty).Trim();
+                    var nomeMedicamentoLower = nomeMedicamento.ToLower();
+
+                    var medicamentoExistente = (await _medicineRepository
+                        .FindBy(m => m.Name.ToLower() == nomeMedicamentoLower)).FirstOrDefault();
+
+                    if (medicamentoExistente != null)
+                    {
+                        medicineId = medicamentoExistente.Id;
+                    }
+                    else
+                    {
+                        var medicine = new Medicine
+                        {
+                            Name = nomeMedicamento,
+                            Dosage = entity.MedicineDTO.Dosage,
+                            Description = entity.MedicineDTO.Description,
+                            AdministrationRoute = entity.MedicineDTO.AdministrationRoute,
+                            // Carimba a instituicao do usuario logado (mesmo criterio do MedicineApp).
+                            // Sem isso, o medicamento fica com InstitutionId nulo e o filtro de tenant
+                            // o exclui das telas (listagem e proximos medicamentos) para usuarios de instituicao.
+                            InstitutionId = _currentUserService.InstitutionId
+                        };
+
+                        await _medicineRepository.Create(medicine);
+
+                        medicineId = medicine.Id;
+                    }
                 }
 
                 // 2. Se o vínculo acolhido + condição clínica não existir, cria
@@ -71,37 +87,65 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     long clinicalConditionId;
 
-                    // 2.1 Se a condição clínica não existir, cria uma nova
-                    if (entity.PatientClinicalConditionDTO.ClinicalConditionId == 0)
-                    {
-                        var clinicalCondition = new ClinicalCondition
-                        {
-                            Name = entity.ClinicalConditionDTO.Name,
-                            Description = entity.ClinicalConditionDTO.Description,
-                            Type = entity.ClinicalConditionDTO.Type
-                        };
-
-                        await _clinicalConditionRepository.Create(clinicalCondition);
-
-                        clinicalConditionId = clinicalCondition.Id;
-                    }
-                    else
+                    // 2.1 Resolve a condição clínica.
+                    if (entity.PatientClinicalConditionDTO.ClinicalConditionId != 0)
                     {
                         clinicalConditionId = entity.PatientClinicalConditionDTO.ClinicalConditionId;
                     }
-
-                    // 2.2 Cria o vínculo da condição com o acolhido
-                     var patientClinicalCondition = new PatientClinicalCondition
+                    else
                     {
-                        PatientId = entity.PatientId,
-                        ClinicalConditionId = clinicalConditionId,
-                        DiagnosisDate = DateTime.Now,
-                        Observations = entity.PatientClinicalConditionDTO.Observations
-                    };
+                        // Evita duplicados: reaproveita condição clínica já existente com o
+                        // mesmo nome (ignora maiúsc./minúsc. e espaços).
+                        var nomeCondicao = (entity.ClinicalConditionDTO.Name ?? string.Empty).Trim();
+                        var nomeCondicaoLower = nomeCondicao.ToLower();
 
-                    await _patientClinicalConditionRepository.Create(patientClinicalCondition);
+                        var condicaoExistente = (await _clinicalConditionRepository
+                            .FindBy(c => c.Name.ToLower() == nomeCondicaoLower)).FirstOrDefault();
 
-                    patientClinicalConditionId = patientClinicalCondition.Id;
+                        if (condicaoExistente != null)
+                        {
+                            clinicalConditionId = condicaoExistente.Id;
+                        }
+                        else
+                        {
+                            var clinicalCondition = new ClinicalCondition
+                            {
+                                Name = nomeCondicao,
+                                Description = entity.ClinicalConditionDTO.Description,
+                                Type = entity.ClinicalConditionDTO.Type
+                            };
+
+                            await _clinicalConditionRepository.Create(clinicalCondition);
+
+                            clinicalConditionId = clinicalCondition.Id;
+                        }
+                    }
+
+                    // 2.2 Resolve o vínculo da condição com o acolhido, reaproveitando um
+                    // vínculo já existente (mesmo acolhido + mesma condição) para não
+                    // duplicar a cadeia condição → medicamento programado.
+                    var vinculoExistente = (await _patientClinicalConditionRepository
+                        .FindBy(l => l.PatientId == entity.PatientId && l.ClinicalConditionId == clinicalConditionId))
+                        .FirstOrDefault();
+
+                    if (vinculoExistente != null)
+                    {
+                        patientClinicalConditionId = vinculoExistente.Id;
+                    }
+                    else
+                    {
+                        var patientClinicalCondition = new PatientClinicalCondition
+                        {
+                            PatientId = entity.PatientId,
+                            ClinicalConditionId = clinicalConditionId,
+                            DiagnosisDate = DateTime.Now,
+                            Observations = entity.PatientClinicalConditionDTO.Observations
+                        };
+
+                        await _patientClinicalConditionRepository.Create(patientClinicalCondition);
+
+                        patientClinicalConditionId = patientClinicalCondition.Id;
+                    }
                 }
                 else
                 {

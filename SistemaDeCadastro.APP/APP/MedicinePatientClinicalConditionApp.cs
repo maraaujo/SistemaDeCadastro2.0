@@ -152,6 +152,22 @@ namespace SistemaDeCadastro.APP.APP
                     patientClinicalConditionId = entity.PatientClinicalConditionDTO.Id;
                 }
 
+                // Impede programar o mesmo medicamento no mesmo horario para o mesmo
+                // acolhido/condicao (evita duplicados em "Proximos Medicamentos").
+                var jaProgramado = await _repo.FindBy(m =>
+                    m.PatientClinicalConditionId == patientClinicalConditionId &&
+                    m.MedicineId == medicineId &&
+                    m.AdministrationTime == entity.AdministrationTime);
+
+                if (jaProgramado.Any())
+                {
+                    ret.Success = false;
+                    ret.IsBusinessExcpetion = true;
+                    ret.Message = "Já existe esse medicamento cadastrado nesse horário.";
+                    ret.ErrorMessage = "Já existe esse medicamento cadastrado nesse horário.";
+                    return ret;
+                }
+
                 // 3. Cria o medicamento programado
                 var medicinePatientClinicalCondition = new MedicinePatientClinicalCondition
                 {

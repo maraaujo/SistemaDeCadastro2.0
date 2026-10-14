@@ -62,6 +62,27 @@ namespace SistemaDeCadastro.APP.APP
                     }
                 }
 
+                // Impede cadastrar a mesma ministracao (mesmo medicamento programado + mesmo
+                // acolhido) no mesmo horario previsto (compara dentro do mesmo minuto).
+                var minutoInicio = new DateTime(scheduled.Year, scheduled.Month, scheduled.Day,
+                    scheduled.Hour, scheduled.Minute, 0);
+                var minutoFim = minutoInicio.AddMinutes(1);
+
+                var jaExiste = await _medicationAdministrationRepository.FindBy(a =>
+                    a.MedicinePatientClinicalConditionId == medicationAdministration.MedicinePatientClinicalConditionId &&
+                    a.PatientId == medicationAdministration.PatientId &&
+                    a.ScheduledDateTime >= minutoInicio &&
+                    a.ScheduledDateTime < minutoFim);
+
+                if (jaExiste.Any())
+                {
+                    ret.Success = false;
+                    ret.IsBusinessExcpetion = true;
+                    ret.Message = "Já existe esse medicamento cadastrado nesse horário.";
+                    ret.ErrorMessage = "Já existe esse medicamento cadastrado nesse horário.";
+                    return ret;
+                }
+
                 MedicationAdministration administration = new()
                 {
                     MedicinePatientClinicalConditionId =

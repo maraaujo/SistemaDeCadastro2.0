@@ -252,7 +252,13 @@ namespace SistemaDeCadastro.Infra.Repository
                                 if (alreadyAdministered)
                         return null;
 
-                    var minutesRemaining = (int)Math.Round((nextDoseDateTime - now).TotalMinutes);
+                    // Arredonda SEMPRE para cima (em modulo), para a contagem nunca mostrar
+                    // menos tempo do que realmente falta (evita a sensacao de "comer um
+                    // minuto" ao truncar os segundos). Ex.: faltando 1min50s -> "Em 2 min".
+                    var totalMinutes = (nextDoseDateTime - now).TotalMinutes;
+                    var minutesRemaining = totalMinutes >= 0
+                        ? (int)Math.Ceiling(totalMinutes)
+                        : -(int)Math.Ceiling(-totalMinutes);
 
                     var alertText = BuildAlertText(minutesRemaining);
 

@@ -23,12 +23,8 @@ namespace SistemaDeCadastro.Domain.Filters
 
         public string? Observations { get; set; }
 
-        // Filtros da tela de historico de medicacao.
+        // Filtro da tela de historico de medicacao.
         public long? MedicineId { get; set; }
-
-        public DateTime? StartDate { get; set; }
-
-        public DateTime? EndDate { get; set; }
 
         public int Page { get; set; } = 1;
     }

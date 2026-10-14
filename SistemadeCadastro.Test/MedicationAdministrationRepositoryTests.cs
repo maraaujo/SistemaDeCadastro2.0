@@ -108,9 +108,9 @@ namespace SistemadeCadastro.Test
             Assert.Equal(ma.Status, paged.MedicationAdministration.First().Status);
         }
         [Fact]
-        public async Task GetMedicationAdministrationByFilter_Filters_By_Medicine_And_Period()
+        public async Task GetMedicationAdministrationByFilter_Filters_By_Medicine()
         {
-            using var context = CreateContext("medadmin_filter_medicine_period", 1);
+            using var context = CreateContext("medadmin_filter_medicine", 1);
             var patient = new Patient { Name = "PX3", Gender = "F", Cpf = "c3", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
             context.Patients.Add(patient);
             var employee = new Employee { Name = "E3", Cpf = "333", Position = "P3", Phone = "0", Email = "e3@e.com", AdmissionDate = System.DateTime.Now, InstitutionId = 1 };
@@ -129,17 +129,10 @@ namespace SistemadeCadastro.Test
             context.MedicinePatientClinicalConditions.AddRange(mpccA, mpccB);
             await context.SaveChangesAsync();
 
-            MedicationAdministration NewAdministration(long mpccId, System.DateTime scheduled, System.DateTime? administered = null) =>
-                new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccId, ScheduledDateTime = scheduled, AdministeredDateTime = administered, Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
-
-            var beforePeriod = NewAdministration(mpccA.Id, new System.DateTime(2026, 10, 9, 23, 59, 0));
-            var firstDay = NewAdministration(mpccA.Id, new System.DateTime(2026, 10, 10, 0, 0, 0));
-            var lastDay = NewAdministration(mpccA.Id, new System.DateTime(2026, 10, 12, 23, 30, 0));
-            var afterPeriod = NewAdministration(mpccA.Id, new System.DateTime(2026, 10, 13, 8, 0, 0));
-            // Programada antes do periodo, mas administrada dentro dele: vale a data da administracao.
-            var administeredInPeriod = NewAdministration(mpccA.Id, new System.DateTime(2026, 10, 9, 8, 0, 0), new System.DateTime(2026, 10, 11, 9, 0, 0));
-            var otherMedicine = NewAdministration(mpccB.Id, new System.DateTime(2026, 10, 11, 8, 0, 0));
-            context.MedicationAdministrations.AddRange(beforePeriod, firstDay, lastDay, afterPeriod, administeredInPeriod, otherMedicine);
+            var ma1 = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccA.Id, ScheduledDateTime = System.DateTime.Today, Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            var ma2 = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccA.Id, ScheduledDateTime = System.DateTime.Today.AddDays(-1), Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            var otherMedicine = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccB.Id, ScheduledDateTime = System.DateTime.Today, Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            context.MedicationAdministrations.AddRange(ma1, ma2, otherMedicine);
             await context.SaveChangesAsync();
 
             var repo = new MedicationAdministrationRepository(context);
@@ -147,19 +140,12 @@ namespace SistemadeCadastro.Test
             var byMedicine = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1, MedicineId = medB.Id });
             Assert.Equal(new[] { otherMedicine.Id }, byMedicine.MedicationAdministration.Select(x => x.Id).ToArray());
 
-            var byMedicineAndPeriod = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO
-            {
-                Page = 1,
-                MedicineId = medA.Id,
-                StartDate = new System.DateTime(2026, 10, 10),
-                EndDate = new System.DateTime(2026, 10, 12)
-            });
-            var ids = byMedicineAndPeriod.MedicationAdministration.Select(x => x.Id).OrderBy(x => x).ToArray();
-            Assert.Equal(new[] { firstDay.Id, lastDay.Id, administeredInPeriod.Id }.OrderBy(x => x).ToArray(), ids);
-            Assert.Equal(3, byMedicineAndPeriod.Count);
+            var byMedicineA = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1, MedicineId = medA.Id });
+            Assert.Equal(new[] { ma1.Id, ma2.Id }.OrderBy(x => x).ToArray(), byMedicineA.MedicationAdministration.Select(x => x.Id).OrderBy(x => x).ToArray());
+            Assert.Equal(2, byMedicineA.Count);
 
-            var onlyStart = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1, StartDate = new System.DateTime(2026, 10, 13) });
-            Assert.Equal(new[] { afterPeriod.Id }, onlyStart.MedicationAdministration.Select(x => x.Id).ToArray());
+            var noMedicineFilter = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1 });
+            Assert.Equal(3, noMedicineFilter.Count);
         }
 
         [Fact]

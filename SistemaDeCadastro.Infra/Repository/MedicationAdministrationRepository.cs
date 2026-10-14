@@ -39,13 +39,7 @@ namespace SistemaDeCadastro.Infra.Repository
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page; 
-
-            // Periodo (dias inteiros, inclusive): compara a data efetiva da administracao
-            // (AdministeredDateTime quando houver, senao ScheduledDateTime) com
-            // [StartDate 00:00, EndDate + 1 dia 00:00).
             var medicineId = filter.MedicineId;
-            var periodStart = filter.StartDate?.Date;
-            var periodEndExclusive = filter.EndDate?.Date.AddDays(1);
 
             var query = from m in _context.MedicationAdministrations
                         join p in _context.Patients on m.PatientId equals p.Id
@@ -54,8 +48,6 @@ namespace SistemaDeCadastro.Infra.Repository
                             on m.MedicinePatientClinicalConditionId equals mpcc.Id into mpccGroup
                         from mpcc in mpccGroup.DefaultIfEmpty()
                         where medicineId == null || (mpcc != null && mpcc.MedicineId == medicineId)
-                        where periodStart == null || (m.AdministeredDateTime ?? m.ScheduledDateTime) >= periodStart
-                        where periodEndExclusive == null || (m.AdministeredDateTime ?? m.ScheduledDateTime) < periodEndExclusive
                         select new MedicationAdministrationDTO
                         {
                             Id = m.Id,

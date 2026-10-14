@@ -32,7 +32,7 @@ namespace SistemaDeCadastro.APP.APP
             {
                 Medicine newMedicine = new();
               
-                newMedicine.Description = medicine.Description;
+                newMedicine.Description = medicine.Description ?? string.Empty;
                 newMedicine.Dosage = medicine.Dosage;
                 newMedicine.Name = medicine.Name;
                 newMedicine.AdministrationRoute = medicine.AdministrationRoute;
@@ -47,6 +47,7 @@ namespace SistemaDeCadastro.APP.APP
 
                 newMedicine.InstitutionId = institutionId.Value;
                 await this._medicineRepository.CreateMedicine(newMedicine);
+                ret.Success = true;
             }
             catch (Exception err)
             {
@@ -63,13 +64,21 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 Medicine updateMedicine = (await this._medicineRepository.GetMedicineById(medicine.Id)).FirstOrDefault();
-             
+
+                if (updateMedicine == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Medicamento não encontrado.";
+                    return ret;
+                }
+
                 updateMedicine.Name = medicine.Name;
-                updateMedicine.Description = medicine.Description;
+                updateMedicine.Description = medicine.Description ?? string.Empty;
                 updateMedicine.Dosage = medicine.Dosage;
                
                 updateMedicine.AdministrationRoute = medicine.AdministrationRoute;
                 await this._medicineRepository.UpdateMedicine(updateMedicine);
+                ret.Success = true;
             }
             catch (Exception err)
             {
@@ -85,7 +94,16 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 Medicine idToDelete = (await this._medicineRepository.GetMedicineById(medicine.Id)).FirstOrDefault();
+
+                if (idToDelete == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Medicamento não encontrado.";
+                    return ret;
+                }
+
                 await this._medicineRepository.DeleteMedicine(idToDelete);
+                ret.Success = true;
             }
             catch (Exception err)
             {

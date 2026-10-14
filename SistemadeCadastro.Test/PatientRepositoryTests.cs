@@ -64,6 +64,7 @@ namespace SistemadeCadastro.Test
                 AdministrationTime = System.TimeSpan.FromHours(9),
                 PrescribedDosage = "10mg",
                 StartDate = System.DateTime.Today,
+                Observations = "mpcc obs",
             };
             context.MedicinePatientClinicalConditions.Add(mpcc);
 

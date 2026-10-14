@@ -42,8 +42,14 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [HttpPut("Update/{id}")]
-        public async Task<IActionResult> UpdateMedicine(UpdateMedicineDTO entity)
+        public async Task<IActionResult> UpdateMedicine(long id, UpdateMedicineDTO entity)
         {
+            // Garante o Id vindo da rota (o front pode mandar so na URL, nao no corpo).
+            // Sem isso, entity.Id ficava 0 e o update "nao encontrava" o medicamento,
+            // retornando 200 mas sem salvar nada.
+            if (entity.Id == 0)
+                entity.Id = id;
+
             var ret = await _app.UpdateMedicine(entity);
             return Ok(ret);
         }

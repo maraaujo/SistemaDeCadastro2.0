@@ -67,5 +67,15 @@ namespace SistemaDeCadastro.Controller.V1
             var ret = await _app.GetMedicineReminders();
             return Ok(ret);
         }
+
+        // Relatorio de medicamentos do dia: todos os medicamentos programados para a data
+        // informada (ou hoje) com o status (Administrado / Atrasado / Pendente).
+        // Opcionalmente filtra por acolhido (patientId).
+        [HttpGet("GetDailyMedicationReport")]
+        public async Task<IActionResult> GetDailyMedicationReport(DateTime? date = null, long? patientId = null)
+        {
+            var ret = await _app.GetDailyMedicationReport(date, patientId);
+            return Ok(ret);
+        }
     }
 }

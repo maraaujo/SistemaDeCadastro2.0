@@ -19,6 +19,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration);
         Task<ApiResponse> Delete(MedicationAdministration medicationAdministration);
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
+        Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId);
 
     }
 }

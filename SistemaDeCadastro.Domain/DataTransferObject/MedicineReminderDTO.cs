@@ -16,7 +16,9 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public string Frequency { get; set; }
         public TimeSpan? AdministrationTime { get; set; }
         public string ResponsibleEmployeeName { get; set; }
-        public DateTime NextDoseDateTime { get; set; }
+        // Horario previsto da proxima dose COM fuso explicito (-03:00). Enviado assim para
+        // que o front calcule o instante correto, sem depender de assumir o fuso do servidor.
+        public DateTimeOffset NextDoseDateTime { get; set; }
         public int MinutesRemaining { get; set; }
         public string AlertText { get; set; } = string.Empty;
     }

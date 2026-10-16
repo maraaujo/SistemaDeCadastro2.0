@@ -63,6 +63,14 @@ public partial class SistemaDeCadastroContext : DbContext
         x.Patient.InstitutionId == CurrentInstitutionId
     );
 
+        // Cada instituicao so enxerga os logs dos proprios usuarios; o admin da
+        // plataforma (sem instituicao) enxerga todos.
+        modelBuilder.Entity<AccessLog>()
+            .HasQueryFilter(x =>
+                CurrentInstitutionId == null ||
+                x.User.InstitutionId == CurrentInstitutionId
+            );
+
         modelBuilder.Entity<MedicationAdministration>(entity =>
         {
             entity.ToTable("administracoes_medicamento");

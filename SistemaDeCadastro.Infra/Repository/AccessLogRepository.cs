@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Filters;
 using SistemaDeCadastro.Domain.Models.Stage;
@@ -42,11 +42,20 @@ namespace SistemaDeCadastro.Infra.Repository
                         select new AccessLogListDTO
                         {
                             Id = a.Id,
+                            UserId = a.UserId,
+                            UserName = u.Name,
                             UserEmail = u.Email,
                             UserType = u.UserType,
                             Action = a.Action,
-                            DateTime = a.DateTime
+                            DateTime = a.DateTime,
+                            IpAddress = a.IpAddress,
+                            Observation = a.Observation
                         };
+
+            if (filter.UserId.HasValue)
+            {
+                query = query.Where(a => a.UserId == filter.UserId.Value);
+            }
 
             if (!string.IsNullOrEmpty(filter.UserEmail))
             {
@@ -55,7 +64,7 @@ namespace SistemaDeCadastro.Infra.Repository
 
             if (!string.IsNullOrEmpty(filter.Action))
             {
-                query = query.Where(a => a.Action.ToLower().Contains(filter.Action));
+                query = query.Where(a => a.Action.ToLower().Contains(filter.Action.ToLower()));
             }
 
             if (filter.DateTime.HasValue)

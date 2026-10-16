@@ -35,5 +35,47 @@ namespace SistemaDeCadastro.APP.APP
                 return null;
             }
         }
+
+        // Usuario logado: claim "UserId" do JWT (= LoginAccount.UserId, que e a
+        // chave referenciada pelo log_acesso.id_usuario).
+        public long? UserId
+        {
+            get
+            {
+                var value = _httpContextAccessor.HttpContext?.User?.FindFirst("UserId")?.Value;
+
+                if (long.TryParse(value, out var userId))
+                    return userId;
+
+                return null;
+            }
+        }
+
+        // IP de origem. Atras de proxy/Cloud Run o IP real vem no X-Forwarded-For
+        // (o primeiro da lista); senao usa o IP da conexao.
+        public string? IpAddress
+        {
+            get
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+                if (httpContext == null)
+                    return null;
+
+                var forwarded = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+                var remote = httpContext.Connection.RemoteIpAddress;
+                if (remote != null && remote.IsIPv4MappedToIPv6)
+                    remote = remote.MapToIPv4();
+
+                var ip = !string.IsNullOrWhiteSpace(forwarded)
+                    ? forwarded.Split(',')[0].Trim()
+                    : remote?.ToString();
+
+                if (string.IsNullOrWhiteSpace(ip))
+                    return null;
+
+                // Coluna ip_acesso tem 45 caracteres.
+                return ip.Length > 45 ? ip[..45] : ip;
+            }
+        }
     }
 }

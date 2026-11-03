@@ -18,7 +18,15 @@ public partial class SistemaDeCadastroContext : DbContext
     {
         _currentUserService = currentUserService;
     }
-    private long? CurrentInstitutionId => _currentUserService.InstitutionId;
+    // Id que nenhuma instituicao tem: usado quando o token nao traz instituicao e o
+    // usuario nao e admin da plataforma, para o filtro nao devolver nada (fail-closed).
+    private const long NoInstitution = -1;
+
+    // null = sem filtro, somente para o admin da plataforma.
+    private long? CurrentInstitutionId =>
+        _currentUserService == null ? NoInstitution
+        : _currentUserService.IsPlatformAdmin ? null
+        : _currentUserService.InstitutionId ?? NoInstitution;
     public virtual DbSet<Patient> Patients { get; set; }
     public virtual DbSet<Responsible> Responsibles { get; set; }
     public virtual DbSet<Employee> Employees { get; set; }

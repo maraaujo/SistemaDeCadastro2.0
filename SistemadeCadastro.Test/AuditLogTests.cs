@@ -14,6 +14,7 @@ namespace SistemadeCadastro.Test
             public long? InstitutionId => null;
             public long? UserId => _userId;
             public string? IpAddress => "10.0.0.1";
+            public bool IsPlatformAdmin => true;
         }
 
         private static SistemaDeCadastroContext CreateContext(string dbName, long? userId = 42)

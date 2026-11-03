@@ -29,6 +29,7 @@ namespace SistemadeCadastro.Test
                 _institutionId = institutionId;
             }
             public long? InstitutionId => _institutionId;
+            public bool IsPlatformAdmin => _institutionId == null;
         }
 
         [Fact]

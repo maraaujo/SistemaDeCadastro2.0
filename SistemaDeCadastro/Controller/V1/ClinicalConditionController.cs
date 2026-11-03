@@ -34,6 +34,8 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(items);
         }
 
+        // Catalogo unico compartilhado por todas as instituicoes: so o admin da plataforma altera.
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPost("CreateClinicalCondition")]
         public async Task<IActionResult> CreateClinicalCondition(CreateClinicalConditionDTO clinicalCondition)
         {
@@ -41,6 +43,8 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        // Catalogo unico compartilhado por todas as instituicoes: so o admin da plataforma altera.
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateClinicalCondition(UpdateClinicalConditionDTO clinicalCondition)
         {
@@ -48,6 +52,8 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        // Catalogo unico compartilhado por todas as instituicoes: so o admin da plataforma altera.
+        [Authorize(Policy = "SaasAdmin")]
         [HttpDelete("DeleteClinicalCondition/{idClinicalCondition}")]
         public async Task<IActionResult> DeleteClinicalCondition(long idClinicalCondition)
         {

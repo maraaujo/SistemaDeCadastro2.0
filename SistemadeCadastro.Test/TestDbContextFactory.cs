@@ -20,5 +20,6 @@ namespace SistemadeCadastro.Test
     internal class TestCurrentUserService : SistemaDeCadastro.APP.Interface.ICurrentUserServiceContext
     {
         public long? InstitutionId => null;
+        public bool IsPlatformAdmin => true;
     }
 }

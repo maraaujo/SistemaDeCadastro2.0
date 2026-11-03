@@ -27,7 +27,7 @@ namespace SistemaDeCadastro.APP.APP
         private bool IsAdmin =>
             string.Equals(_currentUser.Role, AdminRole, StringComparison.OrdinalIgnoreCase);
 
-        private bool IsPlatformAdmin => IsAdmin && !_currentUser.InstitutionId.HasValue;
+        private bool IsPlatformAdmin => _currentUser.IsPlatformAdmin;
 
         private bool IsInstitutionAdmin => IsAdmin && _currentUser.InstitutionId.HasValue;
 

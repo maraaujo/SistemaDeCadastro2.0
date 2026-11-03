@@ -39,8 +39,9 @@ namespace SistemadeCadastro.Test
             return new SistemaDeCadastroContext(options, user);
         }
 
-        // Contexto sem instituicao e sem usuario: enxerga tudo e nao grava auditoria.
-        private static SistemaDeCadastroContext Unfiltered(string dbName) => CreateContext(dbName, new FakeUser(null));
+        // Admin da plataforma sem usuario logado: enxerga tudo e nao grava auditoria.
+        private static SistemaDeCadastroContext Unfiltered(string dbName) =>
+            CreateContext(dbName, new FakeUser(null, null, "Administrador"));
 
         private static string NewDb() => "isolation_" + Guid.NewGuid();
 
@@ -274,6 +275,59 @@ namespace SistemadeCadastro.Test
             Assert.True(await check.PatientClinicalConditions.AnyAsync(c => c.PatientId == s.PatientB.Id));
             Assert.True(await check.Appointments.AnyAsync(a => a.PatientId == s.PatientB.Id));
             Assert.True(await check.Payments.AnyAsync(p => p.Id == s.PaymentB.Id));
+        }
+
+        // ------------------------------------------------------------------
+        // Token sem instituicao: so o admin da plataforma ve tudo (fail-closed)
+        // ------------------------------------------------------------------
+
+        [Fact]
+        public async Task TokenWithoutInstitution_NotPlatformAdmin_SeesNothingAndCannotCreate()
+        {
+            var db = NewDb();
+            var s = await SeedTwoInstitutions(db);
+
+            var orphan = new FakeUser(null, 999, "Colaborador");
+            using (var ctx = CreateContext(db, orphan))
+            {
+                Assert.Empty(await new PatientRepository(ctx).GetAll());
+                Assert.Empty(await new ResponsibleRepository(ctx).GetAll());
+                Assert.Empty(await new EmployeeRepository(ctx).GetAll());
+                Assert.Empty(await new AppointmentRepository(ctx).GetAll());
+                Assert.Empty(await new PaymentRepository(ctx).GetAll());
+                Assert.Empty(await new MedicinePatientClinicalConditionRepository(ctx).GetAll());
+
+                var responsibleApp = new ResponsibleApp(new ResponsibleRepository(ctx), new PatientRepository(ctx));
+                var create = await responsibleApp.Create(new CreateResponsibleDTO
+                {
+                    PatientId = s.PatientB.Id, Name = "Intruso", Phone = "", Relationship = "", Address = ""
+                });
+                Assert.False(create.Success);
+
+                var patientApp = new PatientApp(
+                    new PatientRepository(ctx), new ResponsibleRepository(ctx), new PatientEmployeeRepository(ctx),
+                    new PatientClinicalConditionRepository(ctx), new AppointmentRepository(ctx), new PaymentRepository(ctx),
+                    new MedicinePatientClinicalConditionRepository(ctx), new MedicineRepository(ctx), orphan);
+                var createPatient = await patientApp.CreatePatient(new CreatePatientDTO { Name = "Intruso", Gender = "F" });
+                Assert.False(createPatient.Success);
+                Assert.False((await patientApp.DeletePatient(s.PatientB.Id)).Success);
+            }
+
+            using var check = Unfiltered(db);
+            Assert.Equal(2, await check.Patients.CountAsync());
+            Assert.Equal(2, await check.Responsibles.CountAsync());
+        }
+
+        [Fact]
+        public async Task PlatformAdmin_SeesAllInstitutions()
+        {
+            var db = NewDb();
+            await SeedTwoInstitutions(db);
+
+            using var ctx = CreateContext(db, new FakeUser(null, 999, "Administrador"));
+            Assert.Equal(2, (await new PatientRepository(ctx).GetAll()).Count);
+            Assert.Equal(2, (await new ResponsibleRepository(ctx).GetAll()).Count);
+            Assert.Single(await new PaymentRepository(ctx).GetAll());
         }
 
         // ------------------------------------------------------------------

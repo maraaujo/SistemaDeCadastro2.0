@@ -19,5 +19,11 @@ namespace SistemaDeCadastro.APP.Interface
 
         // Papel do usuario logado (claim Role do JWT = LoginAccount.UserType).
         string? Role => null;
+
+        // Administrador da plataforma: papel administrativo E sem instituicao no token.
+        // Unico perfil que enxerga dados de todas as instituicoes.
+        bool IsPlatformAdmin =>
+            !InstitutionId.HasValue &&
+            string.Equals(Role, "Administrador", StringComparison.OrdinalIgnoreCase);
     }
 }

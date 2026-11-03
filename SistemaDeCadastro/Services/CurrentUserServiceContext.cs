@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SistemaDeCadastro.APP.Interface;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,14 @@ namespace SistemaDeCadastro.APP.APP
     {
         //objeto que tem os dados da requisição que chega no backend
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CurrentUserServiceContext(IHttpContextAccessor httpContextAccessor)
+        private readonly string[] _adminRoles;
+        public CurrentUserServiceContext(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _httpContextAccessor = httpContextAccessor;
+
+            // Mesmos papeis da policy "SaasAdmin" (AdminBackoffice:Roles; padrao "Administrador").
+            var roles = configuration.GetSection("AdminBackoffice:Roles").Get<string[]>();
+            _adminRoles = roles == null || roles.Length == 0 ? new[] { "Administrador" } : roles;
         }
 
         public long? InstitutionId
@@ -58,6 +64,18 @@ namespace SistemaDeCadastro.APP.APP
             {
                 var value = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
                 return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+        }
+
+        public bool IsPlatformAdmin
+        {
+            get
+            {
+                var user = _httpContextAccessor.HttpContext?.User;
+                if (user?.Identity?.IsAuthenticated != true || InstitutionId.HasValue)
+                    return false;
+
+                return _adminRoles.Any(role => user.IsInRole(role));
             }
         }
 

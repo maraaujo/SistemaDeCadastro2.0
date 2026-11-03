@@ -39,6 +39,8 @@ namespace SistemaDeCadastro.Infra.Repository
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page; 
+            var medicineId = filter.MedicineId;
+
             var query = from m in _context.MedicationAdministrations
                         join p in _context.Patients on m.PatientId equals p.Id
                         join e in _context.Employees on m.EmployeeId equals e.Id
@@ -48,6 +50,7 @@ namespace SistemaDeCadastro.Infra.Repository
                         join med in _context.Medicines
                             on mpcc.MedicineId equals med.Id into medGroup
                         from med in medGroup.DefaultIfEmpty()
+                        where medicineId == null || (mpcc != null && mpcc.MedicineId == medicineId)
                         select new MedicationAdministrationDTO
                         {
                             Id = m.Id,

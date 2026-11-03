@@ -23,6 +23,9 @@ namespace SistemaDeCadastro.Domain.Filters
 
         public string? Observations { get; set; }
 
+        // Filtro da tela de historico de medicacao.
+        public long? MedicineId { get; set; }
+
         public int Page { get; set; } = 1;
     }
 }

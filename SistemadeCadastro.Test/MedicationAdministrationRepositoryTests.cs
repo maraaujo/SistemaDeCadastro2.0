@@ -109,6 +109,47 @@ namespace SistemadeCadastro.Test
             Assert.Equal(ma.Status, paged.MedicationAdministration.First().Status);
         }
         [Fact]
+        public async Task GetMedicationAdministrationByFilter_Filters_By_Medicine()
+        {
+            using var context = CreateContext("medadmin_filter_medicine", 1);
+            var patient = new Patient { Name = "PX3", Gender = "F", Cpf = "c3", Observations = "o", BirthDate = System.DateTime.Today, CreatedAt = System.DateTime.Now, InstitutionId = 1 };
+            context.Patients.Add(patient);
+            var employee = new Employee { Name = "E3", Cpf = "333", Position = "P3", Phone = "0", Email = "e3@e.com", AdmissionDate = System.DateTime.Now, InstitutionId = 1 };
+            context.Employees.Add(employee);
+            var medA = new Medicine { Name = "MedA", Description = "d", Dosage = "10", AdministrationRoute = "oral" };
+            var medB = new Medicine { Name = "MedB", Description = "d", Dosage = "20", AdministrationRoute = "oral" };
+            context.Medicines.AddRange(medA, medB);
+            await context.SaveChangesAsync();
+
+            var pcc = new PatientClinicalCondition { PatientId = patient.Id, ClinicalConditionId = 0, DiagnosisDate = System.DateTime.Today, Observations = "obs" };
+            context.PatientClinicalConditions.Add(pcc);
+            await context.SaveChangesAsync();
+
+            var mpccA = new MedicinePatientClinicalCondition { PatientClinicalConditionId = pcc.Id, MedicineId = medA.Id, PrescribedDosage = "10mg", Frequency = "f", Observations = "" };
+            var mpccB = new MedicinePatientClinicalCondition { PatientClinicalConditionId = pcc.Id, MedicineId = medB.Id, PrescribedDosage = "20mg", Frequency = "f", Observations = "" };
+            context.MedicinePatientClinicalConditions.AddRange(mpccA, mpccB);
+            await context.SaveChangesAsync();
+
+            var ma1 = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccA.Id, ScheduledDateTime = System.DateTime.Today, Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            var ma2 = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccA.Id, ScheduledDateTime = System.DateTime.Today.AddDays(-1), Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            var otherMedicine = new MedicationAdministration { PatientId = patient.Id, EmployeeId = employee.Id, MedicinePatientClinicalConditionId = mpccB.Id, ScheduledDateTime = System.DateTime.Today, Status = "Administrado", Observations = "obs", CreatedAt = System.DateTime.Now };
+            context.MedicationAdministrations.AddRange(ma1, ma2, otherMedicine);
+            await context.SaveChangesAsync();
+
+            var repo = new MedicationAdministrationRepository(context);
+
+            var byMedicine = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1, MedicineId = medB.Id });
+            Assert.Equal(new[] { otherMedicine.Id }, byMedicine.MedicationAdministration.Select(x => x.Id).ToArray());
+
+            var byMedicineA = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1, MedicineId = medA.Id });
+            Assert.Equal(new[] { ma1.Id, ma2.Id }.OrderBy(x => x).ToArray(), byMedicineA.MedicationAdministration.Select(x => x.Id).OrderBy(x => x).ToArray());
+            Assert.Equal(2, byMedicineA.Count);
+
+            var noMedicineFilter = await repo.GetMedicationAdministrationByFilter(new MedicationAdministrationFilterDTO { Page = 1 });
+            Assert.Equal(3, noMedicineFilter.Count);
+        }
+
+        [Fact]
         public async Task GetMedicineReminders_Returns_List()
         {
             using var context = CreateContext("mpcc_reminders");

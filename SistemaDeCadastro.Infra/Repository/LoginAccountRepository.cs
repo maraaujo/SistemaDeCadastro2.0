@@ -30,5 +30,16 @@ namespace SistemaDeCadastro.Infra.Repository
             return await _context.LoginAccounts
                 .FirstOrDefaultAsync(x => x.Email == email);
         }
+
+        // Proximo id livre para uma conta nova. Id e UserId sao gravados com o mesmo
+        // valor ja no insert: o UserId e chave alternativa (log_acesso, agendamentos e
+        // pagamentos apontam para ele) e o EF nao deixa altera-lo depois de gravado.
+        public async Task<long> GetNextAccountId()
+        {
+            var maxId = await _context.LoginAccounts.MaxAsync(l => (long?)l.Id) ?? 0;
+            var maxUserId = await _context.LoginAccounts.MaxAsync(l => (long?)l.UserId) ?? 0;
+
+            return System.Math.Max(maxId, maxUserId) + 1;
+        }
     }
 }

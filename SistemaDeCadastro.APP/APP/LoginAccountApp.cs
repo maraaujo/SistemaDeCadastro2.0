@@ -107,6 +107,15 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                // A coluna contas_login.nome e obrigatoria: sem esta checagem o banco
+                // devolvia um erro tecnico de NOT NULL em vez de uma mensagem clara.
+                if (string.IsNullOrWhiteSpace(entity.Nome))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Nome deve ser preenchido.";
+                    return ret;
+                }
+
                 // Administrador de instituicao so cria conta na propria instituicao (nunca
                 // sem instituicao, o que viraria admin da plataforma). O admin da plataforma
                 // escolhe a instituicao; 0/nulo ("Administração geral") = sem instituicao.
@@ -125,9 +134,16 @@ namespace SistemaDeCadastro.APP.APP
 
                 var hashed = BCrypt.Net.BCrypt.HashPassword(entity.Password);
 
+                // Id e UserId com o mesmo valor ja no insert. Antes a conta era gravada
+                // com UserId = 0 e depois copiava Id -> UserId, o que o EF recusa (UserId e
+                // chave alternativa): a tela recebia erro e a conta ficava com UserId 0.
+                var newId = await _repo.GetNextAccountId();
+
                 var loginAccount = new LoginAccount
                 {
-                    Name = entity.Nome,
+                    Id = newId,
+                    UserId = newId,
+                    Name = entity.Nome.Trim(),
                     Email = entity.Email,
                     PasswordHash = hashed,
 
@@ -138,14 +154,13 @@ namespace SistemaDeCadastro.APP.APP
                 };
 
                 await _repo.Create(loginAccount);
-                loginAccount.UserId = loginAccount.Id;
-                await _repo.Update(loginAccount);
                 ret.Success = true;
                 ret.Message = "Usuário criado com sucesso.";
                 ret.Data = new
                 {
                     Id = loginAccount.Id,
                     UserId = loginAccount.UserId,
+                    Name = loginAccount.Name,
                     Email = loginAccount.Email,
                     UserType = loginAccount.UserType,
                     InstitutionId = loginAccount.InstitutionId,

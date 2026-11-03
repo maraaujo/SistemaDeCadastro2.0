@@ -414,22 +414,22 @@ namespace SistemadeCadastro.Test
             var db = NewDb();
             var a = await SeedAccounts(db);
 
-            // Um contexto por chamada. Obs.: o Create grava a conta e depois tenta copiar
-            // Id -> UserId (chave alternativa), o que o EF recusa; por isso o teste confere
-            // a linha gravada em vez de ret.Success (bug pre-existente, fora deste escopo).
+            // Um contexto por chamada.
             using (var ctx = CreateContext(db, As(a.AdminA)))
             {
-                await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
+                var ret = await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
                 {
                     Nome = "x", Email = "novo-admin@a.com", Password = "123456", UserType = "Administrador", InstitutionId = null
                 });
+                Assert.True(ret.Success, ret.ErrorMessage);
             }
             using (var ctx = CreateContext(db, As(a.AdminA)))
             {
-                await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
+                var ret = await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
                 {
                     Nome = "y", Email = "intruso@a.com", Password = "123456", UserType = "Colaborador", InstitutionId = InstB
                 });
+                Assert.True(ret.Success, ret.ErrorMessage);
             }
 
             using var check = Unfiltered(db);

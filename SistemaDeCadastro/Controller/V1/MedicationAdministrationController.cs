@@ -49,8 +49,12 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        // Recebe so o id da rota (antes esperava o objeto inteiro no corpo de um GET).
+        // Aceita GET, padrao dos outros deletes do backend, e DELETE, que e o que o
+        // medication-administrations-api.js do front envia.
         [HttpGet("DeleteMedicationAdministration/{idMedicationAdministration}")]
-        public async Task<IActionResult> DeleteMedicationAdministration(MedicationAdministration idMedicationAdministration)
+        [HttpDelete("DeleteMedicationAdministration/{idMedicationAdministration}")]
+        public async Task<IActionResult> DeleteMedicationAdministration(long idMedicationAdministration)
         {
             var ret = await _app.Delete(idMedicationAdministration);
             return Ok(ret);

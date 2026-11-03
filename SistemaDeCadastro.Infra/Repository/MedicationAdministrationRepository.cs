@@ -26,16 +26,9 @@ namespace SistemaDeCadastro.Infra.Repository
             return await this.FindBy(c => c.Status == status);
         }
 
-  
+        // Delete vem do BaseRepository. O metodo que existia aqui chamava a si mesmo
+        // (this.Delete) e o StackOverflow derrubava o processo inteiro da API.
 
-        public async Task Delete(MedicationAdministration medicationAdministration)
-        {
-            
-           
-                await this.Delete(medicationAdministration);
-        
-
-        }
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page; 

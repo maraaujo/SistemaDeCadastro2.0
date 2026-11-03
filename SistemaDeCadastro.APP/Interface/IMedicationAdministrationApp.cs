@@ -17,7 +17,7 @@ namespace SistemaDeCadastro.APP.Interface
         Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status);
         Task<ApiResponse> Create(CreateMedicationAdministrationDTO medicationAdministration);
         Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration);
-        Task<ApiResponse> Delete(MedicationAdministration medicationAdministration);
+        Task<ApiResponse> Delete(long id);
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
         Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId);
 

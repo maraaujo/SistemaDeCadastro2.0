@@ -210,13 +210,25 @@ namespace SistemaDeCadastro.APP.APP
             }
             return ret;
         }
-        public async Task<ApiResponse> Delete(MedicationAdministration medicationAdministration)
+        public async Task<ApiResponse> Delete(long id)
         {
             ApiResponse ret = new();
             try
             {
-                MedicationAdministration idToDelete = (await this._medicationAdministrationRepository.GetById(medicationAdministration.Id)).FirstOrDefault();
+                // O filtro de instituicao do contexto garante que so acha registro da
+                // instituicao do usuario logado.
+                MedicationAdministration? idToDelete = (await this._medicationAdministrationRepository.GetById(id)).FirstOrDefault();
+                if (idToDelete == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Administração de medicamento não encontrada.";
+                    ret.Message = ret.ErrorMessage;
+                    return ret;
+                }
+
                 await this._medicationAdministrationRepository.Delete(idToDelete);
+                ret.Success = true;
+                ret.Message = "Administração de medicamento excluída com sucesso.";
             }
             catch (Exception err)
             {

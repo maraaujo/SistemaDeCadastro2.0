@@ -9,5 +9,6 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<LoginAccount?> GetById(long id);
         Task<LoginAccount?> GetByUserId(long userId);
         Task<LoginAccount?> GetByEmail(string email);
+        Task<long> GetNextAccountId();
     }
 }

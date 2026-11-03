@@ -31,6 +31,13 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+# Fuso de Brasília. Partes do código ainda usam DateTime.Now; sem isso, dentro do
+# container ele seria UTC (3h adiantado em relação ao horário dos usuários).
+ENV TZ=America/Sao_Paulo
+
 EXPOSE 8080
+
+# Roda sem privilégios de root (usuário já existente na imagem oficial do .NET 8).
+USER app
 
 ENTRYPOINT ["dotnet", "SistemaDeCadastro.dll"]

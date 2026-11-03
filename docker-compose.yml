@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    image: sistemadecadastro-api
+    container_name: sistemadecadastro-api
+    ports:
+      - "8080:8080"
+    # Connection string, senha do banco e demais configs vêm do arquivo .env
+    # (copie o .env.example para .env e preencha).
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,0 +1,36 @@
+# Artefatos de build gerados no Windows: se entrarem na imagem, sobrescrevem o
+# restore feito no Linux e quebram o "dotnet publish --no-restore".
+**/bin/
+**/obj/
+
+# IDE / ferramentas
+.vs/
+.vscode/
+.idea/
+.codex/
+.github/
+*.user
+*.suo
+
+# Git e documentacao
+.git/
+.gitignore
+.gitattributes
+*.md
+openspec/
+scripts/
+
+# Projetos de teste e legados que nao fazem parte da API
+SistemadeCadastro.Test/
+SistemaDeCadastroTeste/
+
+# Segredos e configuracoes locais (nunca vao para a imagem)
+.env
+*.env
+appsettings.sanitized.json
+**/appsettings.Development.json
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

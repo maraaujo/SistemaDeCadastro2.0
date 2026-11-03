@@ -14,6 +14,11 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
 
         public long PatientId { get; set; }
         public string NamePatient { get; set; }
+
+        // Medicamento e dose prescrita (do medicamento programado), exibidos nas
+        // colunas "Medicamento" e "Dosagem" da tela de historico.
+        public string? MedicineName { get; set; }
+        public string? PrescribedDosage { get; set; }
         public string EmployeeName { get; set; }
         public long? EmployeeId { get; set; }
 

@@ -45,12 +45,17 @@ namespace SistemaDeCadastro.Infra.Repository
                         join mpcc in _context.MedicinePatientClinicalConditions
                             on m.MedicinePatientClinicalConditionId equals mpcc.Id into mpccGroup
                         from mpcc in mpccGroup.DefaultIfEmpty()
+                        join med in _context.Medicines
+                            on mpcc.MedicineId equals med.Id into medGroup
+                        from med in medGroup.DefaultIfEmpty()
                         select new MedicationAdministrationDTO
                         {
                             Id = m.Id,
                             MedicinePatientClinicalConditionId = m.MedicinePatientClinicalConditionId,
                             PatientId = m.PatientId,
                             NamePatient = p.Name,
+                            MedicineName = med != null ? med.Name : null,
+                            PrescribedDosage = mpcc != null ? mpcc.PrescribedDosage : null,
                             EmployeeId = m.EmployeeId,
                             EmployeeName = e.Name,
                             ScheduledDateTime = m.ScheduledDateTime,

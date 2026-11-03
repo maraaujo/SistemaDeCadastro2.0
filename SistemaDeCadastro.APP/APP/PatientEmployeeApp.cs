@@ -10,10 +10,25 @@ namespace SistemaDeCadastro.APP.APP
     public class PatientEmployeeApp : IPatientEmployeeApp
     {
         private readonly IPatientEmployeeRepository _repo;
+        private readonly IPatientRepository _patientRepository;
+        private readonly IEmployeeRepository _employeeRepository;
 
-        public PatientEmployeeApp(IPatientEmployeeRepository repo)
+        public PatientEmployeeApp(IPatientEmployeeRepository repo, IPatientRepository patientRepository, IEmployeeRepository employeeRepository)
         {
             _repo = repo;
+            _patientRepository = patientRepository;
+            _employeeRepository = employeeRepository;
+        }
+
+        // Acolhido e funcionario vem do cliente: os dois precisam ser da instituicao
+        // do usuario (os repositorios ja aplicam o filtro de instituicao).
+        private async Task<string?> ValidateReferences(long patientId, long employeeId)
+        {
+            if (!await _patientRepository.Any(p => p.Id == patientId))
+                return "Acolhido não encontrado para a instituição do usuário logado.";
+            if (!await _employeeRepository.Any(e => e.Id == employeeId))
+                return "Funcionário não encontrado para a instituição do usuário logado.";
+            return null;
         }
         public async Task<PagedPatientEmployeeDTO> GetPagedPatientEmployeeByFilter(PatientEmployeeFilterDTO filter)
         {
@@ -28,6 +43,14 @@ namespace SistemaDeCadastro.APP.APP
         {
             var ret = new ApiResponse();
             try { 
+            var referenceError = await ValidateReferences(entity.PatientId, entity.EmployeeId);
+            if (referenceError != null)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = referenceError;
+                return ret;
+            }
+
             var newEntity = new PatientEmployee
             {
                 EmployeeId = entity.EmployeeId,
@@ -52,12 +75,28 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try { 
             var existingEntity = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
+                if (existingEntity == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Vínculo não encontrado.";
+                    return ret;
+                }
+
+                var referenceError = await ValidateReferences(entity.PatientId, entity.EmployeeId);
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    return ret;
+                }
+
                 existingEntity.EmployeeId = entity.EmployeeId;
                 existingEntity.PatientId = entity.PatientId;
                 existingEntity.ResponsibilityFunction = entity.ResponsibilityFunction;
                 existingEntity.StartDate = entity.StartDate;
                 existingEntity.EndDate = entity.EndDate;
                 await _repo.Update(existingEntity);
+                ret.Success = true;
             }
             catch (Exception ex)
             {

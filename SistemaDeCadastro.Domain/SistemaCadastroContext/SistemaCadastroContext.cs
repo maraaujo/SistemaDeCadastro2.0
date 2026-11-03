@@ -63,6 +63,25 @@ public partial class SistemaDeCadastroContext : DbContext
         x.Patient.InstitutionId == CurrentInstitutionId
     );
 
+        // Entidades filhas nao tem InstitutionId proprio: o isolamento vem pela
+        // navegacao ate o acolhido (ou agendamento) dono do registro.
+        modelBuilder.Entity<Responsible>()
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.Patient.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<PatientClinicalCondition>()
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.Patient.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<MedicinePatientClinicalCondition>()
+            .HasQueryFilter(x =>
+                CurrentInstitutionId == null ||
+                x.PatientClinicalCondition.Patient.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<PatientEmployee>()
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.Patient.InstitutionId == CurrentInstitutionId);
+
+        modelBuilder.Entity<Payment>()
+            .HasQueryFilter(x => CurrentInstitutionId == null || x.Appointment.InstitutionId == CurrentInstitutionId);
+
         // Cada instituicao so enxerga os logs dos proprios usuarios; o admin da
         // plataforma (sem instituicao) enxerga todos.
         modelBuilder.Entity<AccessLog>()

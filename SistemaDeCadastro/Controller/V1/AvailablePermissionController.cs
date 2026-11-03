@@ -34,6 +34,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(items);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPost("CreateAvailablePermission")]
         public async Task<IActionResult> CreateAvailablePermission(CreateAvailablePermissionDTO entity)
         {
@@ -41,6 +42,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateAvailablePermission(UpdateAvailablePermissionDTO entity)
         {
@@ -48,6 +50,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpGet("DeleteAvailablePermission/{idAvailablePermission}")]
         public async Task<IActionResult> DeleteAvailablePermission(long idAvailablePermission)
         {

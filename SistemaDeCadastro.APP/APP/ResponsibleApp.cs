@@ -8,11 +8,15 @@ namespace SistemaDeCadastro.APP.APP
     public class ResponsibleApp : IResponsibleApp
     {
         private readonly IResponsibleRepository _responsibleRepository;
+        private readonly IPatientRepository _patientRepository;
 
-        public ResponsibleApp(IResponsibleRepository responsibleRepository)
+        public ResponsibleApp(IResponsibleRepository responsibleRepository, IPatientRepository patientRepository)
         {
             _responsibleRepository = responsibleRepository;
+            _patientRepository = patientRepository;
         }
+
+        private const string PatientNotFound = "Acolhido não encontrado para a instituição do usuário logado.";
 
         public async Task<List<Responsible>> GetAll() => await _responsibleRepository.GetAll();
 
@@ -27,6 +31,14 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     ret.Success = false;
                     ret.ErrorMessage = PhoneValidator.MensagemInvalido;
+                    return ret;
+                }
+
+                // O acolhido vem do cliente: precisa ser da instituicao do usuario.
+                if (!await _patientRepository.Any(p => p.Id == entity.PatientId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PatientNotFound;
                     return ret;
                 }
 
@@ -65,6 +77,14 @@ namespace SistemaDeCadastro.APP.APP
             var existingResponsible = (await _responsibleRepository.FindBy(r => r.Id == entity.Id)).FirstOrDefault();
             if (existingResponsible != null)
             {
+                if (entity.PatientId != existingResponsible.PatientId &&
+                    !await _patientRepository.Any(p => p.Id == entity.PatientId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PatientNotFound;
+                    return ret;
+                }
+
                 existingResponsible.Name = entity.Name;
                 existingResponsible.Relationship = entity.Relationship;
                 // Armazena apenas os números; a máscara fica para o frontend.

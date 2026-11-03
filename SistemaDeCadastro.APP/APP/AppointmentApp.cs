@@ -92,6 +92,16 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                // O acolhido informado tambem precisa ser da instituicao do usuario
+                // (o repositorio de pacientes ja aplica o filtro de instituicao).
+                if (entity.PatientId != existingAppointment.PatientId &&
+                    !await _patientRepository.Any(p => p.Id == entity.PatientId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Paciente não encontrado para a instituição do usuário logado.";
+                    return ret;
+                }
+
                 // Atualiza os campos do agendamento existente com os valores do DTO
                 existingAppointment.PatientId = entity.PatientId;
                 existingAppointment.AppointmentType = entity.AppointmentType;

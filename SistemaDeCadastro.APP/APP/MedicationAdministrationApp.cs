@@ -12,12 +12,37 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IMedicationAdministrationRepository _medicationAdministrationRepository;
         private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
+        private readonly IPatientRepository _patientRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         public MedicationAdministrationApp(
             IMedicationAdministrationRepository medicationAdministrationRepository,
-            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository)
+            IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository,
+            IPatientRepository patientRepository,
+            IEmployeeRepository employeeRepository)
         {
             this._medicationAdministrationRepository = medicationAdministrationRepository;
             this._medicinePatientClinicalConditionRepository = medicinePatientClinicalConditionRepository;
+            this._patientRepository = patientRepository;
+            this._employeeRepository = employeeRepository;
+        }
+
+        // Os ids vem do cliente: confere que acolhido, medicamento programado e
+        // funcionario sao da instituicao do usuario (os repositorios ja aplicam o
+        // filtro de instituicao). Retorna a mensagem de erro ou null se estiver ok.
+        private async Task<string?> ValidateReferences(long medicinePatientClinicalConditionId, long patientId, long? employeeId)
+        {
+            if (!await _patientRepository.Any(p => p.Id == patientId))
+                return "Acolhido não encontrado para a instituição do usuário logado.";
+
+            if (!await _medicinePatientClinicalConditionRepository.Any(m =>
+                    m.Id == medicinePatientClinicalConditionId &&
+                    m.PatientClinicalCondition.PatientId == patientId))
+                return "Medicamento programado não encontrado para este acolhido.";
+
+            if (employeeId.HasValue && !await _employeeRepository.Any(e => e.Id == employeeId.Value))
+                return "Funcionário não encontrado para a instituição do usuário logado.";
+
+            return null;
         }
 
         public async Task<List<MedicationAdministration>> GetById(long ind) =>
@@ -37,6 +62,18 @@ namespace SistemaDeCadastro.APP.APP
 
             try
             {
+                var referenceError = await ValidateReferences(
+                    medicationAdministration.MedicinePatientClinicalConditionId,
+                    medicationAdministration.PatientId,
+                    medicationAdministration.EmployeeId);
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    ret.Message = referenceError;
+                    return ret;
+                }
+
                 // Usa o horario de parede de Sao Paulo, independente do fuso do servidor
                 // (ex.: UTC no Cloud Run), para que os registros batam com o horario local.
                 var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
@@ -113,6 +150,26 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 MedicationAdministration medicationAdministration1 = (await this._medicationAdministrationRepository.GetById(medicationAdministration.Id)).FirstOrDefault();
+                if (medicationAdministration1 == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Administração de medicamento não encontrada.";
+                    ret.Message = ret.ErrorMessage;
+                    return ret;
+                }
+
+                var referenceError = await ValidateReferences(
+                    medicationAdministration.MedicinePatientClinicalConditionId,
+                    medicationAdministration.PatientId,
+                    medicationAdministration.EmployeeId);
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    ret.Message = referenceError;
+                    return ret;
+                }
+
                 medicationAdministration1.MedicinePatientClinicalConditionId = medicationAdministration.MedicinePatientClinicalConditionId;
                 medicationAdministration1.PatientId = medicationAdministration.PatientId;
                 medicationAdministration1.EmployeeId = medicationAdministration.EmployeeId;

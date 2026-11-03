@@ -51,6 +51,16 @@ namespace SistemaDeCadastro.APP.APP
             }
         }
 
+        // Papel do usuario logado: claim Role do JWT (= LoginAccount.UserType).
+        public string? Role
+        {
+            get
+            {
+                var value = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+                return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+        }
+
         // IP de origem. Atras de proxy/Cloud Run o IP real vem no X-Forwarded-For
         // (o primeiro da lista); senao usa o IP da conexao.
         public string? IpAddress

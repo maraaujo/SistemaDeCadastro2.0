@@ -16,5 +16,8 @@ namespace SistemaDeCadastro.APP.Interface
 
         // IP de origem da requisicao, gravado junto com cada alteracao auditada.
         string? IpAddress => null;
+
+        // Papel do usuario logado (claim Role do JWT = LoginAccount.UserType).
+        string? Role => null;
     }
 }

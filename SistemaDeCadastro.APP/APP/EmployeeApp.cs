@@ -10,12 +10,19 @@ namespace SistemaDeCadastro.APP.APP
     public class EmployeeApp : IEmployeeApp
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IDepartmentRepository _departmentRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
-        public EmployeeApp(IEmployeeRepository employeeRepository, ICurrentUserServiceContext currentUserService)
+        public EmployeeApp(IEmployeeRepository employeeRepository, IDepartmentRepository departmentRepository, ICurrentUserServiceContext currentUserService)
         {
             _employeeRepository = employeeRepository;
+            _departmentRepository = departmentRepository;
             _currentUserService = currentUserService;
         }
+
+        // O departamento vem do cliente: precisa ser da instituicao do usuario
+        // (o repositorio de departamentos ja aplica o filtro de instituicao).
+        private async Task<bool> DepartmentIsVisible(long? departmentId) =>
+            !departmentId.HasValue || await _departmentRepository.Any(d => d.Id == departmentId.Value);
 
         public async Task<List<Employee>> GetAll() => await _employeeRepository.GetAll();
 
@@ -37,6 +44,13 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     ret.Success = false;
                     ret.ErrorMessage = "Departamento do funcionário é obrigatório.";
+                    return ret;
+                }
+
+                if (!await DepartmentIsVisible(entity.DepartmentId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Departamento não encontrado para a instituição do usuário logado.";
                     return ret;
                 }
 
@@ -86,6 +100,13 @@ namespace SistemaDeCadastro.APP.APP
                 {
                     ret.Success = false;
                     ret.ErrorMessage = "Funcionário não encontrado.";
+                    return ret;
+                }
+
+                if (!await DepartmentIsVisible(entity.DepartmentId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Departamento não encontrado para a instituição do usuário logado.";
                     return ret;
                 }
 

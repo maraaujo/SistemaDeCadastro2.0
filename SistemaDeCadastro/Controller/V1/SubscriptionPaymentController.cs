@@ -7,7 +7,8 @@ namespace SistemaDeCadastro.Controller.V1
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // Gestao da plataforma: dados de todas as instituicoes, so o admin da plataforma.
+    [Authorize(Policy = "SaasAdmin")]
     public class SubscriptionPaymentController : ControllerBase
     {
         private readonly ISubscriptionPaymentApp _app;

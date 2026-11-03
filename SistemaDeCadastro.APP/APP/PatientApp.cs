@@ -488,8 +488,15 @@ namespace SistemaDeCadastro.APP.APP
 
             try
             {
- 
-
+                // Busca o acolhido pelo filtro de instituicao ANTES de apagar qualquer
+                // dependente: se ele for de outra instituicao (ou nao existir), nada e apagado.
+                var deletePatient = (await _patientRepository.FindBy(p => p.Id == id)).FirstOrDefault();
+                if (deletePatient == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Acolhido não encontrado.";
+                    return ret;
+                }
 
                 // Find appointments for patient and delete related payments and care services
                 var appointments = await _appointmentRepository.FindBy(a => a.PatientId == id);
@@ -521,8 +528,8 @@ namespace SistemaDeCadastro.APP.APP
                 if (responsibles.Any()) await _responsibleRepository.DeleteRange(responsibles);
 
                 // Finally delete patient
-                var deletePatient = (await _patientRepository.FindBy(p => p.Id == id)).FirstOrDefault();
-                if (deletePatient != null) await _patientRepository.DeletePatient(deletePatient);
+                await _patientRepository.DeletePatient(deletePatient);
+                ret.Success = true;
 
             }
             catch (Exception err)

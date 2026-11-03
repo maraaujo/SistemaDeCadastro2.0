@@ -31,6 +31,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPost("CreatePlan")]
         public async Task<IActionResult> CreatePlan(CreatePlanDTO entity)
         {
@@ -38,6 +39,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdatePlan(UpdatePlanDTO entity)
         {
@@ -45,6 +47,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpGet("DeletePlan/{idPlan}")]
         public async Task<IActionResult> DeletePlan(long idPlan)
         {

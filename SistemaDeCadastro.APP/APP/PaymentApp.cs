@@ -7,10 +7,12 @@ namespace SistemaDeCadastro.APP.APP
     public class PaymentApp : IPaymentApp
     {
         private readonly IPaymentRepository _repo;
+        private readonly IAppointmentRepository _appointmentRepository;
 
-        public PaymentApp(IPaymentRepository repo)
+        public PaymentApp(IPaymentRepository repo, IAppointmentRepository appointmentRepository)
         {
             _repo = repo;
+            _appointmentRepository = appointmentRepository;
         }
 
         public async Task<List<Payment>> GetAll() => await _repo.GetAll();
@@ -50,6 +52,15 @@ namespace SistemaDeCadastro.APP.APP
                 var existingPayment = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
                 if (existingPayment != null)
                 {
+                    // O agendamento vem do cliente: precisa ser da instituicao do usuario.
+                    if (entity.AppointmentId != existingPayment.AppointmentId &&
+                        !await _appointmentRepository.Any(a => a.Id == entity.AppointmentId))
+                    {
+                        ret.Success = false;
+                        ret.ErrorMessage = "Agendamento não encontrado para a instituição do usuário logado.";
+                        return ret;
+                    }
+
                     existingPayment.AppointmentId = entity.AppointmentId;
                     existingPayment.UserId = entity.UserId;
                     existingPayment.TotalAmount = entity.TotalAmount;

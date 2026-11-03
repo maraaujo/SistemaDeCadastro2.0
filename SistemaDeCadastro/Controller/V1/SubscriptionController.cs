@@ -11,12 +11,15 @@ namespace SistemaDeCadastro.Controller.V1
     public class SubscriptionController : ControllerBase
     {
         private readonly ISubscriptionApp _app;
+        private readonly IAuthorizationService _authorizationService;
 
-        public SubscriptionController(ISubscriptionApp app)
+        public SubscriptionController(ISubscriptionApp app, IAuthorizationService authorizationService)
         {
             _app = app;
+            _authorizationService = authorizationService;
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpGet("GetSubscriptionById")]
         public async Task<IActionResult> GetSubscriptionById(long id)
         {
@@ -24,6 +27,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpGet("GetAllSubscriptions")]
         public async Task<IActionResult> GetAllSubscriptions()
         {
@@ -31,6 +35,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPost("CreateSubscription")]
         public async Task<IActionResult> CreateSubscription(CreateSubscriptionDTO entity)
         {
@@ -38,6 +43,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateSubscription(UpdateSubscriptionDTO entity)
         {
@@ -45,6 +51,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        [Authorize(Policy = "SaasAdmin")]
         [HttpGet("DeleteSubscription/{idSubscription}")]
         public async Task<IActionResult> DeleteSubscription(long idSubscription)
         {
@@ -55,6 +62,10 @@ namespace SistemaDeCadastro.Controller.V1
         [HttpGet("GetActiveSubscriptionByInstitution/{institutionId}")]
         public async Task<IActionResult> GetActiveByInstitutionId(long institutionId)
         {
+            // Instituicao consulta apenas a propria assinatura.
+            if (!await InstitutionController.CanAccessInstitution(User, institutionId, _authorizationService))
+                return Forbid();
+
             var ret = await _app.GetActiveByInstitutionId(institutionId);
             return Ok(ret);
         }

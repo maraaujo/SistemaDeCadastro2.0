@@ -15,11 +15,13 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IMedicineRepository _medicineRepository;
         private readonly IClinicalConditionRepository _clinicalConditionRepository;
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
         public MedicinePatientClinicalConditionApp(IMedicinePatientClinicalConditionRepository repo,
             IPatientRepository patientRepository, IMedicineRepository
             medicineRepository,
             IClinicalConditionRepository clinicalConditionRepository, IPatientClinicalConditionRepository patientClinicalConditionRepository,
+            IEmployeeRepository employeeRepository,
             ICurrentUserServiceContext currentUserService)
         {
             _repo = repo;
@@ -27,7 +29,27 @@ namespace SistemaDeCadastro.APP.APP
             _medicineRepository = medicineRepository;
             _clinicalConditionRepository = clinicalConditionRepository;
             _patientClinicalConditionRepository = patientClinicalConditionRepository;
+            _employeeRepository = employeeRepository;
             _currentUserService = currentUserService;
+        }
+
+        // Os ids de medicamento, condicao clinica do acolhido e funcionario vem do
+        // cliente: todos precisam ser da instituicao do usuario (os repositorios ja
+        // aplicam o filtro de instituicao). Id 0/nulo = nao informado.
+        private async Task<string?> ValidateReferences(long medicineId, long patientClinicalConditionId, long? responsibleEmployeeId)
+        {
+            if (medicineId != 0 && !await _medicineRepository.Any(m => m.Id == medicineId))
+                return "Medicamento não encontrado para a instituição do usuário logado.";
+
+            if (patientClinicalConditionId != 0 &&
+                !await _patientClinicalConditionRepository.Any(p => p.Id == patientClinicalConditionId))
+                return "Condição clínica do acolhido não encontrada para a instituição do usuário logado.";
+
+            if (responsibleEmployeeId.HasValue && responsibleEmployeeId.Value != 0 &&
+                !await _employeeRepository.Any(e => e.Id == responsibleEmployeeId.Value))
+                return "Funcionário não encontrado para a instituição do usuário logado.";
+
+            return null;
         }
 
         public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAll();
@@ -41,6 +63,21 @@ namespace SistemaDeCadastro.APP.APP
             {
                 long medicineId;
                 long patientClinicalConditionId;
+
+                // Valida tudo antes de criar qualquer registro.
+                var referenceError = await ValidateReferences(
+                    entity.MedicineDTO.Id,
+                    entity.PatientClinicalConditionDTO.Id,
+                    entity.ResponsibleEmployeeId);
+                if (referenceError == null && entity.PatientClinicalConditionDTO.Id == 0 &&
+                    !await _patientRepository.Any(p => p.Id == entity.PatientId))
+                    referenceError = "Acolhido não encontrado para a instituição do usuário logado.";
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    return ret;
+                }
 
                 // 1. Resolve o medicamento.
                 if (entity.MedicineDTO.Id != 0)
@@ -187,6 +224,16 @@ namespace SistemaDeCadastro.APP.APP
             {
 
                 var existingEntity = (await _repo.FindBy(m => m.Id == entity.Id)).FirstOrDefault();
+                if (existingEntity == null)
+                    return new ApiResponse { Success = false, ErrorMessage = "Medicamento programado não encontrado." };
+
+                var referenceError = await ValidateReferences(
+                    entity.MedicineId,
+                    entity.PatientClinicalConditionId,
+                    entity.ResponsibleEmployeeId);
+                if (referenceError != null)
+                    return new ApiResponse { Success = false, ErrorMessage = referenceError };
+
                 existingEntity.MedicineId = entity.MedicineId;
                 existingEntity.PatientClinicalConditionId = entity.PatientClinicalConditionId;
                 existingEntity.PrescribedDosage = entity.PrescribedDosage;

@@ -43,6 +43,14 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                // O acolhido vem do cliente: precisa ser da instituicao do usuario.
+                if (!await _patientRepo.Any(p => p.Id == entity.PatientId))
+                {
+                    ret.ErrorMessage = "Acolhido não encontrado para a instituição do usuário logado.";
+                    ret.Success = false;
+                    return ret;
+                }
+
                 var patientClinicalCondition = new PatientClinicalCondition
                 {
                     PatientId = entity.PatientId,
@@ -65,7 +73,33 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> Update(PatientClinicalCondition entity)
         {
             var ret = new ApiResponse();
-            try { await _repo.Update(entity); ret.Success = true; }
+            try
+            {
+                // Carrega o registro existente pelo filtro de instituicao em vez de
+                // gravar a entidade recebida direto (que sobrescreveria qualquer id).
+                var existing = (await _repo.FindBy(p => p.Id == entity.Id)).FirstOrDefault();
+                if (existing == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Condição clínica do acolhido não encontrada.";
+                    return ret;
+                }
+
+                if (entity.PatientId != existing.PatientId &&
+                    !await _patientRepo.Any(p => p.Id == entity.PatientId))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Acolhido não encontrado para a instituição do usuário logado.";
+                    return ret;
+                }
+
+                existing.PatientId = entity.PatientId;
+                existing.ClinicalConditionId = entity.ClinicalConditionId;
+                existing.DiagnosisDate = entity.DiagnosisDate;
+                existing.Observations = entity.Observations;
+                await _repo.Update(existing);
+                ret.Success = true;
+            }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
             return ret;
         }

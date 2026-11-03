@@ -12,6 +12,7 @@ namespace SistemaDeCadastro.Infra.Interface
         Task Create(T entity);
         Task<List<T>> FindBy(Expression<Func<T, bool>> expression);
         Task<List<T>> GetAll();
+        Task<bool> Any(Expression<Func<T, bool>> predicate);
         Task Delete(T entity);
         Task DeleteRange(IEnumerable<T> entity);
         Task Update(T entity);

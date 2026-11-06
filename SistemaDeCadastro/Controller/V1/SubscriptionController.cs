@@ -52,7 +52,7 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [Authorize(Policy = "SaasAdmin")]
-        [HttpGet("DeleteSubscription/{idSubscription}")]
+        [HttpDelete("DeleteSubscription/{idSubscription}")]
         public async Task<IActionResult> DeleteSubscription(long idSubscription)
         {
             var ret = await _app.Delete(idSubscription);

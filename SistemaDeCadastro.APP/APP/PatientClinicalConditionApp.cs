@@ -64,7 +64,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception ex)
             {
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
                 ret.Success = false;
             }
             return ret;
@@ -100,7 +100,7 @@ namespace SistemaDeCadastro.APP.APP
                 await _repo.Update(existing);
                 ret.Success = true;
             }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
 
@@ -130,7 +130,7 @@ namespace SistemaDeCadastro.APP.APP
                 }
                 ret.Success = true;
             }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
         public async Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter)

@@ -54,7 +54,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteMedicine/{idMedicine}")]
+        [HttpDelete("DeleteMedicine/{idMedicine}")]
         public async Task<IActionResult> DeleteMedicine(long idMedicine)
         {
             var dto = new MedicineDTO { Id = idMedicine };

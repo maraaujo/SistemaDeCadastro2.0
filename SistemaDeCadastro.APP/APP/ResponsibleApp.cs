@@ -58,7 +58,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -103,7 +103,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -120,7 +120,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }

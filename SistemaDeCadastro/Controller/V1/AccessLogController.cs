@@ -67,7 +67,7 @@ namespace SistemaDeCadastro.Controller.V1
         // Logs sao a trilha de auditoria: criar/editar/apagar manualmente fica restrito
         // ao administrador da plataforma, para ninguem forjar ou apagar registros.
         [Authorize(Policy = "SaasAdmin")]
-        [HttpGet("DeleteAccessLog/{idAccessLog}")]
+        [HttpDelete("DeleteAccessLog/{idAccessLog}")]
         public async Task<IActionResult> DeleteAccessLog(long idAccessLog)
         {
             var ret = await _app.Delete(idAccessLog);

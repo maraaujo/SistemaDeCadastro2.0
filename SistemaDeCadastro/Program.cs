@@ -9,15 +9,30 @@ using SistemaDeCadastro.Infra.Interface;
 using SistemaDeCadastro.Infra.Repository;
 using SistemaDeCadastro.Infra.Services;
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS
+// CORS: so os enderecos do front listados em Cors:AllowedOrigins podem chamar a API
+// pelo navegador (em producao, defina tambem pela variavel Cors__AllowedOrigins__0).
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()?
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin.Trim().TrimEnd('/'))
+    .ToArray() ?? Array.Empty<string>();
+
+if (allowedOrigins.Length == 0)
+{
+    Console.WriteLine("AVISO: Cors:AllowedOrigins vazio; nenhum front em outro dominio conseguira chamar a API.");
+}
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policyBuilder =>
+    options.AddPolicy("Frontend", policyBuilder =>
     {
-        policyBuilder.AllowAnyOrigin()
+        policyBuilder.WithOrigins(allowedOrigins)
                      .AllowAnyMethod()
                      .AllowAnyHeader();
     });
@@ -65,6 +80,29 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
     );
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ILoginAttemptGuard, LoginAttemptGuard>();
+
+// Limite de requisicoes no login por IP de origem (complementa o bloqueio por
+// e-mail do LoginAttemptGuard). Atras do Cloud Run o IP vem do X-Forwarded-For.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext =>
+    {
+        var forwarded = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        var ip = !string.IsNullOrWhiteSpace(forwarded)
+            ? forwarded.Split(',')[0].Trim()
+            : httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
 // APPs
 builder.Services.AddScoped<IAuthApp, AuthApp>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
@@ -189,6 +227,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Console.WriteLine("JWT ERRO: " + context.Exception.Message);
                 return Task.CompletedTask;
             },
+            // Token valido mas conta apagada, desativada ou com papel/instituicao
+            // alterados: rejeita na hora em vez de esperar o token expirar.
+            OnTokenValidated = async context =>
+            {
+                var authApp = context.HttpContext.RequestServices.GetRequiredService<IAuthApp>();
+                if (context.Principal == null || !await authApp.IsSessionValid(context.Principal))
+                    context.Fail("Sessão inválida: a conta foi removida, desativada ou alterada.");
+            },
             OnChallenge = context =>
             {
                 Console.WriteLine("JWT CHALLENGE: " + context.ErrorDescription);
@@ -281,11 +327,13 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseCors("AllowAllOrigins");
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 

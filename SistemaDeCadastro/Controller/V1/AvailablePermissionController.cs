@@ -51,7 +51,7 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [Authorize(Policy = "SaasAdmin")]
-        [HttpGet("DeleteAvailablePermission/{idAvailablePermission}")]
+        [HttpDelete("DeleteAvailablePermission/{idAvailablePermission}")]
         public async Task<IActionResult> DeleteAvailablePermission(long idAvailablePermission)
         {
             var ret = await _app.Delete(idAvailablePermission);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SistemaDeCadastro.APP.APP;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
@@ -24,6 +25,7 @@ namespace SistemaDeCadastro.Controller.V1
         }
         [HttpPost("Login")]
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginRequestDTO login)
         {
             var ret = await _authApp.Login(login);
@@ -59,7 +61,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteLoginAccount/{idLoginAccount}")]
+        [HttpDelete("DeleteLoginAccount/{idLoginAccount}")]
         public async Task<IActionResult> DeleteLoginAccount(long idLoginAccount)
         {
             var ret = await _app.Delete(idLoginAccount);

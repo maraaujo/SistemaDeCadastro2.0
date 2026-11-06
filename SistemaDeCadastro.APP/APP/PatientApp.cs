@@ -19,6 +19,7 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPaymentRepository _paymentRepository;
         private readonly IMedicineRepository _medicineRepository;
         private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         public PatientApp(
             IPatientRepository patientRepository,
             IResponsibleRepository responsibleRepository,
@@ -28,9 +29,11 @@ namespace SistemaDeCadastro.APP.APP
             IPaymentRepository paymentRepository,
             IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository,
             IMedicineRepository _medicineRepository,
-            ICurrentUserServiceContext currentUserService
+            ICurrentUserServiceContext currentUserService,
+            IEmployeeRepository employeeRepository
             )
         {
+            this._employeeRepository = employeeRepository;
             this._patientRepository = patientRepository;
             this._responsibleRepository = responsibleRepository;
             this._patientEmployeeRepository = patientEmployeeRepository;
@@ -42,6 +45,26 @@ namespace SistemaDeCadastro.APP.APP
            this._currentUserService = currentUserService;
         }
     
+
+        // Medicamento e funcionario responsavel dos medicamentos programados vem do
+        // cliente: precisam ser da instituicao do usuario (os repositorios ja aplicam o
+        // filtro de instituicao). Retorna a mensagem de erro ou null se estiver ok.
+        private async Task<string?> ValidateMedicineReferences(IEnumerable<(long MedicineId, long? ResponsibleEmployeeId)>? items)
+        {
+            if (items == null)
+                return null;
+
+            foreach (var (medicineId, employeeId) in items)
+            {
+                if (medicineId != 0 && !await _medicineRepository.Any(m => m.Id == medicineId))
+                    return "Medicamento não encontrado para a instituição do usuário logado.";
+
+                if (employeeId is > 0 && !await _employeeRepository.Any(e => e.Id == employeeId.Value))
+                    return "Funcionário não encontrado para a instituição do usuário logado.";
+            }
+
+            return null;
+        }
 
         public async Task<List<Patient>> GetAllPatients()
             => await _patientRepository.GetAll();
@@ -101,6 +124,15 @@ namespace SistemaDeCadastro.APP.APP
                             return ret;
                         }
                     }
+                }
+
+                var referenceError = await ValidateMedicineReferences(
+                    patient.ScheduledMedicines?.Select(m => (m.MedicineId, m.ResponsibleEmployeeId)));
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    return ret;
                 }
                 var clinicalConditionMap = new Dictionary<long, long>();
                 if (patient.Id == 0)
@@ -207,7 +239,7 @@ namespace SistemaDeCadastro.APP.APP
 
             catch (Exception err)
             {
-                ret.ErrorMessage = err.Message;
+                ret.ErrorMessage = ApiErrors.From(err);
                 ret.Success = false;
             }
 
@@ -244,6 +276,15 @@ namespace SistemaDeCadastro.APP.APP
                             return ret;
                         }
                     }
+                }
+
+                var referenceError = await ValidateMedicineReferences(
+                    patient.ScheduledMedicines?.Select(m => (m.MedicineId, m.ResponsibleEmployeeId)));
+                if (referenceError != null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = referenceError;
+                    return ret;
                 }
 
                 // ============================
@@ -476,7 +517,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception err)
             {
-                ret.ErrorMessage = err.Message;
+                ret.ErrorMessage = ApiErrors.From(err);
                 ret.Success = false;
             }
 
@@ -534,7 +575,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception err)
             {
-                ret.ErrorMessage = err.Message;
+                ret.ErrorMessage = ApiErrors.From(err);
                 ret.Success = false;
             }
 

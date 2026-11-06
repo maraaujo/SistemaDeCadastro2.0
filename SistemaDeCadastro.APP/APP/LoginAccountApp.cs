@@ -1,6 +1,7 @@
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Validators;
 using SistemaDeCadastro.Infra.Interface;
 
 namespace SistemaDeCadastro.APP.APP
@@ -107,6 +108,13 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                if (!PasswordValidator.IsValid(entity.Password))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = PasswordValidator.MensagemInvalido;
+                    return ret;
+                }
+
                 // A coluna contas_login.nome e obrigatoria: sem esta checagem o banco
                 // devolvia um erro tecnico de NOT NULL em vez de uma mensagem clara.
                 if (string.IsNullOrWhiteSpace(entity.Nome))
@@ -170,7 +178,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
 
             return ret;
@@ -214,7 +222,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -239,7 +247,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }

@@ -17,11 +17,37 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly ILoginAccountRepository _loginAccountRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILoginAttemptGuard _attemptGuard;
 
-        public AuthApp(ILoginAccountRepository loginAccountRepository, IConfiguration configuration)
+        private const string InvalidCredentials = "E-mail ou senha inválidos.";
+
+        // Hash usado quando o e-mail nao existe, para a resposta levar o mesmo tempo
+        // de uma senha errada e nao revelar quais e-mails tem conta.
+        private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword("conta-inexistente-0");
+
+        public AuthApp(ILoginAccountRepository loginAccountRepository, IConfiguration configuration, ILoginAttemptGuard attemptGuard)
         {
             _loginAccountRepository = loginAccountRepository;
             _configuration = configuration;
+            _attemptGuard = attemptGuard;
+        }
+
+        public async Task<bool> IsSessionValid(System.Security.Claims.ClaimsPrincipal principal)
+        {
+            if (!long.TryParse(principal.FindFirst("UserId")?.Value, out var userId))
+                return false;
+
+            var account = await _loginAccountRepository.GetByUserId(userId);
+            if (account == null || !account.Active)
+                return false;
+
+            var role = principal.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
+            if (!string.Equals(account.UserType ?? string.Empty, role, StringComparison.Ordinal))
+                return false;
+
+            var institutionClaim = principal.FindFirst("institutionId")?.Value;
+            long? tokenInstitutionId = long.TryParse(institutionClaim, out var parsed) ? parsed : null;
+            return account.InstitutionId == tokenInstitutionId;
         }
 
 
@@ -29,27 +55,45 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<ApiResponse> Login(LoginRequestDTO login)
         {
             ApiResponse response = new ApiResponse();
-            // usuário no banco de dados
-            LoginAccount user = await _loginAccountRepository.GetByEmail(login.Email);
             try
             {
-                if (user == null)
+                if (string.IsNullOrWhiteSpace(login?.Email) || string.IsNullOrEmpty(login.Password))
                 {
                     response.Success = false;
-                    response.Message = "E-mail ou senha inválidos.";
+                    response.Message = InvalidCredentials;
                     return response;
                 }
+
+                // Protecao contra forca bruta: apos varias senhas erradas o e-mail fica
+                // bloqueado por um tempo, exista a conta ou nao.
+                var remaining = _attemptGuard.GetRemainingLockout(login.Email);
+                if (remaining != null)
+                {
+                    response.Success = false;
+                    response.Message =
+                        $"Muitas tentativas de login. Tente novamente em {Math.Ceiling(remaining.Value.TotalMinutes)} minuto(s).";
+                    return response;
+                }
+
+                // usuário no banco de dados
+                LoginAccount? user = await _loginAccountRepository.GetByEmail(login.Email);
+
+                var passwordOk = BCrypt.Net.BCrypt.Verify(login.Password, user?.PasswordHash ?? DummyHash);
+                if (user == null || !passwordOk)
+                {
+                    _attemptGuard.RegisterFailure(login.Email);
+                    response.Success = false;
+                    response.Message = InvalidCredentials;
+                    return response;
+                }
+
+                _attemptGuard.Reset(login.Email);
+
+                // So informa que a conta esta inativa para quem acertou a senha.
                 if (user.Active == false)
                 {
                     response.Success = false;
                     response.Message = "Usuário inativo.";
-                    return response;
-                }
-                if (!BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
-                {
-                    response.Success = false;
-
-                    response.Message = "E-mail ou senha inválidos.";
                     return response;
                 }
                 
@@ -75,7 +119,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception ex) {
                 response.Success = false;
-                response.Message = ex.InnerException?.Message ?? ex.Message;
+                response.Message = ApiErrors.From(ex);
                 return response;
             }
         }

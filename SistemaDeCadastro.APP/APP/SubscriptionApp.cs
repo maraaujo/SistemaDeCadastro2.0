@@ -30,7 +30,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return Task.FromResult(ret);
         }
@@ -57,7 +57,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -90,7 +90,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -115,7 +115,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -132,7 +132,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -149,7 +149,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }

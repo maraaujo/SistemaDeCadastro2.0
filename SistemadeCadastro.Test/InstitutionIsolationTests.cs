@@ -263,7 +263,8 @@ namespace SistemadeCadastro.Test
                     new PaymentRepository(ctx),
                     new MedicinePatientClinicalConditionRepository(ctx),
                     new MedicineRepository(ctx),
-                    new FakeUser(InstA));
+                    new FakeUser(InstA),
+                    new EmployeeRepository(ctx));
 
                 var ret = await app.DeletePatient(s.PatientB.Id);
                 Assert.False(ret.Success);
@@ -307,7 +308,8 @@ namespace SistemadeCadastro.Test
                 var patientApp = new PatientApp(
                     new PatientRepository(ctx), new ResponsibleRepository(ctx), new PatientEmployeeRepository(ctx),
                     new PatientClinicalConditionRepository(ctx), new AppointmentRepository(ctx), new PaymentRepository(ctx),
-                    new MedicinePatientClinicalConditionRepository(ctx), new MedicineRepository(ctx), orphan);
+                    new MedicinePatientClinicalConditionRepository(ctx), new MedicineRepository(ctx), orphan,
+                    new EmployeeRepository(ctx));
                 var createPatient = await patientApp.CreatePatient(new CreatePatientDTO { Name = "Intruso", Gender = "F" });
                 Assert.False(createPatient.Success);
                 Assert.False((await patientApp.DeletePatient(s.PatientB.Id)).Success);
@@ -419,7 +421,7 @@ namespace SistemadeCadastro.Test
             {
                 var ret = await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
                 {
-                    Nome = "x", Email = "novo-admin@a.com", Password = "123456", UserType = "Administrador", InstitutionId = null
+                    Nome = "x", Email = "novo-admin@a.com", Password = "Senha1234", UserType = "Administrador", InstitutionId = null
                 });
                 Assert.True(ret.Success, ret.ErrorMessage);
             }
@@ -427,7 +429,7 @@ namespace SistemadeCadastro.Test
             {
                 var ret = await AccountApp(ctx, As(a.AdminA)).Create(new CreateLoginAccountDTO
                 {
-                    Nome = "y", Email = "intruso@a.com", Password = "123456", UserType = "Colaborador", InstitutionId = InstB
+                    Nome = "y", Email = "intruso@a.com", Password = "Senha1234", UserType = "Colaborador", InstitutionId = InstB
                 });
                 Assert.True(ret.Success, ret.ErrorMessage);
             }
@@ -449,7 +451,7 @@ namespace SistemadeCadastro.Test
 
                 var create = await app.Create(new CreateLoginAccountDTO
                 {
-                    Nome = "x", Email = "root2@saas.com", Password = "123456", UserType = "Administrador", InstitutionId = null
+                    Nome = "x", Email = "root2@saas.com", Password = "Senha1234", UserType = "Administrador", InstitutionId = null
                 });
                 Assert.False(create.Success);
 

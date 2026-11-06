@@ -72,6 +72,20 @@ namespace SistemaDeCadastro.APP.APP
                 if (referenceError == null && entity.PatientClinicalConditionDTO.Id == 0 &&
                     !await _patientRepository.Any(p => p.Id == entity.PatientId))
                     referenceError = "Acolhido não encontrado para a instituição do usuário logado.";
+
+                // O catalogo de condicoes clinicas e unico para todas as instituicoes e so o
+                // admin da plataforma inclui entradas nele: aqui so se reaproveita uma
+                // condicao ja cadastrada (pelo id ou pelo nome).
+                if (referenceError == null &&
+                    entity.PatientClinicalConditionDTO.Id == 0 &&
+                    entity.PatientClinicalConditionDTO.ClinicalConditionId == 0 &&
+                    !_currentUserService.IsPlatformAdmin)
+                {
+                    var nomeInformado = (entity.ClinicalConditionDTO?.Name ?? string.Empty).Trim().ToLower();
+                    if (!await _clinicalConditionRepository.Any(c => c.Name.ToLower() == nomeInformado))
+                        referenceError = "Condição clínica não cadastrada. Peça ao administrador da plataforma para cadastrá-la.";
+                }
+
                 if (referenceError != null)
                 {
                     ret.Success = false;
@@ -228,7 +242,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.InnerException?.Message ?? ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }  
             return ret;
         }
@@ -264,7 +278,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception ex)
             {
-                return new ApiResponse { Success = false, ErrorMessage = ex.Message };
+                return new ApiResponse { Success = false, ErrorMessage = ApiErrors.From(ex) };
             }
             return ret;
         }
@@ -273,7 +287,7 @@ namespace SistemaDeCadastro.APP.APP
         {
             var ret = new ApiResponse();
             try { var e = (await _repo.FindBy(m => m.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
 

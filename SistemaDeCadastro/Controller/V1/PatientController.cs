@@ -55,7 +55,7 @@ namespace SistemaDeCadastro.Controller.V1
             catch (Exception err)
             {
                 response.Success = false;
-                response.Message = err.Message;
+                response.Message = ApiErrors.From(err);
             }
 
             return Ok(response);
@@ -72,7 +72,7 @@ namespace SistemaDeCadastro.Controller.V1
             catch (Exception err)
             {
                 response.Success = false;
-                response.Message = err.Message;
+                response.Message = ApiErrors.From(err);
             }
 
             return Ok(response);
@@ -90,7 +90,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeletePatient/{idPatient}")]
+        [HttpDelete("DeletePatient/{idPatient}")]
         public async Task<IActionResult> DeletePatient(long idPatient)
         {
             var ret = await _patientApp.DeletePatient(idPatient);

@@ -33,7 +33,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception err)
             {
-                ret.ErrorMessage = err.Message;
+                ret.ErrorMessage = ApiErrors.From(err);
                 ret.Success = false;
             }
             return ret;
@@ -50,7 +50,7 @@ namespace SistemaDeCadastro.APP.APP
             }
             catch (Exception err)
             {
-                ret.ErrorMessage = err.Message;
+                ret.ErrorMessage = ApiErrors.From(err);
                 ret.Success = false;
             }
             return ret;

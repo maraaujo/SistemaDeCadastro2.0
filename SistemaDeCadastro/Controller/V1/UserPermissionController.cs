@@ -49,7 +49,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteUserPermission/{idUserPermission}")]
+        [HttpDelete("DeleteUserPermission/{idUserPermission}")]
         public async Task<IActionResult> DeleteUserPermission(long idUserPermission)
         {
             var ret = await _app.Delete(idUserPermission);

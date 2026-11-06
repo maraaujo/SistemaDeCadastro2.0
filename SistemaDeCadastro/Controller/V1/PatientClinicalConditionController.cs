@@ -54,7 +54,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeletePatientClinicalCondition/{idPatientClinicalCondition}")]
+        [HttpDelete("DeletePatientClinicalCondition/{idPatientClinicalCondition}")]
         public async Task<IActionResult> DeletePatientClinicalCondition(long idPatientClinicalCondition)
         {
             var ret = await _app.Delete(idPatientClinicalCondition);

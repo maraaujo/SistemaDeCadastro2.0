@@ -49,7 +49,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteEmployee/{idEmployee}")]
+        [HttpDelete("DeleteEmployee/{idEmployee}")]
         public async Task<IActionResult> DeleteEmployee(long idEmployee)
         {
             var ret = await _employeeApp.Delete(idEmployee);

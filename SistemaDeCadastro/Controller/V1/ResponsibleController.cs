@@ -48,7 +48,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteResponsible/{idResponsible}")]
+        [HttpDelete("DeleteResponsible/{idResponsible}")]
         public async Task<IActionResult> DeleteResponsible(long idResponsible)
         {
             var ret = await _responsibleApp.Delete(idResponsible);

@@ -49,7 +49,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteDepartment/{idDepartment}")]
+        [HttpDelete("DeleteDepartment/{idDepartment}")]
         public async Task<IActionResult> DeleteDepartment(long idDepartment)
         {
             var ret = await _departmentApp.Delete(idDepartment);

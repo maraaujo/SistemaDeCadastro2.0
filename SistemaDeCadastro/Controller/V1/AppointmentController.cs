@@ -52,7 +52,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeleteAppointment/{idAppointment}")]
+        [HttpDelete("DeleteAppointment/{idAppointment}")]
         public async Task<IActionResult> DeleteAppointment(long idAppointment)
         {
             var ret = await _app.Delete(idAppointment);

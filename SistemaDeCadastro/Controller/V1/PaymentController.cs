@@ -49,7 +49,7 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
-        [HttpGet("DeletePayment/{idPayment}")]
+        [HttpDelete("DeletePayment/{idPayment}")]
         public async Task<IActionResult> DeletePayment(long idPayment)
         {
             var ret = await _app.Delete(idPayment);

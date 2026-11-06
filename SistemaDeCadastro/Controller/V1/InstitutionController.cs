@@ -66,7 +66,7 @@ namespace SistemaDeCadastro.Controller.V1
         }
 
         [Authorize(Policy = "SaasAdmin")]
-        [HttpGet("DeleteInstitution/{idInstitution}")]
+        [HttpDelete("DeleteInstitution/{idInstitution}")]
         public async Task<IActionResult> DeleteInstitution(long idInstitution)
         {
             var ret = await _app.Delete(idInstitution);

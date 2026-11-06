@@ -47,7 +47,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -73,7 +73,7 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.ErrorMessage = ex.Message;
+                ret.ErrorMessage = ApiErrors.From(ex);
             }
             return ret;
         }
@@ -82,7 +82,7 @@ namespace SistemaDeCadastro.APP.APP
         {
             var ret = new ApiResponse();
             try { var entity = (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault(); if (entity != null) await _departmentRepository.Delete(entity); ret.Success = true; }
-            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ex.Message; }
+            catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
         public async Task<PagedDepartmentDTO> GetDepartmentByFilter(DepartmentFilterDTO filter)

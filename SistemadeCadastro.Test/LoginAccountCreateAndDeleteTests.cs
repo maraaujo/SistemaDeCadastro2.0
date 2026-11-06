@@ -56,7 +56,7 @@ namespace SistemadeCadastro.Test
 
         private static CreateLoginAccountDTO NewAccount(string nome, string email) => new()
         {
-            Nome = nome, Email = email, Password = "12345678", UserType = "Colaborador", InstitutionId = Inst
+            Nome = nome, Email = email, Password = "Senha1234", UserType = "Colaborador", InstitutionId = Inst
         };
 
         [Fact]

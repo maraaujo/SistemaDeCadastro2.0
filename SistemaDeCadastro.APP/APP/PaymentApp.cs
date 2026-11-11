@@ -9,16 +9,29 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPaymentRepository _repo;
         private readonly IAppointmentRepository _appointmentRepository;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de pagamento e de agendamento.
+        /// </summary>
         public PaymentApp(IPaymentRepository repo, IAppointmentRepository appointmentRepository)
         {
             _repo = repo;
             _appointmentRepository = appointmentRepository;
         }
 
+        /// <summary>
+        /// Devolve todos os pagamentos visiveis para a instituicao do usuario.
+        /// </summary>
         public async Task<List<Payment>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca um pagamento pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<Payment?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Monta um pagamento a partir do DTO e o devolve em Data com Success = true.
+        /// Observacao: o pagamento NAO e gravado no banco (nao chama o repositorio) e o agendamento nao e validado.
+        /// </summary>
         public async Task<ApiResponse> Create(CreatePaymentDTO entity)
         {
             var ret = new ApiResponse();
@@ -44,6 +57,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza os dados de um pagamento existente ("Payment not found." se nao existir).
+        /// Se o agendamento mudar, exige que o novo agendamento seja da instituicao do usuario.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdatePaymentDTO entity)
         {
             var ret = new ApiResponse();
@@ -86,6 +103,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o pagamento com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

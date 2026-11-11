@@ -13,15 +13,21 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public DepartmentRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca um departamento pelo id; o filtro do contexto so devolve departamentos da instituicao logada.</summary>
         public async Task<Department?> GetById(long id)
         {
             return await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
         }
+        /// <summary>
+        /// Lista paginada de departamentos da instituicao do usuario logado. Filtros opcionais por
+        /// trecho de nome e descricao (sem diferenciar maiusculas). Ordena do maior id para o menor, 15 por pagina.
+        /// </summary>
         public async Task<PagedDepartmentDTO> GetDepartmentByFilter(DepartmentFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

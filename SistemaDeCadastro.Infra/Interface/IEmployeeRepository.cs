@@ -8,8 +8,11 @@ namespace SistemaDeCadastro.Infra.Interface
 {
     public interface IEmployeeRepository : IBaseRepository<Employee>
     {
+        /// <summary>Busca um funcionario pelo id (somente da instituicao do usuario logado).</summary>
         Task<Employee?> GetById(long id);
+        /// <summary>Lista os funcionarios de um departamento.</summary>
         Task<List<Employee>> GetByDepartmentId(long departmentId);
+        /// <summary>Lista paginada de funcionarios com o nome do departamento, aplicando os filtros informados.</summary>
         Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter);
     }
 }

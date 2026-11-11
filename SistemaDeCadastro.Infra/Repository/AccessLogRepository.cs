@@ -17,22 +17,34 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public AccessLogRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Busca um log de acesso pela chave primaria (FindAsync). O filtro por instituicao
+        /// do contexto se aplica: logs de usuarios de outra instituicao voltam null.
+        /// </summary>
         public async Task<AccessLog?> GetById(long id)
         {
             return await _context.AccessLogs.FindAsync(id);
         }
 
+        /// <summary>Lista todos os logs de acesso do usuario informado (sem ordenacao nem paginacao).</summary>
         public async Task<List<AccessLog>> GetByUserId(long userId)
         {
             return await _context.AccessLogs
                                  .Where(a => a.UserId == userId)
                                  .ToListAsync();
         }
+        /// <summary>
+        /// Lista paginada dos logs de acesso. Junta AccessLogs com LoginAccounts (pelo UserId) para trazer
+        /// nome, e-mail e tipo do usuario. Filtros opcionais: UserId exato, e-mail e acao (contem, sem
+        /// diferenciar maiusculas) e dia inteiro da data/hora. Ordena do mais recente (maior id) para o
+        /// mais antigo, 15 por pagina. Ja vem restrita a instituicao do usuario logado (admin ve todas).
+        /// </summary>
         public async Task<PagedAcesseLog> GetAccessLogsByFilter(AccessLogFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

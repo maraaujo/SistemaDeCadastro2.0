@@ -13,15 +13,22 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public PatientClinicalConditionRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca o vinculo acolhido x condicao clinica pelo id (somente de acolhidos da instituicao logada).</summary>
         public async Task<PatientClinicalCondition?> GetById(long id)
         {
             return await _context.PatientClinicalConditions.FirstOrDefaultAsync(pcc => pcc.Id == id);
         }
+        /// <summary>
+        /// Recebe o id do ACOLHIDO e devolve so a primeira condicao clinica encontrada para ele
+        /// (sem ordenacao definida), com o nome da condicao. Usa FirstAsync, entao lanca
+        /// InvalidOperationException se o acolhido nao tiver nenhuma condicao cadastrada.
+        /// </summary>
         public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
         {
            
@@ -44,6 +51,7 @@ namespace SistemaDeCadastro.Infra.Repository
 
 
         }
+        /// <summary>Busca o vinculo acolhido x condicao pelo id carregando o acolhido, a condicao e os medicamentos programados (com o medicamento).</summary>
         public async Task<PatientClinicalCondition?> GetWithPatientConditionAndMedicines(long id)
         {
             return await _context.PatientClinicalConditions
@@ -53,6 +61,12 @@ namespace SistemaDeCadastro.Infra.Repository
                     .ThenInclude(mpcc => mpcc.Medicine)
                 .FirstOrDefaultAsync(pcc => pcc.Id == id);
         }
+        /// <summary>
+        /// Lista paginada das condicoes clinicas dos acolhidos. Junta PatientClinicalConditions com
+        /// ClinicalConditions e Patients para trazer os nomes. Filtros opcionais: id do vinculo, do acolhido
+        /// e da condicao; trecho do nome do acolhido e da condicao (sem diferenciar maiusculas); dia do
+        /// diagnostico. Ordena do maior id para o menor, 15 por pagina, ja restrito a instituicao logada.
+        /// </summary>
         public async Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

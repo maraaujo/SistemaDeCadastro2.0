@@ -16,35 +16,49 @@ namespace SistemaDeCadastro.Infra.Repository
     public class MedicineRepository : BaseRepository<Medicine>, IMedicineRepository
     {
         private readonly SistemaDeCadastroContext _context;
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public MedicineRepository(SistemaDeCadastroContext context)
             : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca o medicamento pelo id; devolve lista com 0 ou 1 item (somente da instituicao logada).</summary>
         public async Task<List<Medicine>> GetMedicineById(long ind)
         {
             return await this.FindBy( c => c.Id == ind );  
         }
+        /// <summary>
+        /// Consulta se existe medicamento com o nome exato informado, mas descarta o resultado:
+        /// o metodo retorna Task sem valor, entao quem chama nao fica sabendo se existe.
+        /// </summary>
         public async Task GetMedicineByAnyValorString(string medicine)
         {
             await this.Any( c => c.Name == medicine );
            
         }
 
+        /// <summary>Cadastra um medicamento (atalho para Create do BaseRepository).</summary>
         public async Task CreateMedicine(Medicine medicine)
         {
             await this.Create(medicine);
         }
 
+        /// <summary>Atualiza um medicamento (atalho para Update do BaseRepository).</summary>
         public async Task UpdateMedicine(Medicine medicine)
         {
             await this.Update(medicine);
         }
+        /// <summary>Exclui um medicamento (atalho para Delete do BaseRepository).</summary>
         public async Task DeleteMedicine(Medicine medicine)
         {
             await this.Delete(medicine);
         }
+        /// <summary>
+        /// Lista paginada dos medicamentos da instituicao logada. Filtros opcionais: id exato e trecho de
+        /// nome, descricao, dosagem e via de administracao (sem diferenciar maiusculas).
+        /// Ordena do maior id para o menor, 15 por pagina.
+        /// </summary>
         public async Task<PagedMedicineDTO> GetMedicineByFilter(MedicineFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

@@ -13,6 +13,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPatientRepository _patientRepository;
         private readonly IEmployeeRepository _employeeRepository;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de vinculo acolhido-funcionario, acolhido e funcionario.
+        /// </summary>
         public PatientEmployeeApp(IPatientEmployeeRepository repo, IPatientRepository patientRepository, IEmployeeRepository employeeRepository)
         {
             _repo = repo;
@@ -30,15 +33,28 @@ namespace SistemaDeCadastro.APP.APP
                 return "Funcionário não encontrado para a instituição do usuário logado.";
             return null;
         }
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de vinculos acolhido-funcionario.
+        /// </summary>
         public async Task<PagedPatientEmployeeDTO> GetPagedPatientEmployeeByFilter(PatientEmployeeFilterDTO filter)
         {
             return await _repo.GetPagedPatientEmployeeByFilter(filter);
         }
 
+        /// <summary>
+        /// Devolve todos os vinculos acolhido-funcionario visiveis para a instituicao.
+        /// </summary>
         public async Task<List<PatientEmployee>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca um vinculo acolhido-funcionario pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<PatientEmployee?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Cria o vinculo de um funcionario responsavel por um acolhido (funcao, inicio e fim),
+        /// desde que acolhido e funcionario sejam da instituicao do usuario.
+        /// </summary>
         public async Task<ApiResponse> Create(CreatePatientEmployeeDTO entity)
         {
             var ret = new ApiResponse();
@@ -70,6 +86,10 @@ namespace SistemaDeCadastro.APP.APP
         return ret;
     }
 
+        /// <summary>
+        /// Atualiza um vinculo acolhido-funcionario existente ("Vinculo nao encontrado." se nao existir),
+        /// validando que acolhido e funcionario sao da instituicao do usuario.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdatePatientEmployeeDTO entity)
         {
             var ret = new ApiResponse();
@@ -106,6 +126,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o vinculo acolhido-funcionario com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

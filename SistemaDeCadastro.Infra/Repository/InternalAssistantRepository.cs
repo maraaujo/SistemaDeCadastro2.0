@@ -15,11 +15,19 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public InternalAssistantRepository(SistemaDeCadastroContext context)
             : base(context)
         {
             _context = context;
         }
+        /// <summary>
+        /// Monta o contexto de medicacao de um acolhido em um dia, para o assistente interno.
+        /// Junta administracoes de medicamento com acolhido, medicamento programado, medicamento e
+        /// funcionario (left join: sem funcionario vira "Nao informado"), pegando as doses com horario
+        /// previsto dentro do dia de referencia. Ordena pelo horario previsto.
+        /// Obs.: este metodo nao esta declarado em IInternalAssistantRepository.
+        /// </summary>
         public async Task<List<MedicationAdministrationContextDTO>> GetMedicationAdministrationContext(
      long patientId,
      DateTime referenceDate

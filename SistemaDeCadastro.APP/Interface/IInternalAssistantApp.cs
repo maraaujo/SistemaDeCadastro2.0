@@ -10,6 +10,7 @@ namespace SistemaDeCadastro.APP.Interface
 {
     public interface IInternalAssistantApp
     {
+        /// <summary>Responde a pergunta do assistente interno (atrasados, medicamentos do acolhido, administracoes de hoje, resumo do dia).</summary>
         Task<ApiResponse> Ask(AskInternalAssistantDTO dto);
     }
 }

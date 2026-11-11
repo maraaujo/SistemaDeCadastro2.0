@@ -8,6 +8,10 @@ namespace SistemaDeCadastro.APP.Interface
 {
     public interface ICurrentUserServiceContext
     {
+        /// <summary>
+        /// Instituicao do usuario logado (claim do JWT); null para admin da plataforma ou sem login.
+        /// Base do filtro por instituicao aplicado pelo DbContext.
+        /// </summary>
         long? InstitutionId { get; }
 
         // Usuario logado (claim "UserId" do JWT = LoginAccount.UserId). Usado na

@@ -15,20 +15,29 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public EmployeeRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca um funcionario pelo id; o filtro do contexto so devolve funcionarios da instituicao logada.</summary>
         public async Task<Employee?> GetById(long id)
         {
             return await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
         }
 
+        /// <summary>Lista os funcionarios do departamento informado (da instituicao logada).</summary>
         public async Task<List<Employee>> GetByDepartmentId(long departmentId)
         {
             return await _context.Employees.Where(e => e.DepartmentId == departmentId).ToListAsync();
         }
+        /// <summary>
+        /// Lista paginada de funcionarios. Junta Employees com Departments (inner join, entao so aparecem
+        /// funcionarios com departamento valido) para trazer o nome do departamento. Filtros opcionais:
+        /// trecho de nome, CPF, cargo, telefone e e-mail (sem diferenciar maiusculas), departamento exato e
+        /// dia de admissao. Ordena do maior id para o menor, 15 por pagina, ja restrito a instituicao logada.
+        /// </summary>
         public async Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

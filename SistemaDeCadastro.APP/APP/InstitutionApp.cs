@@ -11,11 +11,18 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IInstitutionRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de instituicoes.
+        /// </summary>
         public InstitutionApp(IInstitutionRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Cadastra uma instituicao (nome, CNPJ, e-mail, telefone, ativa). Valida o telefone quando preenchido
+        /// e grava so os numeros; CreatedAt recebe a data/hora atual do servidor. Devolve a instituicao em Data.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateInstitutionDTO entity)
         {
             var ret = new ApiResponse();
@@ -53,6 +60,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza nome, CNPJ, e-mail, telefone e status de uma instituicao existente e devolve-a em Data.
+        /// Retorna "Instituicao nao encontrada." se o Id nao existir; valida o telefone quando preenchido.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateInstitutionDTO entity)
         {
             var ret = new ApiResponse();
@@ -94,6 +105,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui a instituicao com o Id informado; retorna "Instituicao nao encontrada." se ela nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -118,6 +132,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a instituicao com o Id informado (Data fica null, com Success = true, se nao existir).
+        /// </summary>
         public async Task<ApiResponse> GetById(long id)
         {
             var ret = new ApiResponse();
@@ -135,6 +152,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data todas as instituicoes cadastradas.
+        /// </summary>
         public async Task<ApiResponse> GetAll()
         {
             var ret = new ApiResponse();

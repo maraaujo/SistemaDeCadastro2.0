@@ -14,6 +14,9 @@ namespace SistemaDeCadastro.APP.APP
 
         private readonly IMemoryCache _cache;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o cache em memoria onde as tentativas ficam guardadas.
+        /// </summary>
         public LoginAttemptGuard(IMemoryCache cache)
         {
             _cache = cache;
@@ -25,9 +28,15 @@ namespace SistemaDeCadastro.APP.APP
             public DateTimeOffset? LockedUntil;
         }
 
+        /// <summary>
+        /// Monta a chave do cache para o e-mail (sem espacos e em minusculas, para "A@x.com" e "a@x.com" contarem juntos).
+        /// </summary>
         private static string Key(string email) =>
             "login-attempts:" + (email ?? string.Empty).Trim().ToLowerInvariant();
 
+        /// <summary>
+        /// Devolve quanto tempo falta para o e-mail ser desbloqueado, ou null se nao estiver bloqueado.
+        /// </summary>
         public TimeSpan? GetRemainingLockout(string email)
         {
             if (!_cache.TryGetValue(Key(email), out Attempts? attempts) || attempts?.LockedUntil == null)
@@ -37,6 +46,10 @@ namespace SistemaDeCadastro.APP.APP
             return remaining > TimeSpan.Zero ? remaining : null;
         }
 
+        /// <summary>
+        /// Conta mais uma senha errada para o e-mail. Ao chegar em 5 falhas, bloqueia o e-mail por 15 minutos
+        /// e zera o contador. O registro expira 15 minutos apos a ultima falha.
+        /// </summary>
         public void RegisterFailure(string email)
         {
             var key = Key(email);
@@ -56,6 +69,9 @@ namespace SistemaDeCadastro.APP.APP
             _cache.Set(key, attempts, LockoutDuration);
         }
 
+        /// <summary>
+        /// Apaga as falhas e o bloqueio do e-mail (chamado apos um login com senha correta).
+        /// </summary>
         public void Reset(string email) => _cache.Remove(Key(email));
     }
 }

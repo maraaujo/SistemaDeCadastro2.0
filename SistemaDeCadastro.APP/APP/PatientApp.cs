@@ -20,6 +20,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IMedicineRepository _medicineRepository;
         private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
         private readonly IEmployeeRepository _employeeRepository;
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios do acolhido e dos seus dependentes e o usuario logado.
+        /// </summary>
         public PatientApp(
             IPatientRepository patientRepository,
             IResponsibleRepository responsibleRepository,
@@ -66,17 +69,35 @@ namespace SistemaDeCadastro.APP.APP
             return null;
         }
 
+        /// <summary>
+        /// Devolve todos os acolhidos visiveis para a instituicao do usuario.
+        /// </summary>
         public async Task<List<Patient>> GetAllPatients()
             => await _patientRepository.GetAll();
 
+        /// <summary>
+        /// Devolve uma lista com o acolhido do Id informado (vazia se nao existir).
+        /// </summary>
         public async Task<List<Patient>> GetPatientById(long id)
             => await _patientRepository.GetPatientById(id);
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de acolhidos.
+        /// </summary>
         public async Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter)
             => await _patientRepository.FilterPatient(filter);
 
+        /// <summary>
+        /// Devolve a ficha completa do acolhido (dados, responsaveis, condicoes, medicamentos etc.) ou null se nao existir.
+        /// </summary>
         public async Task<DetailsPatientDTO?> DetailsPatient(long id) =>
             await _patientRepository.DetailsPatient(id);
 
+        /// <summary>
+        /// Cadastra um acolhido novo (Id deve ser 0) na instituicao do usuario, junto com responsaveis, condicoes clinicas
+        /// e medicamentos programados. Valida CPF (e recusa CPF ja usado na instituicao), telefones dos responsaveis e se
+        /// medicamentos/funcionarios sao da instituicao. Medicamento sem condicao correspondente vai para a primeira condicao
+        /// criada; sem nenhuma condicao, retorna erro (o acolhido ja gravado nao e desfeito, pois nao ha transacao).
+        /// </summary>
         public async Task<ApiResponse> CreatePatient(CreatePatientDTO patient)
         {
             ApiResponse ret = new();
@@ -247,6 +268,12 @@ namespace SistemaDeCadastro.APP.APP
         }
 
 
+        /// <summary>
+        /// Atualiza o acolhido e seus dependentes ("Paciente nao encontrado." se nao existir). So altera os campos
+        /// preenchidos no DTO; valida telefones, CPF e se medicamentos/funcionarios sao da instituicao. Responsaveis,
+        /// condicoes e medicamentos com Id existente sao atualizados, os demais sao criados (medicamento novo vai para a
+        /// primeira condicao do acolhido). Nada e removido aqui e nao checa CPF duplicado na edicao.
+        /// </summary>
         public async Task<ApiResponse> UpdatePatient(PatientDTO patient)
         {
             ApiResponse ret = new();
@@ -523,6 +550,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Exclui o acolhido e seus dependentes: agendamentos (e pagamentos ligados a eles), condicoes clinicas
+        /// e responsaveis, e por fim o proprio acolhido. Retorna "Acolhido nao encontrado." se ele nao for da instituicao.
+        /// </summary>
         public async Task<ApiResponse> DeletePatient(long id)
         {
             ApiResponse ret = new();
@@ -581,6 +612,9 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Chama a busca de acolhidos por texto no repositorio, mas descarta o resultado (o metodo nao devolve nada).
+        /// </summary>
         public async Task GetPatientByAny(string patient) =>
             await this._patientRepository.GetPatientByAny(patient);
 

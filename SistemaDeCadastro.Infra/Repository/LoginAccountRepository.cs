@@ -11,20 +11,24 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public LoginAccountRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca a conta de acesso pelo id. Contas nao tem filtro por instituicao no contexto.</summary>
         public async Task<LoginAccount?> GetById(long id)
         {
             return await _context.LoginAccounts.FirstOrDefaultAsync(l => l.Id == id);
         }
 
+        /// <summary>Busca a conta de acesso pelo UserId (a chave que logs, agendamentos e pagamentos referenciam).</summary>
         public async Task<LoginAccount?> GetByUserId(long userId)
         {
             return await _context.LoginAccounts.FirstOrDefaultAsync(l => l.UserId == userId);
         }
+        /// <summary>Busca a conta de acesso pelo e-mail (comparacao exata, de todas as instituicoes).</summary>
         public async Task<LoginAccount?> GetByEmail(string email)
         {
             return await _context.LoginAccounts

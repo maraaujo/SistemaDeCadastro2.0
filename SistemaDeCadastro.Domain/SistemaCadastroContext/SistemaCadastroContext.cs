@@ -8,10 +8,18 @@ namespace SistemaDeCadastro.Domain.SistemaCadastroContext;
 public partial class SistemaDeCadastroContext : DbContext
 {
     private readonly ICurrentUserServiceContext _currentUserService;
+    /// <summary>
+    /// Construtor vazio (usado por ferramentas do EF, como migrations). Sem usuario atual,
+    /// o filtro por instituicao fica fechado (CurrentInstitutionId = -1): consultas as entidades filtradas nao retornam nada.
+    /// </summary>
     public SistemaDeCadastroContext()
     {
     }
 
+    /// <summary>
+    /// Recebe por injecao as opcoes do EF (connection string MySQL) e o usuario logado,
+    /// usado nos filtros por instituicao e na auditoria.
+    /// </summary>
     public SistemaDeCadastroContext( DbContextOptions<SistemaDeCadastroContext> options,
      ICurrentUserServiceContext currentUserService)
      : base(options)
@@ -49,8 +57,18 @@ public partial class SistemaDeCadastroContext : DbContext
     public virtual DbSet<Subscription> Subscriptions { get; set; }
     public virtual DbSet<SubscriptionPayment> SubscriptionPayments { get; set; }
 
+    /// <summary>
+    /// Configura o modelo do EF: (1) filtros globais por instituicao (HasQueryFilter), que fazem
+    /// toda consulta trazer so dados da instituicao do usuario logado (admin da plataforma ve tudo);
+    /// (2) o mapeamento de cada entidade para a tabela/colunas em portugues do MySQL, chaves,
+    /// indices unicos e relacionamentos. Todas as FKs usam DeleteBehavior.Restrict: o banco nao
+    /// apaga filhos em cascata, entao as Apps precisam excluir os dependentes antes.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // ===== Filtros por instituicao (multi-instituicao) =====
+        // Entidades com InstitutionId proprio: acolhidos, funcionarios, setores, agendamentos e medicamentos.
+        // CurrentInstitutionId == null (admin da plataforma) desliga o filtro.
         modelBuilder.Entity<Patient>()
         .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
 
@@ -65,6 +83,7 @@ public partial class SistemaDeCadastroContext : DbContext
 
         modelBuilder.Entity<Medicine>()
             .HasQueryFilter(x => CurrentInstitutionId == null || x.InstitutionId == CurrentInstitutionId);
+        // Administracao de medicamento: filtrada pela instituicao do acolhido.
         modelBuilder.Entity<MedicationAdministration>()
     .HasQueryFilter(x =>
         CurrentInstitutionId == null ||
@@ -98,6 +117,9 @@ public partial class SistemaDeCadastroContext : DbContext
                 x.User.InstitutionId == CurrentInstitutionId
             );
 
+        // ===== Mapeamento das tabelas =====
+        // Tabela administracoes_medicamento (MedicationAdministration): registro de cada dose dada ou nao,
+        // ligado ao medicamento programado, ao acolhido e ao funcionario.
         modelBuilder.Entity<MedicationAdministration>(entity =>
         {
             entity.ToTable("administracoes_medicamento");
@@ -153,6 +175,8 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+        // Tabela acolhidos (Patient): CPF com indice unico (em todo o banco, nao por instituicao);
+        // ligado ao tipo sanguineo e a instituicao.
         modelBuilder.Entity<Patient>(entity =>
         {
             entity.ToTable("acolhidos");
@@ -209,6 +233,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela instituicoes (Institution): clientes do SaaS; CNPJ com indice unico. Sem filtro por instituicao.
         modelBuilder.Entity<Institution>(entity =>
         {
             entity.ToTable("instituicoes");
@@ -253,6 +278,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela planos (Plan): planos de assinatura oferecidos pela plataforma.
         modelBuilder.Entity<Plan>(entity =>
         {
             entity.ToTable("planos");
@@ -295,6 +321,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela assinaturas (Subscription): liga uma instituicao a um plano.
         modelBuilder.Entity<Subscription>(entity =>
         {
             entity.ToTable("assinaturas");
@@ -347,6 +374,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela pagamentos_assinatura (SubscriptionPayment): pagamentos de cada assinatura.
         modelBuilder.Entity<SubscriptionPayment>(entity =>
         {
             entity.ToTable("pagamentos_assinatura");
@@ -392,6 +420,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.SubscriptionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+        // Tabela blood_types (BloodType): catalogo de tipos sanguineos, compartilhado (sem filtro).
         modelBuilder.Entity<BloodType>(entity =>
         {
             entity.ToTable("blood_types");
@@ -408,6 +437,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .IsRequired();
         });
 
+        // Tabela responsaveis (Responsible): familiares/contatos de um acolhido.
         modelBuilder.Entity<Responsible>(entity =>
         {
             entity.ToTable("responsaveis");
@@ -444,6 +474,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela departamentos (Department): setores da instituicao.
         modelBuilder.Entity<Department>(entity =>
         {
             entity.ToTable("departamentos");
@@ -472,6 +503,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela funcionarios (Employee): CPF com indice unico; ligado ao setor e a instituicao.
         modelBuilder.Entity<Employee>(entity =>
         {
             entity.ToTable("funcionarios");
@@ -527,6 +559,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela acolhido_funcionario (PatientEmployee): vinculo entre acolhido e funcionario.
         modelBuilder.Entity<PatientEmployee>(entity =>
         {
             entity.ToTable("acolhido_funcionario");
@@ -566,6 +599,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela condicoesclinicas (ClinicalCondition): catalogo unico de condicoes clinicas (sem filtro).
         modelBuilder.Entity<ClinicalCondition>(entity =>
         {
             entity.ToTable("condicoesclinicas");
@@ -590,6 +624,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasMaxLength(100);
         });
 
+        // Tabela acolhido_condicaoclinica (PatientClinicalCondition): condicao clinica de um acolhido.
         modelBuilder.Entity<PatientClinicalCondition>(entity =>
         {
             entity.ToTable("acolhido_condicaoclinica");
@@ -629,6 +664,7 @@ public partial class SistemaDeCadastroContext : DbContext
 
         
 
+        // Tabela medicamentos (Medicine): medicamentos cadastrados por instituicao.
         modelBuilder.Entity<Medicine>(entity =>
         {
             entity.ToTable("medicamentos");
@@ -663,6 +699,8 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasMaxLength(100);
         });
 
+        // Tabela medicamento_acolhido_condicaoclinica (MedicinePatientClinicalCondition): medicamento
+        // programado para a condicao clinica de um acolhido, com horario (coluna time) e funcionario responsavel.
         modelBuilder.Entity<MedicinePatientClinicalCondition>(entity =>
         {
             entity.ToTable("medicamento_acolhido_condicaoclinica");
@@ -725,6 +763,9 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela contas_login (LoginAccount): contas de acesso. E-mail unico; UserId e chave alternativa
+        // (referenciada por log_acesso, agendamentos, pagamentos e permissoes). Sem filtro global:
+        // a restricao por instituicao e feita no LoginAccountApp.
         modelBuilder.Entity<LoginAccount>(entity =>
         {
             entity.ToTable("contas_login");
@@ -781,6 +822,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela permissoes_disponiveis (AvailablePermission): catalogo de permissoes.
         modelBuilder.Entity<AvailablePermission>(entity =>
         {
             entity.ToTable("permissoes_disponiveis");
@@ -809,6 +851,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasDefaultValue(true);
         });
 
+        // Tabela usuarios_permissoes (UserPermission): permissoes atribuidas a cada conta (via UserId).
         modelBuilder.Entity<UserPermission>(entity =>
         {
             entity.ToTable("usuarios_permissoes");
@@ -840,6 +883,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasForeignKey(e => e.PermissionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+        // Tabela log_acesso (AccessLog): trilha de auditoria gravada automaticamente no SaveChanges.
         modelBuilder.Entity<AccessLog>(entity =>
         {
             entity.ToTable("log_acesso");
@@ -876,6 +920,7 @@ public partial class SistemaDeCadastroContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Tabela agendamentos (Appointment): agendamentos de um acolhido, com usuario e instituicao.
         modelBuilder.Entity<Appointment>(entity =>
         {
             entity.ToTable("agendamentos");
@@ -934,6 +979,7 @@ public partial class SistemaDeCadastroContext : DbContext
 
       
 
+        // Tabela pagamentos (Payment): pagamentos de agendamentos; id da transacao externa unico.
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.ToTable("pagamentos");
@@ -988,5 +1034,9 @@ public partial class SistemaDeCadastroContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+    /// <summary>
+    /// Ponto de extensao (padrao do scaffold do EF) para configuracoes extras em outro arquivo partial;
+    /// hoje nao ha implementacao, entao a chamada nao faz nada.
+    /// </summary>
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

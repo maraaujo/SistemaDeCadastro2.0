@@ -13,6 +13,10 @@ namespace SistemaDeCadastro.Domain.Validators
         public const string MensagemInvalido =
             "A senha deve ter pelo menos 8 caracteres, com letras e números.";
 
+        /// <summary>
+        /// Retorna true se a senha tem pelo menos 8 caracteres e contem ao menos uma letra e um digito.
+        /// Senha nula ou vazia e invalida.
+        /// </summary>
         public static bool IsValid(string? password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < MinLength)

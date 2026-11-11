@@ -14,10 +14,18 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly ISubscriptionRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de assinaturas.
+        /// </summary>
         public SubscriptionApp(ISubscriptionRepository repo)
         {
             _repo = repo;
         }
+        /// <summary>
+        /// Busca a assinatura ativa da instituicao informada e coloca em Data.
+        /// Observacao: a chamada ao repositorio nao e aguardada (sem await), entao Data recebe a Task e nao a assinatura,
+        /// e erros da consulta nao caem no catch.
+        /// </summary>
         public Task<ApiResponse> GetActiveByInstitutionId(long institutionId)
         {
             var ret = new ApiResponse();
@@ -34,6 +42,10 @@ namespace SistemaDeCadastro.APP.APP
             }
             return Task.FromResult(ret);
         }
+        /// <summary>
+        /// Cria uma assinatura da instituicao em um plano, com inicio agora (relogio do servidor), sem data de fim
+        /// e status "Ativo", e devolve-a em Data (a mensagem de sucesso fala em "Pagamento de assinatura").
+        /// </summary>
         public async Task<ApiResponse> Create(CreateSubscriptionDTO entity)
         {
             var ret = new ApiResponse();
@@ -62,6 +74,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza instituicao, plano, data de fim, status e Id externo de uma assinatura existente e devolve-a em Data.
+        /// A data de inicio e sempre sobrescrita com a data/hora atual. Se nao existir, retorna "Pagamento nao encontrado.".
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateSubscriptionDTO entity)
         {
             var ret = new ApiResponse();
@@ -95,6 +111,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui a assinatura com o Id informado; retorna "Pagamento nao encontrado." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -120,6 +139,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a assinatura com o Id informado (Data fica null, com Success = true, se nao existir).
+        /// </summary>
         public async Task<ApiResponse> GetById(long id)
         {
             var ret = new ApiResponse();
@@ -137,6 +159,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data todas as assinaturas cadastradas.
+        /// </summary>
         public async Task<ApiResponse> GetAll()
         {
             var ret = new ApiResponse();

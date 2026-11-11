@@ -51,6 +51,12 @@ public partial class SistemaDeCadastroContext
         public string Details { get; init; } = string.Empty;
     }
 
+    /// <summary>
+    /// Sobrescreve o SaveChanges do EF para auditar: antes de salvar coleta as mudancas,
+    /// salva os dados do usuario e, se houver mudancas auditaveis, grava os registros de log_acesso
+    /// num segundo SaveChanges. Se gravar o log falhar, a alteracao do usuario continua salva.
+    /// Retorna o numero de linhas afetadas pelo primeiro save (o dos dados).
+    /// </summary>
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         var pending = CollectPendingAudits(acceptAllChangesOnSuccess);
@@ -72,6 +78,10 @@ public partial class SistemaDeCadastroContext
         return result;
     }
 
+    /// <summary>
+    /// Versao assincrona do SaveChanges com auditoria (mesmo fluxo: coleta, salva os dados,
+    /// grava os logs e descarta os logs se a gravacao deles falhar). E a usada pelos repositorios.
+    /// </summary>
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         var pending = CollectPendingAudits(acceptAllChangesOnSuccess);
@@ -171,6 +181,11 @@ public partial class SistemaDeCadastroContext
         Console.WriteLine($"[Auditoria] Falha ao gravar log_acesso: {ex.GetBaseException().Message}");
     }
 
+    /// <summary>
+    /// Monta o texto das alteracoes de um registro modificado, no formato
+    /// "Campo: valor antigo -> valor novo; ..." (no log aparece com seta unicode). Campos sensiveis (senha, hash, token...)
+    /// aparecem so como "(alterado)". Sem diferencas reais retorna "Nenhum valor alterado.".
+    /// </summary>
     private static string DescribeChanges(EntityEntry entry)
     {
         var parts = new List<string>();
@@ -198,6 +213,10 @@ public partial class SistemaDeCadastroContext
         return nameProp == null ? string.Empty : $"{nameProp.Metadata.Name}: {FormatValue(nameProp.CurrentValue)}";
     }
 
+    /// <summary>
+    /// Retorna o valor da chave primaria do registro como texto (chaves compostas separadas por "/"),
+    /// ou null se a entidade nao tiver chave.
+    /// </summary>
     private static string? FormatKey(EntityEntry entry)
     {
         var key = entry.Metadata.FindPrimaryKey();
@@ -207,12 +226,22 @@ public partial class SistemaDeCadastroContext
         return string.Join("/", key.Properties.Select(p => Convert.ToString(entry.Property(p.Name).CurrentValue, AuditCulture)));
     }
 
+    /// <summary>
+    /// Nome amigavel da entidade em portugues (tabela AuditEntityNames); se nao estiver mapeada, usa o nome da classe.
+    /// </summary>
     private static string EntityLabel(EntityEntry entry) =>
         AuditEntityNames.TryGetValue(entry.Metadata.ClrType.Name, out var label) ? label : entry.Metadata.ClrType.Name;
 
+    /// <summary>
+    /// True se o nome do campo contem algum trecho sensivel (password, senha, hash, token, secret), ignorando maiusculas.
+    /// </summary>
     private static bool IsSensitive(string propertyName) =>
         AuditSensitiveFragments.Any(f => propertyName.Contains(f, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// Formata um valor para o log em padrao brasileiro: nulo/vazio vira "(vazio)", bool vira Sim/Nao,
+    /// datas em dd/MM/yyyy (com HH:mm quando ha horario), TimeSpan em hh:mm; textos longos sao truncados em 200.
+    /// </summary>
     private static string FormatValue(object? value) => value switch
     {
         null => "(vazio)",
@@ -225,6 +254,9 @@ public partial class SistemaDeCadastroContext
         _ => Truncate(Convert.ToString(value, AuditCulture) ?? string.Empty, AuditMaxValueLength),
     };
 
+    /// <summary>
+    /// Corta o texto para caber em "max" caracteres, terminando com reticencias (caractere unico) quando houver corte.
+    /// </summary>
     private static string Truncate(string value, int max) =>
         value.Length <= max ? value : value[..(max - 1)] + "…";
 }

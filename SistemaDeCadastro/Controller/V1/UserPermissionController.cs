@@ -15,12 +15,19 @@ namespace SistemaDeCadastro.Controller.V1
         private IConfiguration _configuration;
         private readonly IUserPermissionApp _app;
 
+        /// <summary>
+        /// Recebe as dependencias por injecao (configuracao e camada de aplicacao de permissoes de usuario).
+        /// </summary>
         public UserPermissionController(IConfiguration configuration, IUserPermissionApp app)
         {
             this._configuration = configuration;
             this._app = app;
         }
 
+        /// <summary>
+        /// GET api/UserPermission/GetUserPermissionById?id= - somente admin da plataforma (policy da classe).
+        /// Retorna a permissao atribuida a um usuario pelo id, ou null.
+        /// </summary>
         [HttpGet("GetUserPermissionById")]
         public async Task<IActionResult> GetUserPermissionById(long id)
         {
@@ -28,6 +35,10 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(item);
         }
 
+        /// <summary>
+        /// GET api/UserPermission/GetAllUserPermission - somente admin da plataforma.
+        /// Retorna todas as permissoes atribuidas a usuarios.
+        /// </summary>
         [HttpGet("GetAllUserPermission")]
         public async Task<IActionResult> GetAllUserPermission()
         {
@@ -35,6 +46,10 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(items);
         }
 
+        /// <summary>
+        /// POST api/UserPermission/CreateUserPermission - somente admin da plataforma.
+        /// Atribui uma permissao a um usuario; retorna ApiResponse.
+        /// </summary>
         [HttpPost("CreateUserPermission")]
         public async Task<IActionResult> CreateUserPermission(CreateUserPermissionDTO entity)
         {
@@ -42,6 +57,10 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        /// <summary>
+        /// PUT api/UserPermission/Update/{id} - somente admin da plataforma (o id usado e o do DTO).
+        /// Atualiza a permissao do usuario; retorna ApiResponse.
+        /// </summary>
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateUserPermission(UpdateUserPermissionDTO entity)
         {
@@ -49,6 +68,10 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        /// <summary>
+        /// DELETE api/UserPermission/DeleteUserPermission/{idUserPermission} - somente admin da plataforma.
+        /// Remove a permissao do usuario; retorna ApiResponse.
+        /// </summary>
         [HttpDelete("DeleteUserPermission/{idUserPermission}")]
         public async Task<IActionResult> DeleteUserPermission(long idUserPermission)
         {

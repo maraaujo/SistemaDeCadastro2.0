@@ -20,11 +20,17 @@ namespace SistemaDeCadastro.Infra.Services
 
         private readonly HttpClient _httpClient;
 
+        /// <summary>Recebe o HttpClient ja configurado no Program.cs (endereco base da ViaCEP e timeout de 5s) via AddHttpClient.</summary>
         public ViaCepClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
+        /// <summary>
+        /// Valida e normaliza o CEP; se invalido, devolve InvalidCep sem chamar a API. Senao faz
+        /// GET ws/{cep}/json/ na ViaCEP: endereco encontrado = Success, resposta com "erro" = NotFound,
+        /// timeout ou falha de rede/HTTP = Unavailable. Cancelamento pedido pelo chamador nao e tratado (propaga).
+        /// </summary>
         public async Task<ViaCepLookupResult> GetAddressByCepAsync(string? cep, CancellationToken cancellationToken = default)
         {
             // Valida/normaliza o CEP antes de qualquer chamada externa.

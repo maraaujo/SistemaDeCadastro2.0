@@ -19,19 +19,34 @@ namespace SistemaDeCadastro.APP.APP
         private readonly ILoginAccountRepository _repo;
         private readonly ICurrentUserServiceContext _currentUser;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de contas de acesso e o usuario logado.
+        /// </summary>
         public LoginAccountApp(ILoginAccountRepository repo, ICurrentUserServiceContext currentUser)
         {
             _repo = repo;
             _currentUser = currentUser;
         }
 
+        /// <summary>
+        /// True se o usuario logado tem o papel "Administrador" (com ou sem instituicao).
+        /// </summary>
         private bool IsAdmin =>
             string.Equals(_currentUser.Role, AdminRole, StringComparison.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// True se o usuario logado e administrador da plataforma (Administrador sem instituicao).
+        /// </summary>
         private bool IsPlatformAdmin => _currentUser.IsPlatformAdmin;
 
+        /// <summary>
+        /// True se o usuario logado e administrador de uma instituicao (Administrador com InstitutionId).
+        /// </summary>
         private bool IsInstitutionAdmin => IsAdmin && _currentUser.InstitutionId.HasValue;
 
+        /// <summary>
+        /// True se a conta informada pertence ao proprio usuario logado (mesmo UserId).
+        /// </summary>
         private bool IsOwnAccount(LoginAccount account) =>
             _currentUser.UserId.HasValue && account.UserId == _currentUser.UserId.Value;
 
@@ -40,8 +55,15 @@ namespace SistemaDeCadastro.APP.APP
             IsPlatformAdmin ||
             (IsInstitutionAdmin && account.InstitutionId == _currentUser.InstitutionId);
 
+        /// <summary>
+        /// Pode ver/editar dados basicos da conta: quem a administra ou o proprio dono da conta.
+        /// </summary>
         private bool CanView(LoginAccount account) => CanManage(account) || IsOwnAccount(account);
 
+        /// <summary>
+        /// Lista as contas de acesso conforme o papel: admin da plataforma ve todas, admin de instituicao ve
+        /// as da propria instituicao e os demais veem so a propria conta. Nunca devolve o hash da senha.
+        /// </summary>
         public async Task<List<LoginAccountDTO>> GetAll()
         {
             List<LoginAccount> accounts;
@@ -68,6 +90,10 @@ namespace SistemaDeCadastro.APP.APP
             return accounts.Select(ToDTO).ToList();
         }
 
+        /// <summary>
+        /// Busca uma conta pelo Id e devolve o DTO sem senha; devolve null se nao existir
+        /// ou se o usuario logado nao puder ve-la (nao administra a conta e nao e o dono).
+        /// </summary>
         public async Task<LoginAccountDTO> GetById(long id)
         {
             var account = (await _repo.FindBy(l => l.Id == id)).FirstOrDefault();
@@ -88,6 +114,12 @@ namespace SistemaDeCadastro.APP.APP
             Active = account.Active
         };
 
+        /// <summary>
+        /// Cria uma conta de acesso. So administradores podem criar; exige e-mail, senha forte (PasswordValidator)
+        /// e nome, e recusa e-mail ja cadastrado. Admin de instituicao cria sempre na propria instituicao;
+        /// admin da plataforma escolhe a instituicao (0/nulo = sem instituicao). A senha e gravada com hash BCrypt,
+        /// Id e UserId recebem o mesmo valor e a conta nasce ativa. Devolve em Data os dados da conta sem a senha.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateLoginAccountDTO entity)
         {
             var ret = new ApiResponse();
@@ -183,6 +215,11 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Atualiza e-mail, nome e ultimo login de uma conta que o usuario pode ver ("Conta nao encontrada." caso contrario).
+        /// Papel (UserType) e status (Active, padrao true) so mudam se o usuario logado administra a conta.
+        /// Nao valida se o novo e-mail ja pertence a outra conta. Devolve o DTO atualizado (sem senha) em Data.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateLoginAccountDTO entity)
         {
             var ret = new ApiResponse();
@@ -227,6 +264,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui uma conta de acesso. So quem administra a conta (admin da plataforma ou admin da mesma instituicao)
+        /// pode excluir; nos demais casos, ou se nao existir, retorna "Conta nao encontrada.".
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

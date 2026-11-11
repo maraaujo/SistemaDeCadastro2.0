@@ -10,6 +10,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IResponsibleRepository _responsibleRepository;
         private readonly IPatientRepository _patientRepository;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de responsavel e de acolhido.
+        /// </summary>
         public ResponsibleApp(IResponsibleRepository responsibleRepository, IPatientRepository patientRepository)
         {
             _responsibleRepository = responsibleRepository;
@@ -18,10 +21,20 @@ namespace SistemaDeCadastro.APP.APP
 
         private const string PatientNotFound = "Acolhido não encontrado para a instituição do usuário logado.";
 
+        /// <summary>
+        /// Devolve todos os responsaveis (familiares/contatos dos acolhidos) cadastrados.
+        /// </summary>
         public async Task<List<Responsible>> GetAll() => await _responsibleRepository.GetAll();
 
+        /// <summary>
+        /// Busca um responsavel pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<Responsible?> GetById(long id) => (await _responsibleRepository.FindBy(r => r.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Cadastra um responsavel (nome, parentesco, telefone, endereco) para um acolhido da instituicao do usuario.
+        /// Valida o telefone quando preenchido e grava so os numeros.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateResponsibleDTO entity)
         {
             var ret = new ApiResponse();
@@ -63,6 +76,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza os dados de um responsavel existente ("Responsible not found." se nao existir). Valida o telefone
+        /// e, se o acolhido mudar, exige que o novo acolhido seja da instituicao do usuario.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateResponsibleDTO entity)
         {
             var ret = new ApiResponse();
@@ -108,6 +125,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o responsavel com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

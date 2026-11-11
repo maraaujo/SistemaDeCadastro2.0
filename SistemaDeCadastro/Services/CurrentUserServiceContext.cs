@@ -15,6 +15,10 @@ namespace SistemaDeCadastro.APP.APP
         //objeto que tem os dados da requisição que chega no backend
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string[] _adminRoles;
+        /// <summary>
+        /// Recebe as dependencias por injecao e carrega os papeis de admin da plataforma
+        /// (AdminBackoffice:Roles; se vazio, usa "Administrador").
+        /// </summary>
         public CurrentUserServiceContext(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -24,6 +28,11 @@ namespace SistemaDeCadastro.APP.APP
             _adminRoles = roles == null || roles.Length == 0 ? new[] { "Administrador" } : roles;
         }
 
+        /// <summary>
+        /// Instituicao do usuario logado, lida do token JWT (claims "institutionId", "InstitutionId"
+        /// ou "id_instituicao"). Retorna null se nao houver claim valida (ex.: admin da plataforma
+        /// ou requisicao sem login). E usada pelo DbContext para filtrar os dados por instituicao.
+        /// </summary>
         public long? InstitutionId
         {
             get
@@ -67,6 +76,10 @@ namespace SistemaDeCadastro.APP.APP
             }
         }
 
+        /// <summary>
+        /// True se o usuario esta autenticado, NAO tem instituicao e possui um dos papeis de admin
+        /// configurados - o mesmo criterio da policy "SaasAdmin". Esse usuario enxerga todas as instituicoes.
+        /// </summary>
         public bool IsPlatformAdmin
         {
             get

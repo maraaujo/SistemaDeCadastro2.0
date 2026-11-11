@@ -15,20 +15,30 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public PatientEmployeeRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca o vinculo acolhido x funcionario pelo id (somente de acolhidos da instituicao logada).</summary>
         public async Task<PatientEmployee?> GetById(long id)
         {
             return await _context.PatientEmployees.FirstOrDefaultAsync(pe => pe.Id == id);
         }
 
+        /// <summary>Lista todos os vinculos de funcionarios responsaveis pelo acolhido informado.</summary>
         public async Task<List<PatientEmployee>> GetByPatientId(long patientId)
         {
             return await _context.PatientEmployees.Where(pe => pe.PatientId == patientId).ToListAsync();
         }
+        /// <summary>
+        /// Lista paginada dos vinculos acolhido x funcionario. Junta PatientEmployees com Patients e Employees
+        /// para trazer os nomes e o cargo do funcionario (exibido como funcao de responsabilidade). Filtros
+        /// opcionais: id e trecho do nome do acolhido, id e trecho do nome do funcionario, trecho da funcao,
+        /// dia de inicio e dia de fim. Ordena do maior id para o menor, 15 por pagina.
+        /// Obs.: o EmployeeId nao e preenchido na projecao, entao o filtro por EmployeeId pode nao funcionar.
+        /// </summary>
         public async Task<PagedPatientEmployeeDTO> GetPagedPatientEmployeeByFilter(PatientEmployeeFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

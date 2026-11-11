@@ -13,14 +13,24 @@ namespace SistemaDeCadastro.APP.APP
     public class MedicinePatientIllnessHistoricApp : IMedicinePatientIllnessHistoricApp
     {
         private readonly IMedicinePatientIllnessHistoricRepository _medicinePatientIllnessHistoricRepository;
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de historico de medicamento por doenca do acolhido.
+        /// </summary>
         public MedicinePatientIllnessHistoricApp(IMedicinePatientIllnessHistoricRepository medicinePatientIllnessHistoricRepository)
         {
             this._medicinePatientIllnessHistoricRepository = medicinePatientIllnessHistoricRepository;
         }
 
+        /// <summary>
+        /// Devolve uma lista com o registro de historico do Id informado (vazia se nao existir).
+        /// </summary>
         public async Task<List<MedicinePatientIllnessHistoric>> GetMedicinePatientIllnessHistoricById(long id) =>
             await this._medicinePatientIllnessHistoricRepository.GetMedicinePatientIllnessHistoricById(id);
 
+        /// <summary>
+        /// Cria um registro de historico com o Id e o IdMedicinePatientIllness vindos do DTO.
+        /// Observacao: mesmo quando grava, o retorno nao marca Success = true.
+        /// </summary>
         public async Task<ApiResponse> CreateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoricDTO medicinePatientIllnessHistoric)
         {
             ApiResponse ret = new();
@@ -38,6 +48,10 @@ namespace SistemaDeCadastro.APP.APP
             }
             return ret;
         }
+        /// <summary>
+        /// Atualiza o IdMedicinePatientIllness de um registro de historico existente.
+        /// Observacao: nao marca Success = true ao gravar e, se o Id nao existir, cai no catch (NullReferenceException).
+        /// </summary>
         public async Task<ApiResponse> UpdateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoricDTO medicinePatientIllnessHistoric)
         {
             ApiResponse ret = new();

@@ -10,11 +10,18 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IPlanRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de planos.
+        /// </summary>
         public PlanApp(IPlanRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Cadastra um plano de assinatura (nome, descricao, preco mensal, limites de acolhidos e usuarios, ativo)
+        /// e devolve o plano criado em Data.
+        /// </summary>
         public async Task<ApiResponse> Create(CreatePlanDTO entity)
         {
             var ret = new ApiResponse();
@@ -43,6 +50,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza todos os dados de um plano existente e devolve-o em Data; retorna "Plano nao encontrado." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdatePlanDTO entity)
         {
             var ret = new ApiResponse();
@@ -76,6 +86,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o plano com o Id informado; retorna "Plano nao encontrado." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -100,6 +113,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data o plano com o Id informado (Data fica null, com Success = true, se nao existir).
+        /// </summary>
         public async Task<ApiResponse> GetById(long id)
         {
             var ret = new ApiResponse();
@@ -117,6 +133,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data todos os planos cadastrados.
+        /// </summary>
         public async Task<ApiResponse> GetAll()
         {
             var ret = new ApiResponse();

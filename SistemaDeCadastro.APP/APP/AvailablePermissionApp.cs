@@ -9,15 +9,28 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IAvailablePermissionRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de permissoes disponiveis.
+        /// </summary>
         public AvailablePermissionApp(IAvailablePermissionRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Devolve todas as permissoes disponiveis cadastradas.
+        /// </summary>
         public async Task<List<AvailablePermission>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca uma permissao disponivel pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<AvailablePermission?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Cadastra uma nova permissao disponivel (nome, descricao, modulo e se esta ativa).
+        /// Em caso de sucesso devolve a entidade criada em Data.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateAvailablePermissionDTO entity)
         {
             var ret = new ApiResponse();
@@ -45,6 +58,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret; 
         }
 
+        /// <summary>
+        /// Atualiza nome, descricao, modulo e status de uma permissao existente e devolve a entidade em Data.
+        /// Se o Id nao existir, retorna "AvailablePermission nao encontrado".
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateAvailablePermissionDTO entity)
         {
             var ret = new ApiResponse();
@@ -78,6 +95,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui a permissao disponivel com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

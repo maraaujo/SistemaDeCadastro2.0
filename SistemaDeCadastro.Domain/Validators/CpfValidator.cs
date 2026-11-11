@@ -53,6 +53,11 @@ namespace SistemaDeCadastro.Domain.Validators
             return true;
         }
 
+        /// <summary>
+        /// Calcula um digito verificador do CPF (modulo 11): multiplica os primeiros "length" digitos
+        /// por pesos decrescentes a partir de "startWeight", soma e aplica a regra
+        /// "resto menor que 2 vira 0, senao 11 - resto". Usado com (9, 10) e (10, 11).
+        /// </summary>
         private static int CalculateCheckDigit(int[] numbers, int length, int startWeight)
         {
             var sum = 0;

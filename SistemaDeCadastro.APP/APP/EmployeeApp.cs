@@ -12,6 +12,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de funcionario e departamento e o usuario logado.
+        /// </summary>
         public EmployeeApp(IEmployeeRepository employeeRepository, IDepartmentRepository departmentRepository, ICurrentUserServiceContext currentUserService)
         {
             _employeeRepository = employeeRepository;
@@ -24,10 +27,21 @@ namespace SistemaDeCadastro.APP.APP
         private async Task<bool> DepartmentIsVisible(long? departmentId) =>
             !departmentId.HasValue || await _departmentRepository.Any(d => d.Id == departmentId.Value);
 
+        /// <summary>
+        /// Devolve todos os funcionarios visiveis para a instituicao do usuario.
+        /// </summary>
         public async Task<List<Employee>> GetAll() => await _employeeRepository.GetAll();
 
+        /// <summary>
+        /// Busca um funcionario pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<Employee?> GetById(long id) => (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Cadastra um funcionario na instituicao do usuario logado. Exige instituicao identificada e departamento
+        /// informado e visivel para a instituicao; valida CPF e telefone quando preenchidos e grava so os numeros.
+        /// A data de admissao e preenchida com a data/hora atual do servidor.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateEmployeeDTO entity)
         {
             var ret = new ApiResponse();
@@ -90,6 +104,11 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza nome, CPF, cargo, telefone, e-mail e departamento de um funcionario existente.
+        /// Retorna "Funcionario nao encontrado." se o Id nao existir; recusa departamento de outra instituicao
+        /// e valida CPF/telefone quando preenchidos (gravando so os numeros).
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateEmployeeDTO entity)
         {
             var ret = new ApiResponse();
@@ -142,6 +161,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o funcionario com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -149,6 +171,9 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de funcionarios.
+        /// </summary>
         public async Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter)
         {
             return await _employeeRepository.GetEmployeeByFilter(filter);

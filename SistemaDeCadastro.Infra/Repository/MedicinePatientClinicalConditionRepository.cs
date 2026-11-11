@@ -18,12 +18,18 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public MedicinePatientClinicalConditionRepository(SistemaDeCadastroContext context)
             : base(context)
         {
             _context = context;
         }
       
+        /// <summary>
+        /// Busca um medicamento programado (prescricao ligada a uma condicao clinica do acolhido) pelo id,
+        /// ja carregando o medicamento, o funcionario responsavel, o acolhido e a condicao clinica.
+        /// O filtro do contexto so devolve registros de acolhidos da instituicao logada.
+        /// </summary>
         public async Task<MedicinePatientClinicalCondition?> GetById(long id)
         {
             return await _context.MedicinePatientClinicalConditions
@@ -36,6 +42,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .FirstOrDefaultAsync(mp => mp.Id == id);
         }
 
+        /// <summary>Lista os medicamentos programados de uma condicao clinica do acolhido, com medicamento, responsavel e acolhido carregados.</summary>
         public async Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId)
         {
             return await _context.MedicinePatientClinicalConditions
@@ -46,6 +53,13 @@ namespace SistemaDeCadastro.Infra.Repository
                     .ThenInclude(pc => pc.Patient)
                 .ToListAsync();
         }
+        /// <summary>
+        /// Lista paginada dos medicamentos programados. Junta MedicinePatientClinicalConditions com Medicines,
+        /// PatientClinicalConditions, Patients e ClinicalConditions, e faz left join com Employees (o
+        /// responsavel pode estar vazio). Filtros opcionais: ids de acolhido, medicamento, condicao do acolhido
+        /// e responsavel; trecho do nome do medicamento, da condicao e do responsavel; e horario de administracao
+        /// (janela de 1 minuto). Ordena do maior id para o menor, 15 por pagina, ja restrito a instituicao logada.
+        /// </summary>
         public async Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

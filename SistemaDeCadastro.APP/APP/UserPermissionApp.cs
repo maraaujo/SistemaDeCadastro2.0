@@ -9,15 +9,27 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly IUserPermissionRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de permissoes de usuario.
+        /// </summary>
         public UserPermissionApp(IUserPermissionRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Devolve todas as permissoes concedidas a usuarios.
+        /// </summary>
         public async Task<List<UserPermission>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca uma permissao de usuario pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<UserPermission?> GetById(long id) => (await _repo.FindBy(u => u.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Concede uma permissao a um usuario (Id, usuario, permissao e data da concessao vindos do DTO).
+        /// </summary>
         public async Task<ApiResponse> Create(CreateUserPermissionDTO entity)
         {
             var ret = new ApiResponse();
@@ -40,6 +52,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza usuario, permissao e data da concessao de uma permissao existente ("UserPermission not found." se nao existir).
+        /// No catch, apos preencher o erro, ainda refaz a busca no repositorio sem usar o resultado.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateUserPermissionDTO entity)
         {
             var ret = new ApiResponse();
@@ -71,6 +87,9 @@ namespace SistemaDeCadastro.APP.APP
         }
 
 
+        /// <summary>
+        /// Exclui a permissao de usuario com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();

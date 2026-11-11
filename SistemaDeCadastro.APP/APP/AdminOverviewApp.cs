@@ -15,11 +15,18 @@ namespace SistemaDeCadastro.APP.APP
         private static readonly string[] AllowedPeriods = { "30d", "90d", "12m" };
         private const string DefaultPeriod = "90d";
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de agregacoes do back-office.
+        /// </summary>
         public AdminOverviewApp(IAdminOverviewRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Devolve em Data os indicadores (KPIs) gerais da plataforma no periodo informado
+        /// (30d, 90d ou 12m; valor invalido ou vazio vira 90d).
+        /// </summary>
         public async Task<ApiResponse> GetKpis(string? period)
         {
             var ret = new ApiResponse();
@@ -36,6 +43,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a serie de evolucao da receita no periodo informado (normalizado para 30d, 90d ou 12m).
+        /// </summary>
         public async Task<ApiResponse> GetRevenueTrend(string? period)
         {
             var ret = new ApiResponse();
@@ -52,6 +62,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a movimentacao de assinaturas (entradas/saidas) no periodo informado (normalizado para 30d, 90d ou 12m).
+        /// </summary>
         public async Task<ApiResponse> GetSubscriptionMovement(string? period)
         {
             var ret = new ApiResponse();
@@ -68,6 +81,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a receita agrupada por plano no periodo informado (normalizado para 30d, 90d ou 12m).
+        /// </summary>
         public async Task<ApiResponse> GetRevenueByPlan(string? period)
         {
             var ret = new ApiResponse();
@@ -84,6 +100,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a distribuicao atual das assinaturas por status (sem filtro de periodo).
+        /// </summary>
         public async Task<ApiResponse> GetSubscriptionStatus()
         {
             var ret = new ApiResponse();
@@ -100,6 +119,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a lista paginada de instituicoes, com busca por texto, filtro por status e plano e ordenacao.
+        /// Se page/perPage nao forem informados, usa pagina 1 com 10 itens.
+        /// </summary>
         public async Task<ApiResponse> GetInstitutions(string? search, string? status, long? planId, string? sort, int? page, int? perPage)
         {
             var ret = new ApiResponse();
@@ -122,6 +145,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data a lista de planos usada pelo painel do back-office (ex.: para filtros).
+        /// </summary>
         public async Task<ApiResponse> GetPlans()
         {
             var ret = new ApiResponse();

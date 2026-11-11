@@ -8,6 +8,12 @@ namespace SistemaDeCadastro.Domain.Configurations
 {
     public class MedicinePatientClinicalConditionConfiguration : IEntityTypeConfiguration<MedicinePatientClinicalCondition>
     {
+        /// <summary>
+        /// Configuracao EF do medicamento programado: AdministrationTime como coluna "time" e
+        /// StartDate/EndDate convertidas de horario de Sao Paulo para UTC ao gravar (e de volta ao ler).
+        /// Observacao: esta classe nao e aplicada no OnModelCreating do SistemaDeCadastroContext
+        /// (nao ha ApplyConfiguration), entao hoje nao tem efeito.
+        /// </summary>
         public void Configure(EntityTypeBuilder<MedicinePatientClinicalCondition> builder)
         {
             var saoPaulo = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");

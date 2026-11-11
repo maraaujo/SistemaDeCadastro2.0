@@ -31,11 +31,19 @@ namespace SistemaDeCadastro.Infra.Repository
 
         private static readonly string[] MonthAbbr = { "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez" };
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public AdminOverviewRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Calcula os KPIs do painel do administrador para o periodo ("30d", "90d" ou "12m"; outro valor = 90d):
+        /// faturamento pago no periodo e no periodo anterior de mesmo tamanho, novas assinaturas, saldo
+        /// (novas - canceladas), instituicoes ativas e em trial, total de idosos de todas as instituicoes,
+        /// doses do mes corrente e % no prazo (ate 60 min de atraso), adesao media por instituicao e
+        /// cuidadores que administraram doses nos ultimos 30 dias. Idosos e doses usam IgnoreQueryFilters.
+        /// </summary>
         public async Task<AdminOverviewKpisDTO> GetKpis(string period)
         {
             var (curStart, curEnd, prevStart, prevEnd) = GetPeriodRange(period);
@@ -159,6 +167,10 @@ namespace SistemaDeCadastro.Infra.Repository
             };
         }
 
+        /// <summary>
+        /// Serie de faturamento pago por mes nos ultimos 12 meses (inclui o mes atual), com rotulo "Mes/AA".
+        /// Meses sem pagamento aparecem com 0. O parametro period e ignorado.
+        /// </summary>
         public async Task<List<AdminRevenueTrendPointDTO>> GetRevenueTrend(string period)
         {
             // Evolucao sempre nos ultimos 12 meses (serie historica), agregada por mes.
@@ -184,6 +196,10 @@ namespace SistemaDeCadastro.Infra.Repository
             return result;
         }
 
+        /// <summary>
+        /// Para cada mes do periodo (do mes de inicio ate o mes atual), conta quantas assinaturas comecaram
+        /// (StartDate) e quantas terminaram (EndDate) naquele mes. O agrupamento e feito em memoria.
+        /// </summary>
         public async Task<List<AdminSubscriptionMovementPointDTO>> GetSubscriptionMovement(string period)
         {
             var (curStart, curEnd, _, _) = GetPeriodRange(period);
@@ -207,6 +223,11 @@ namespace SistemaDeCadastro.Infra.Repository
             return result;
         }
 
+        /// <summary>
+        /// Distribuicao por plano: soma dos pagamentos pagos no periodo (agrupados pelo plano da assinatura),
+        /// numero de instituicoes com assinatura ativa hoje e o percentual de cada plano no faturamento.
+        /// Omite planos sem faturamento e sem contas; ordena do maior faturamento para o menor.
+        /// </summary>
         public async Task<List<AdminRevenueByPlanDTO>> GetRevenueByPlan(string period)
         {
             var (curStart, curEnd, _, _) = GetPeriodRange(period);
@@ -253,6 +274,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .ToList();
         }
 
+        /// <summary>Conta as assinaturas por situacao, normalizando os textos do banco (NormalizeStatus); ordena da mais frequente para a menos.</summary>
         public async Task<List<AdminSubscriptionStatusDTO>> GetSubscriptionStatus()
         {
             var statuses = await _context.Subscriptions.AsNoTracking()
@@ -266,6 +288,13 @@ namespace SistemaDeCadastro.Infra.Repository
                 .ToList();
         }
 
+        /// <summary>
+        /// Tabela de instituicoes do back-office. Para cada instituicao pega a assinatura mais recente
+        /// (maior StartDate) com plano, situacao normalizada, receita mensal (preco do plano), renovacao
+        /// (EndDate), total de idosos e % de adesao (estes dois ignorando o filtro por instituicao).
+        /// Depois filtra por nome (busca), situacao e plano, ordena (ApplySort) e pagina, tudo em memoria.
+        /// perPage invalido vira 10; page e limitada entre 1 e o total de paginas.
+        /// </summary>
         public async Task<AdminInstitutionsPageDTO> GetInstitutions(string? search, string? status, long? planId, string? sort, int page, int perPage)
         {
             // As instituicoes sao os tenants do SaaS (poucos registros por natureza):
@@ -364,6 +393,7 @@ namespace SistemaDeCadastro.Infra.Repository
             };
         }
 
+        /// <summary>Lista os planos ativos (id, nome e preco mensal) ordenados do mais barato para o mais caro.</summary>
         public async Task<List<AdminPlanOptionDTO>> GetPlans()
         {
             return await _context.Plans.AsNoTracking()
@@ -375,6 +405,10 @@ namespace SistemaDeCadastro.Infra.Repository
 
         // ---------- Helpers ----------
 
+        /// <summary>
+        /// Percentual de adesao: doses administradas ate 60 min apos o horario previsto divididas pelo
+        /// total de doses da lista (inclusive as nao administradas). Lista vazia = 0.
+        /// </summary>
         private static double AdherenceOf(IEnumerable<(DateTime Scheduled, DateTime? Administered)> doses)
         {
             var list = doses.ToList();
@@ -383,6 +417,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return Math.Round((double)onTime / list.Count * 100, 1);
         }
 
+        /// <summary>Ordena as linhas da tabela de instituicoes conforme o codigo de ordenacao; padrao = maior receita primeiro.</summary>
         private static List<AdminInstitutionRowDTO> ApplySort(List<AdminInstitutionRowDTO> rows, string? sort)
         {
             return sort switch
@@ -396,6 +431,10 @@ namespace SistemaDeCadastro.Infra.Repository
             };
         }
 
+        /// <summary>
+        /// Converte a situacao gravada no banco (pt/en, maiusculas ou nao) para um codigo padrao:
+        /// active, trial, past_due ou canceling. Outros valores voltam em minusculas; vazio vira "unknown".
+        /// </summary>
         private static string NormalizeStatus(string? status)
         {
             var s = (status ?? string.Empty).Trim().ToLowerInvariant();
@@ -406,12 +445,17 @@ namespace SistemaDeCadastro.Infra.Repository
             return string.IsNullOrEmpty(s) ? "unknown" : s;
         }
 
+        /// <summary>Variacao percentual do valor atual em relacao ao anterior (1 casa decimal); null se o anterior for 0.</summary>
         private static double? ChangePct(double current, double previous)
         {
             if (previous == 0) return null;
             return Math.Round((current - previous) / previous * 100, 1);
         }
 
+        /// <summary>
+        /// Traduz o codigo do periodo em datas: janela atual de "agora - 30 dias / 90 dias / 12 meses" ate
+        /// agora (padrao 90 dias) e a janela anterior de mesmo tamanho, imediatamente antes. Usa DateTime.Now do servidor.
+        /// </summary>
         private static (DateTime curStart, DateTime curEnd, DateTime prevStart, DateTime prevEnd) GetPeriodRange(string period)
         {
             var now = DateTime.Now;
@@ -436,6 +480,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return (curStart, now, prevStart, prevEnd);
         }
 
+        /// <summary>Monta o rotulo do mes no formato "Abr/26" para os graficos.</summary>
         private static string MonthLabel(int year, int month)
         {
             return $"{MonthAbbr[month - 1]}/{year % 100:D2}";

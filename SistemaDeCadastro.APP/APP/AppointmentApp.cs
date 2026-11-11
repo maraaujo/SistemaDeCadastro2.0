@@ -13,6 +13,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPatientRepository _patientRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de agendamento e acolhido e o usuario logado.
+        /// </summary>
         public AppointmentApp(IAppointmentRepository repo, IPatientRepository patientRepository, ICurrentUserServiceContext currentUserService)
         {
             _repo = repo;
@@ -20,10 +23,21 @@ namespace SistemaDeCadastro.APP.APP
             _currentUserService = currentUserService;
         }
 
+        /// <summary>
+        /// Devolve todos os agendamentos visiveis para a instituicao do usuario, no formato de listagem.
+        /// </summary>
         public async Task<List<AppointmentListDTO>> GetAllAppointment() => await _repo.GetAllAppointment();
 
+        /// <summary>
+        /// Busca um agendamento pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<AppointmentDTO?> GetById(long id) => await _repo.GetById(id);
 
+        /// <summary>
+        /// Cria um agendamento para um acolhido. Valida se o acolhido foi informado, se o usuario logado
+        /// tem instituicao e se o acolhido pertence a essa instituicao ("Paciente nao encontrado para a instituicao...").
+        /// O InstitutionId gravado vem sempre do usuario logado, nunca do DTO.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateAppointmentDTO entity)
         {
             var ret = new ApiResponse();
@@ -78,6 +92,11 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza acolhido, tipo, data/hora, responsavel, status e observacoes de um agendamento existente.
+        /// Retorna "Agendamento nao encontrado" se o Id nao existir e recusa trocar para um acolhido de outra instituicao.
+        /// O UserId original do agendamento nao e alterado.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateAppointmentDTO entity)
         {
             var ret = new ApiResponse();
@@ -122,12 +141,18 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o agendamento com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
             try { var e = (await _repo.FindBy(a => a.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de agendamentos.
+        /// </summary>
         public async Task<PagedAppointmentDTO> GetPagedAppointmentByFilter(AppointmentFilterDTO filter)
         {
             return await _repo.GetPagedAppointmentByFilter(filter);

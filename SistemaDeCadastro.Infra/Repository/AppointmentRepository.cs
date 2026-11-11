@@ -17,10 +17,15 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public AppointmentRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
+        /// <summary>
+        /// Lista todos os agendamentos (sem paginacao nem ordenacao) ja convertidos em DTO, com o nome
+        /// do acolhido vindo da navegacao Patient. Restrito a instituicao do usuario logado.
+        /// </summary>
         public async Task<List<AppointmentListDTO>> GetAllAppointment()
         {
             var ret = await (from a in _context.Appointments
@@ -40,6 +45,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return  ret;
         } 
 
+        /// <summary>Busca um agendamento pelo id e devolve o DTO com o nome do acolhido (null se nao existir ou for de outra instituicao).</summary>
         public async Task<AppointmentDTO> GetById(long id)
         {
             var ret = await (from a in _context.Appointments
@@ -60,6 +66,12 @@ namespace SistemaDeCadastro.Infra.Repository
             return  ret ;
         }
 
+        /// <summary>
+        /// Lista paginada de agendamentos. Junta Appointments com Patients para trazer o nome do acolhido.
+        /// Filtros opcionais: id do acolhido, dia da data/hora e trecho (sem diferenciar maiusculas) de nome
+        /// do acolhido, tipo, responsavel, status e observacoes. O UserId do filtro nao e usado.
+        /// Ordena do maior id para o menor, 15 por pagina, ja restrito a instituicao logada.
+        /// </summary>
         public async Task<PagedAppointmentDTO> GetPagedAppointmentByFilter(AppointmentFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;
@@ -127,6 +139,7 @@ namespace SistemaDeCadastro.Infra.Repository
             return ret;
 
         }
+        /// <summary>Busca a entidade do agendamento pelo id carregando junto o acolhido e o usuario (conta de acesso).</summary>
         public async Task<Appointment?> GetWithPatientAndUser(long id)
         {
             return await _context.Appointments
@@ -135,6 +148,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        /// <summary>Lista todos os agendamentos do acolhido informado.</summary>
         public async Task<List<Appointment>> GetByPatientId(long patientId)
         {
             return await _context.Appointments.Where(a => a.PatientId == patientId).ToListAsync();

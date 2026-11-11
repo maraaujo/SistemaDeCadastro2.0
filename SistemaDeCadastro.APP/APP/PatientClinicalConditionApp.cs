@@ -14,6 +14,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPatientRepository _patientRepo;
         private readonly IMedicinePatientClinicalConditionRepository _medicineRepo;
         private readonly IMedicationAdministrationRepository _medicationAdministrationRepo;
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de condicao do acolhido, acolhido, medicamento programado e administracao.
+        /// </summary>
         public PatientClinicalConditionApp(
             IPatientClinicalConditionRepository repo,
             IPatientRepository patientRepo,
@@ -25,12 +28,25 @@ namespace SistemaDeCadastro.APP.APP
             _medicineRepo = medicineRepo;
             _medicationAdministrationRepo = medicationAdministrationRepo;
         }
+        /// <summary>
+        /// Devolve as condicoes clinicas vinculadas ao acolhido informado (montadas no repositorio).
+        /// </summary>
         public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
         => await _repo.GetPatientClinicalConditionByPatientId(id);
+        /// <summary>
+        /// Devolve todos os vinculos acolhido + condicao clinica visiveis para a instituicao.
+        /// </summary>
         public async Task<List<PatientClinicalCondition>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca um vinculo acolhido + condicao clinica pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<PatientClinicalCondition?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Vincula uma condicao clinica a um acolhido (data do diagnostico e observacoes).
+        /// Recusa PatientId invalido ("Invalid patient ID") ou acolhido de outra instituicao.
+        /// </summary>
         public async Task<ApiResponse> Create(CreatePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
@@ -70,6 +86,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza acolhido, condicao clinica, data do diagnostico e observacoes de um vinculo existente.
+        /// Retorna "Condicao clinica do acolhido nao encontrada." se nao existir e recusa trocar para acolhido de outra instituicao.
+        /// </summary>
         public async Task<ApiResponse> Update(PatientClinicalCondition entity)
         {
             var ret = new ApiResponse();
@@ -104,6 +124,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o vinculo acolhido + condicao clinica, apagando antes os medicamentos programados dele e as
+        /// administracoes desses medicamentos. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -133,6 +157,9 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de condicoes clinicas dos acolhidos.
+        /// </summary>
         public async Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter)
         {
             return await _repo.GetPatientClinicalConditionByFilter(filter);

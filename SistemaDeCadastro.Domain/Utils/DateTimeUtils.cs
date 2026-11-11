@@ -9,6 +9,10 @@ namespace SistemaDeCadastro.Domain.Utils
         // quebraria ao iniciar em um dos dois ambientes.
         private static readonly TimeZoneInfo SaoPauloTimeZone = ResolveSaoPauloTimeZone();
 
+        /// <summary>
+        /// Tenta achar o fuso de Sao Paulo pelo id IANA e depois pelo id do Windows; se nenhum
+        /// existir no sistema, cria um fuso fixo de -03:00. Chamado uma unica vez (campo static readonly).
+        /// </summary>
         private static TimeZoneInfo ResolveSaoPauloTimeZone()
         {
             foreach (var id in new[] { "America/Sao_Paulo", "E. South America Standard Time" })

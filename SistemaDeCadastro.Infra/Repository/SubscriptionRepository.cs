@@ -9,11 +9,13 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public SubscriptionRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca a assinatura pelo id carregando o plano e a instituicao; devolve null se nao existir.</summary>
         public async Task<Subscription> GetByIdWithPlanAndInstitution(long id)
         {
             return await _context.Set<Subscription>()
@@ -22,6 +24,10 @@ namespace SistemaDeCadastro.Infra.Repository
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
+        /// <summary>
+        /// Busca a primeira assinatura da instituicao com Status exatamente "Active", carregando o plano.
+        /// Devolve null se nao houver. Nao considera variacoes como "ativo"/"active" em minusculas.
+        /// </summary>
         public async Task<Subscription> GetActiveByInstitutionId(long institutionId)
         {
             return await _context.Set<Subscription>()

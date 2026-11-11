@@ -12,16 +12,29 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de departamentos e o usuario logado.
+        /// </summary>
         public DepartmentApp(IDepartmentRepository departmentRepository, ICurrentUserServiceContext currentUserService)
         {
             _departmentRepository = departmentRepository;
             _currentUserService = currentUserService;
         }
 
+        /// <summary>
+        /// Devolve todos os departamentos visiveis para a instituicao do usuario.
+        /// </summary>
         public async Task<List<Department>> GetAll() => await _departmentRepository.GetAll();
 
+        /// <summary>
+        /// Busca um departamento pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<Department?> GetById(long id) => (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Cria um departamento (nome e descricao) na instituicao do usuario logado.
+        /// Recusa se nao for possivel identificar a instituicao do usuario.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateDepartmentDTO entity)
         {
             var ret = new ApiResponse();
@@ -52,6 +65,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza nome e descricao de um departamento existente. Se o Id nao existir, retorna "Department not found.".
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateDepartmentDTO entity)
         {
             var ret = new ApiResponse();
@@ -78,6 +94,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o departamento com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -85,6 +104,9 @@ namespace SistemaDeCadastro.APP.APP
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve a lista paginada de departamentos.
+        /// </summary>
         public async Task<PagedDepartmentDTO> GetDepartmentByFilter(DepartmentFilterDTO filter)
         {
             return await _departmentRepository.GetDepartmentByFilter(filter);

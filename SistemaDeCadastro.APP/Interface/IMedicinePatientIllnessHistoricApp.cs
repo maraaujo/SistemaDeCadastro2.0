@@ -10,8 +10,11 @@ namespace SistemaDeCadastro.APP.Interface
 {
     public interface IMedicinePatientIllnessHistoricApp
     {
+        /// <summary>Atualiza um registro do historico de medicamento por doenca do acolhido.</summary>
         Task<ApiResponse> UpdateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoricDTO medicinePatientIllnessHistoric);
+        /// <summary>Cria um registro no historico de medicamento por doenca do acolhido.</summary>
         Task<ApiResponse> CreateMedicinePatientIllnessHistoric(MedicinePatientIllnessHistoricDTO medicinePatientIllnessHistoric);
+        /// <summary>Devolve uma lista com o registro de historico do Id informado.</summary>
         Task<List<MedicinePatientIllnessHistoric>> GetMedicinePatientIllnessHistoricById(long id);
     }
 }

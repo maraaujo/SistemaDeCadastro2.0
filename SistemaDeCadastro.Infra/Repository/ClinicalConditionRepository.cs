@@ -13,15 +13,22 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public ClinicalConditionRepository(SistemaDeCadastroContext context) : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca uma condicao clinica do catalogo pelo id (null se nao existir).</summary>
         public async Task<ClinicalCondition?> GetById(long id)
         {
             return await _context.ClinicalConditions.FirstOrDefaultAsync(c => c.Id == id);
         }
+        /// <summary>
+        /// Lista paginada do catalogo de condicoes clinicas (tabela sem filtro por instituicao).
+        /// Filtros opcionais por trecho de nome, descricao e tipo (Contains direto, sem ToLower).
+        /// Ordena do maior id para o menor, 15 por pagina.
+        /// </summary>
         public async Task<PagedClinicalConditionDTO> GetClinicalConditionByFilter(ClinicalConditionFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;

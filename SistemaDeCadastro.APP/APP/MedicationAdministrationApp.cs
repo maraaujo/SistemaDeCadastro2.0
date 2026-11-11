@@ -14,6 +14,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IMedicinePatientClinicalConditionRepository _medicinePatientClinicalConditionRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IEmployeeRepository _employeeRepository;
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios de administracao, medicamento programado, acolhido e funcionario.
+        /// </summary>
         public MedicationAdministrationApp(
             IMedicationAdministrationRepository medicationAdministrationRepository,
             IMedicinePatientClinicalConditionRepository medicinePatientClinicalConditionRepository,
@@ -45,16 +48,38 @@ namespace SistemaDeCadastro.APP.APP
             return null;
         }
 
+        /// <summary>
+        /// Devolve uma lista com a administracao de medicamento do Id informado (vazia se nao existir).
+        /// </summary>
         public async Task<List<MedicationAdministration>> GetById(long ind) =>
             await this._medicationAdministrationRepository.GetById(ind);
+        /// <summary>
+        /// Repassa o filtro ao repositorio e devolve o historico paginado de administracoes de medicamento.
+        /// </summary>
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter) =>
             await this._medicationAdministrationRepository.GetMedicationAdministrationByFilter(filter); 
+        /// <summary>
+        /// Devolve as administracoes de medicamento com o status informado.
+        /// </summary>
         public async Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status) =>
             await this._medicationAdministrationRepository.GetMedicationAdministrationByStatus(status);
+        /// <summary>
+        /// Devolve os lembretes de medicamentos (proximas doses programadas), calculados no repositorio.
+        /// </summary>
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders() =>
     await _medicationAdministrationRepository.GetMedicineReminders();
+        /// <summary>
+        /// Devolve o relatorio diario de medicacao da data de referencia, opcionalmente de um so acolhido (calculado no repositorio).
+        /// </summary>
         public async Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId) =>
             await _medicationAdministrationRepository.GetDailyMedicationReport(referenceDate, patientId);
+        /// <summary>
+        /// Registra a administracao (ministracao) de um medicamento programado a um acolhido.
+        /// Valida se acolhido, medicamento programado e funcionario sao da instituicao; se o horario previsto
+        /// nao vier, usa hoje + horario do medicamento programado. Bloqueia duplicado no mesmo minuto
+        /// ("Ja existe esse medicamento cadastrado nesse horario.", IsBusinessExcpetion = true).
+        /// Horarios usam Sao Paulo; status padrao "Administered". Em excecao, so devolve uma Message generica (sem ErrorMessage).
+        /// </summary>
         public async Task<ApiResponse> Create(
      CreateMedicationAdministrationDTO medicationAdministration)
         {
@@ -165,6 +190,11 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Atualiza uma administracao de medicamento existente ("Administracao de medicamento nao encontrada." se nao existir),
+        /// validando acolhido, medicamento programado e funcionario da instituicao. Copia os campos do DTO como vierem,
+        /// sem checar duplicado de horario. Em excecao, so devolve uma Message generica (sem ErrorMessage).
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration){
 
             ApiResponse ret = new();
@@ -210,6 +240,10 @@ namespace SistemaDeCadastro.APP.APP
             }
             return ret;
         }
+        /// <summary>
+        /// Exclui a administracao de medicamento com o Id informado (so enxerga as da instituicao do usuario);
+        /// retorna "Administracao de medicamento nao encontrada." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             ApiResponse ret = new();

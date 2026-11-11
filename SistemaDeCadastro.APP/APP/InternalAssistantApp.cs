@@ -15,10 +15,19 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly SistemaDeCadastroContext context;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o DbContext, usado diretamente nas consultas do assistente.
+        /// </summary>
         public InternalAssistantApp(SistemaDeCadastroContext _context)
         {
             context = _context;
         }
+        /// <summary>
+        /// Responde a pergunta do assistente interno por palavras-chave (sem IA): normaliza o texto
+        /// (minusculas, sem acentos) e escolhe, nesta ordem: medicamentos atrasados; medicamentos do acolhido
+        /// (sempre que PatientId != 0, inclusive quando PatientId vem nulo); administracoes de hoje; resumo do dia.
+        /// Se nada casar, devolve uma resposta padrao. O texto da resposta vai em Data.
+        /// </summary>
         public async Task<ApiResponse> Ask(AskInternalAssistantDTO dto)
         {
             var ret = new ApiResponse();
@@ -72,6 +81,9 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// True se a pergunta (ja normalizada) fala de medicamento/remedio "atrasado(s)".
+        /// </summary>
         private bool IsDelayedMedicinesQuestion(string question)
         {
             return question.Contains("atrasado")
@@ -81,6 +93,10 @@ namespace SistemaDeCadastro.APP.APP
         }
         //se encontrar alguma dessas palavras ele retorna true
 
+        /// <summary>
+        /// True se a pergunta pede os medicamentos de um acolhido. Observacao: este metodo nao e chamado em Ask
+        /// (a escolha usa PatientId) e uma das frases tem maiuscula e acento, entao nunca casaria com o texto normalizado.
+        /// </summary>
         private bool IsPatientMedicineQuestion(string question)
         {
             return question.Contains("medicamentos do acolhido")
@@ -93,6 +109,9 @@ namespace SistemaDeCadastro.APP.APP
                 || question.Contains("medicamentos usa");
         }
 
+        /// <summary>
+        /// True se a pergunta (ja normalizada) pede o que foi administrado hoje.
+        /// </summary>
         private bool IsTodayAdministrationsQuestion(string question)
         {
             return question.Contains("administracoes feitas hoje")
@@ -101,6 +120,9 @@ namespace SistemaDeCadastro.APP.APP
                 || question.Contains("o que foi administrado hoje");
         }
 
+        /// <summary>
+        /// True se a pergunta (ja normalizada) pede um resumo geral do dia.
+        /// </summary>
         private bool IsDailySummaryQuestion(string question)
         {
             return question.Contains("resumo do dia")
@@ -109,6 +131,12 @@ namespace SistemaDeCadastro.APP.APP
                 || question.Contains("situacao de hoje");
         }
         //metodo para pegar os remedios do dia 
+        /// <summary>
+        /// Monta o texto com os medicamentos atrasados do dia (ReferenceDate ou hoje): pega as prescricoes com horario
+        /// vigentes na data, mantem as cujo horario ja passou e descarta as que tem administracao registrada no dia
+        /// para o mesmo acolhido e horario. Lista acolhido, medicamento, dosagem, horario, minutos de atraso e responsavel.
+        /// Usa DateTime.Now (relogio do servidor), nao o horario de Sao Paulo.
+        /// </summary>
         private async Task<string> AnswerDelayedMedicinesQuestion(AskInternalAssistantDTO dto)
         {
             var now = DateTime.Now;
@@ -200,6 +228,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return sb.ToString();
         }
+        /// <summary>
+        /// Monta o texto com todos os medicamentos vinculados ao acolhido (PatientId): nome, dosagem, frequencia,
+        /// horario, condicao clinica e responsavel. Se PatientId vier nulo, pede para selecionar um acolhido.
+        /// </summary>
         private async Task<string> AnswerPatientMedicineQuestion(AskInternalAssistantDTO dto)
         {
             if (!dto.PatientId.HasValue)
@@ -264,6 +296,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return sb.ToString();
         }
+        /// <summary>
+        /// Monta o texto com as administracoes de medicamento registradas no dia (ReferenceDate ou hoje),
+        /// em ordem de horario: acolhido, medicamento, horario previsto e administrado, status e funcionario.
+        /// </summary>
         private async Task<string> AnswerTodayAdministrationsQuestion(AskInternalAssistantDTO dto)
         {
             var today = dto.ReferenceDate?.Date ?? DateTime.Now.Date;
@@ -327,6 +363,11 @@ namespace SistemaDeCadastro.APP.APP
             return sb.ToString();
         }
         //resumo do dia
+        /// <summary>
+        /// Monta o resumo do dia: quantidade de medicamentos programados, administrados, atrasados e agendamentos,
+        /// mais os 5 proximos medicamentos e os 5 primeiros agendamentos do dia. Observacao: a contagem de atrasados
+        /// considera so o horario ja passado, sem descontar o que ja foi administrado.
+        /// </summary>
         private async Task<string> AnswerDailySummaryQuestion(AskInternalAssistantDTO dto)
         {
             var now = DateTime.Now;
@@ -435,6 +476,9 @@ namespace SistemaDeCadastro.APP.APP
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Deixa o texto em minusculas e remove acentos e cedilha para comparar com as palavras-chave.
+        /// </summary>
         private string NormalizeText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))

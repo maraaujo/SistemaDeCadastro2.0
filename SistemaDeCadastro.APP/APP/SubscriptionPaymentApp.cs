@@ -10,11 +10,17 @@ namespace SistemaDeCadastro.APP.APP
     {
         private readonly ISubscriptionPaymentRepository _repo;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de pagamentos de assinatura.
+        /// </summary>
         public SubscriptionPaymentApp(ISubscriptionPaymentRepository repo)
         {
             _repo = repo;
         }
 
+        /// <summary>
+        /// Registra um pagamento de assinatura (valor, forma, status, data, Id externo, observacoes) e devolve-o em Data.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateSubscriptionPaymentDTO entity)
         {
             var ret = new ApiResponse();
@@ -44,6 +50,10 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza todos os dados de um pagamento de assinatura existente e devolve-o em Data;
+        /// retorna "Pagamento nao encontrado." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateSubscriptionPaymentDTO entity)
         {
             var ret = new ApiResponse();
@@ -78,6 +88,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o pagamento de assinatura com o Id informado; retorna "Pagamento nao encontrado." se nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -103,6 +116,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data o pagamento de assinatura com o Id informado (Data fica null, com Success = true, se nao existir).
+        /// </summary>
         public async Task<ApiResponse> GetById(long id)
         {
             var ret = new ApiResponse();
@@ -120,6 +136,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve em Data todos os pagamentos de assinatura cadastrados.
+        /// </summary>
         public async Task<ApiResponse> GetAll()
         {
             var ret = new ApiResponse();

@@ -22,17 +22,32 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public ViaCepStatus Status { get; init; }
         public ViaCepAddressDTO? Address { get; init; }
 
+        /// <summary>
+        /// True quando a consulta encontrou o endereco (Status = Success).
+        /// </summary>
         public bool IsSuccess => Status == ViaCepStatus.Success;
 
+        /// <summary>
+        /// Cria um resultado de sucesso contendo o endereco retornado pelo ViaCEP.
+        /// </summary>
         public static ViaCepLookupResult Success(ViaCepAddressDTO address) =>
             new() { Status = ViaCepStatus.Success, Address = address };
 
+        /// <summary>
+        /// Cria um resultado indicando que o CEP informado e invalido (sem endereco).
+        /// </summary>
         public static ViaCepLookupResult InvalidCep() =>
             new() { Status = ViaCepStatus.InvalidCep };
 
+        /// <summary>
+        /// Cria um resultado indicando que o CEP e valido mas nao existe no ViaCEP.
+        /// </summary>
         public static ViaCepLookupResult NotFound() =>
             new() { Status = ViaCepStatus.NotFound };
 
+        /// <summary>
+        /// Cria um resultado indicando que o ViaCEP esta indisponivel (erro de rede ou timeout).
+        /// </summary>
         public static ViaCepLookupResult Unavailable() =>
             new() { Status = ViaCepStatus.Unavailable };
     }

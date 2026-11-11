@@ -15,12 +15,21 @@ namespace SistemaDeCadastro.Infra.Repository
     {
         private readonly SistemaDeCadastroContext _context;
 
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public PatientRepository(SistemaDeCadastroContext context)
             : base(context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Monta a ficha completa do acolhido. Faz uma unica consulta com left joins de Patients com
+        /// Responsibles, PatientClinicalConditions, Appointments, BloodTypes, ClinicalConditions,
+        /// MedicinePatientClinicalConditions e Medicines; isso gera uma linha por combinacao, entao em
+        /// memoria o metodo junta as listas e remove duplicados por id (descartando itens com id 0, que
+        /// representam "nao informado"). Devolve null se o acolhido nao existir (ou for de outra instituicao).
+        /// Erros sao relancados com a mensagem "Erro ao buscar detalhes do paciente".
+        /// </summary>
         public async Task<DetailsPatientDTO?> DetailsPatient(long id)
         {
             try
@@ -176,6 +185,11 @@ namespace SistemaDeCadastro.Infra.Repository
         }
 
         
+        /// <summary>
+        /// Lista paginada de acolhidos da instituicao logada. Filtros opcionais: lista de ids de condicoes
+        /// clinicas (acolhido que tenha pelo menos uma delas) e id do acolhido. Devolve id, nome, nascimento,
+        /// sexo e CPF, ordenando do maior id para o menor, 15 por pagina.
+        /// </summary>
         public async Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page;
@@ -226,6 +240,10 @@ namespace SistemaDeCadastro.Infra.Repository
             return ret;
         }
         
+        /// <summary>
+        /// Procura um acolhido com o CPF exato dentro da instituicao informada e devolve o primeiro
+        /// (ou null). Usado no cadastro para impedir CPF repetido na mesma instituicao.
+        /// </summary>
         public async Task<Patient>? FindPatientByCPF(string cpf, long institutionId)
         {
             var existingPatient = await FindBy(c => c.Cpf == cpf && c.InstitutionId == institutionId);
@@ -233,11 +251,16 @@ namespace SistemaDeCadastro.Infra.Repository
 
         }
 
+        /// <summary>Busca o acolhido pelo id; devolve lista com 0 ou 1 item (somente da instituicao logada).</summary>
         public async Task<List<Patient>> GetPatientById(long id)
         {
             return await FindBy(c => c.Id == id);
         }
 
+        /// <summary>
+        /// Busca a entidade do acolhido pelo id carregando tipo sanguineo, responsaveis, condicoes clinicas
+        /// (com a condicao), funcionarios vinculados (com o funcionario), agendamentos e atendimentos.
+        /// </summary>
         public async Task<Patient?> GetByIdWithRelations(long id)
         {
             return await _context.Patients
@@ -256,21 +279,28 @@ namespace SistemaDeCadastro.Infra.Repository
 
         
 
+        /// <summary>Cadastra um acolhido (atalho para Create do BaseRepository).</summary>
         public async Task CreatePatient(Patient patient)
         {
             await Create(patient);
         }
 
+        /// <summary>Atualiza um acolhido (atalho para Update do BaseRepository).</summary>
         public async Task UpdatePatient(Patient patient)
         {
             await Update(patient);
         }
 
+        /// <summary>Exclui um acolhido (atalho para Delete do BaseRepository).</summary>
         public async Task DeletePatient(Patient patient)
         {
             await Delete(patient);
         }
 
+        /// <summary>
+        /// Consulta se existe acolhido com o nome exato informado, mas descarta o resultado:
+        /// o metodo retorna Task sem valor, entao quem chama nao fica sabendo se existe.
+        /// </summary>
         public async Task GetPatientByAny(string patient)
         {
             await Any(c => c.Name == patient);

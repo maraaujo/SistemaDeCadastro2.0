@@ -11,16 +11,19 @@ namespace SistemaDeCadastro.Infra.Repository
     public class MedicationAdministrationRepository : BaseRepository<MedicationAdministration>, IMedicationAdministrationRepository
     {
         private readonly SistemaDeCadastroContext _context;
+        /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
         public MedicationAdministrationRepository(SistemaDeCadastroContext context)
             : base(context)
         {
             _context = context;
         }
 
+        /// <summary>Busca a administracao de medicamento pelo id; devolve lista com 0 ou 1 item (somente da instituicao logada).</summary>
         public async Task<List<MedicationAdministration>> GetById(long ind)
         {
             return await this.FindBy(c => c.Id == ind);
         }
+        /// <summary>Lista as administracoes de medicamento cujo Status e igual ao texto informado.</summary>
         public async Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status)
         {
             return await this.FindBy(c => c.Status == status);
@@ -29,6 +32,15 @@ namespace SistemaDeCadastro.Infra.Repository
         // Delete vem do BaseRepository. O metodo que existia aqui chamava a si mesmo
         // (this.Delete) e o StackOverflow derrubava o processo inteiro da API.
 
+        /// <summary>
+        /// Historico paginado de administracoes de medicamento (tela de historico de medicacao).
+        /// Junta MedicationAdministrations com Patients e Employees (inner join: registros sem funcionario
+        /// nao aparecem) e faz left join com o medicamento programado e o medicamento. Filtros opcionais:
+        /// id, status exato, acolhido, funcionario, medicamento, horario previsto e horario administrado
+        /// (janela de 1 minuto) e observacoes (texto exato). Ordena do maior id para o menor, 15 por pagina.
+        /// Depois, em memoria, calcula a "proxima medicacao" (hoje + horario planejado, fuso de Sao Paulo) e
+        /// corrige horario previsto 00:00 de registros antigos usando o horario planejado.
+        /// </summary>
         public async Task<PagedMedicationAdministrationDTO> GetMedicationAdministrationByFilter(MedicationAdministrationFilterDTO filter)
         {
             var page = filter.Page <= 0 ? 1 : filter.Page; 
@@ -133,6 +145,14 @@ namespace SistemaDeCadastro.Infra.Repository
             return ret;
         }
 
+        /// <summary>
+        /// Monta os lembretes da tela "Proximos medicamentos" para hoje (fuso de Sao Paulo).
+        /// 1) Carrega as administracoes ja registradas hoje. 2) Busca os medicamentos programados com
+        /// horario definido e vigentes hoje (StartDate/EndDate), juntando medicamento, condicao do acolhido,
+        /// acolhido e responsavel (left join). 3) Em memoria, descarta os que ja foram administrados hoje
+        /// (mesmo medicamento programado + mesmo acolhido) e calcula minutos restantes/atraso e o texto
+        /// do alerta. Ordena pelo menor tempo restante (atrasados primeiro). Restrito a instituicao logada.
+        /// </summary>
         public async Task<List<MedicineReminderDTO>> GetMedicineReminders()
         {
             // O servidor pode rodar em UTC (ex.: Cloud Run). Calcula "agora" no fuso de

@@ -9,13 +9,22 @@ namespace SistemaDeCadastro.APP.APP
     public class BloodTypeApp : IBloodTypeApp
     {
         private readonly IBloodTypeRepository _bloodTypeRepository;
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de tipos sanguineos.
+        /// </summary>
         public BloodTypeApp(IBloodTypeRepository bloodTypeRepository) 
         {
           this._bloodTypeRepository = bloodTypeRepository;
         }
+        /// <summary>
+        /// Devolve uma lista com o tipo sanguineo do Id informado (vazia se nao existir).
+        /// </summary>
         public async Task<List<BloodType>> GetBloodTypeById(long id) => 
             await this._bloodTypeRepository.GetBloodTypeById(id);
 
+        /// <summary>
+        /// Devolve em Data todos os tipos sanguineos cadastrados (apesar do nome "Illness", lista tipos sanguineos).
+        /// </summary>
         public async Task<ApiResponse> GetAllBloodIllness ()
         {
             ApiResponse ret = new();
@@ -34,6 +43,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Cadastra um tipo sanguineo com o Id e o nome vindos do DTO.
+        /// Observacao: mesmo quando grava, o retorno nao marca Success = true (fica false sem mensagem).
+        /// </summary>
         public async Task<ApiResponse> CreateBloodType(BloodTypeDTO bloodType)
         {
             ApiResponse ret = new(); try
@@ -51,6 +64,10 @@ namespace SistemaDeCadastro.APP.APP
 
             return ret;
         }
+        /// <summary>
+        /// Exclui o tipo sanguineo cujo Id vem no DTO (apesar do nome "Illness").
+        /// Observacao: nao marca Success = true ao excluir e, se o Id nao existir, repassa null ao repositorio.
+        /// </summary>
         public async Task<ApiResponse> DeleteIllness(BloodTypeDTO bloodType)
         {
             ApiResponse ret = new();

@@ -25,6 +25,9 @@ namespace SistemaDeCadastro.APP.APP
         // de uma senha errada e nao revelar quais e-mails tem conta.
         private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword("conta-inexistente-0");
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o repositorio de contas, a configuracao (secao Jwt) e o controle de tentativas de login.
+        /// </summary>
         public AuthApp(ILoginAccountRepository loginAccountRepository, IConfiguration configuration, ILoginAttemptGuard attemptGuard)
         {
             _loginAccountRepository = loginAccountRepository;
@@ -32,6 +35,11 @@ namespace SistemaDeCadastro.APP.APP
             _attemptGuard = attemptGuard;
         }
 
+        /// <summary>
+        /// Valida a sessao a cada requisicao: le o UserId do token, confere se a conta existe e esta ativa
+        /// e se o papel (Role) e a instituicao do token ainda sao os mesmos da conta no banco.
+        /// Retorna false se qualquer um deles mudou (ex.: conta desativada ou papel trocado depois do login).
+        /// </summary>
         public async Task<bool> IsSessionValid(System.Security.Claims.ClaimsPrincipal principal)
         {
             if (!long.TryParse(principal.FindFirst("UserId")?.Value, out var userId))
@@ -52,6 +60,12 @@ namespace SistemaDeCadastro.APP.APP
 
 
 
+        /// <summary>
+        /// Faz o login por e-mail e senha. Recusa se o e-mail estiver bloqueado por excesso de tentativas,
+        /// confere a senha com BCrypt (usando um hash falso quando o e-mail nao existe, para nao revelar contas)
+        /// e registra a falha no controle de tentativas. Com senha correta: zera as tentativas, recusa conta inativa,
+        /// grava o ultimo login e devolve em Data os dados do usuario e o token JWT. Mensagens vao em Message.
+        /// </summary>
         public async Task<ApiResponse> Login(LoginRequestDTO login)
         {
             ApiResponse response = new ApiResponse();
@@ -124,6 +138,10 @@ namespace SistemaDeCadastro.APP.APP
             }
         }
 
+        /// <summary>
+        /// Gera o token JWT assinado (HmacSha256) com as claims UserId, e-mail, papel (Role) e institutionId,
+        /// usando chave, emissor, audiencia e validade (padrao 60 minutos) da secao "Jwt" da configuracao.
+        /// </summary>
         private string GenerateJwtToken(LoginAccount user)
         {
             var jwtSection = _configuration.GetSection("Jwt");

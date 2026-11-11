@@ -10,6 +10,11 @@ namespace SistemaDeCadastro.Domain.Models.Stage
     {
         public const string GenericMessage = "Não foi possível concluir a operação. Tente novamente mais tarde.";
 
+        /// <summary>
+        /// Gera um codigo curto aleatorio (8 caracteres), grava a excecao completa no stderr com esse
+        /// codigo e devolve a mensagem generica para o usuario, ex.: "... (codigo AB12CD34)".
+        /// Usado nos catch das Apps para preencher ApiResponse.ErrorMessage.
+        /// </summary>
         public static string From(Exception ex)
         {
             var code = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();

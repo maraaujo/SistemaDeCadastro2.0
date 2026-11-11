@@ -17,6 +17,9 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
+        /// <summary>
+        /// Recebe por injecao de dependencia os repositorios envolvidos no medicamento programado e o usuario logado.
+        /// </summary>
         public MedicinePatientClinicalConditionApp(IMedicinePatientClinicalConditionRepository repo,
             IPatientRepository patientRepository, IMedicineRepository
             medicineRepository,
@@ -52,10 +55,23 @@ namespace SistemaDeCadastro.APP.APP
             return null;
         }
 
+        /// <summary>
+        /// Devolve todos os medicamentos programados (medicamento + condicao clinica do acolhido) visiveis para a instituicao.
+        /// </summary>
         public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAll();
 
+        /// <summary>
+        /// Busca um medicamento programado pelo Id; devolve null se nao existir.
+        /// </summary>
         public async Task<MedicinePatientClinicalCondition?> GetById(long id) => (await _repo.FindBy(m => m.Id == id)).FirstOrDefault();
 
+        /// <summary>
+        /// Programa um medicamento para um acolhido (dosagem, frequencia, horario, responsavel, inicio/fim).
+        /// Valida antes se medicamento, condicao do acolhido, funcionario e acolhido sao da instituicao; usuario comum
+        /// so pode usar condicao clinica ja cadastrada no catalogo. Depois: reaproveita ou cria o medicamento (por nome),
+        /// reaproveita ou cria a condicao clinica e o vinculo acolhido + condicao, e bloqueia o mesmo medicamento no
+        /// mesmo horario para o mesmo vinculo ("Ja existe esse medicamento cadastrado nesse horario."). Devolve o Id criado em Data.
+        /// </summary>
         public async Task<ApiResponse> Create(CreateMedicinePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
@@ -247,6 +263,11 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Atualiza um medicamento programado existente ("Medicamento programado nao encontrado." se nao existir),
+        /// validando medicamento, condicao do acolhido e funcionario da instituicao (ids 0 nao sao validados).
+        /// Diferente do Create, nao verifica duplicado no mesmo horario.
+        /// </summary>
         public async Task<ApiResponse> Update(UpdateMedicinePatientClinicalConditionDTO entity)
         {
             var ret = new ApiResponse();
@@ -283,6 +304,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Exclui o medicamento programado com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
@@ -291,6 +315,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
 
+        /// <summary>
+        /// Devolve os medicamentos programados de um vinculo acolhido + condicao clinica.
+        /// </summary>
         public async Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId)
         {
             return await _repo.GetByPatientClinicalConditionId(patientClinicalConditionId);
@@ -298,6 +325,9 @@ namespace SistemaDeCadastro.APP.APP
 
         //implemntar job para ficar atualizando a lista de lembretes de medicamentos, e enviar notificação para o paciente
      
+       /// <summary>
+       /// Repassa o filtro ao repositorio e devolve a lista paginada de medicamentos programados.
+       /// </summary>
        public async Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter)
         {
             return await _repo.GetMedicinePatientClinicalConditionByFilter(filter);

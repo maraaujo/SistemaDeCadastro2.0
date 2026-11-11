@@ -14,11 +14,19 @@ namespace SistemaDeCadastro.APP.APP
         //objeto que tem os dados da requisição que chega no backend
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// Recebe por injecao de dependencia o acesso ao HttpContext da requisicao atual.
+        /// </summary>
         public CurrentUserServiceApp(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Id do usuario logado, lido da claim "UserId" do token; null se nao houver claim valida.
+        /// Atencao: quando a claim e valida, o getter retorna a propria propriedade UserId (recursao infinita),
+        /// em vez da variavel userId lida.
+        /// </summary>
         public long? UserId
         {
             get
@@ -32,6 +40,9 @@ namespace SistemaDeCadastro.APP.APP
                 return null;
             }
         }
+        /// <summary>
+        /// Id da instituicao do usuario logado, lido da claim "institutionId" do token; null se ausente ou invalida.
+        /// </summary>
         public long? InstitutionId
         {
 

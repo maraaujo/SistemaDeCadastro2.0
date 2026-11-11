@@ -12,6 +12,10 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 
+// Ponto de entrada da API (top-level statements do .NET 8). Este arquivo monta toda a
+// configuracao: CORS, banco de dados (MySQL via EF Core), limite de tentativas de login,
+// injecao de dependencia (Apps e Repositorios), autenticacao JWT, policy "SaasAdmin",
+// Swagger e, por fim, o pipeline de middlewares que cada requisicao percorre.
 var builder = WebApplication.CreateBuilder(args);
 
 // CORS: so os enderecos do front listados em Cors:AllowedOrigins podem chamar a API
@@ -28,6 +32,7 @@ if (allowedOrigins.Length == 0)
     Console.WriteLine("AVISO: Cors:AllowedOrigins vazio; nenhum front em outro dominio conseguira chamar a API.");
 }
 
+// Registra a policy de CORS "Frontend": aceita qualquer metodo e cabecalho, mas so das origens permitidas.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policyBuilder =>
@@ -67,6 +72,8 @@ if (!baseConnection.Contains("password=", StringComparison.OrdinalIgnoreCase) &&
 var connectionString = baseConnection;
 
 // DbContext
+// Banco de dados: registra o SistemaDeCadastroContext (EF Core + Pomelo MySQL 8.4) com a
+// connection string montada acima e envia o SQL gerado para o console (nivel Information).
 builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
 {
     options.UseMySql(
@@ -79,6 +86,8 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
         LogLevel.Information
     );
 });
+// Servicos de apoio: acesso ao HttpContext (para ler o usuario logado do token), cache em memoria
+// e o LoginAttemptGuard como singleton (guarda as tentativas de login entre requisicoes).
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ILoginAttemptGuard, LoginAttemptGuard>();
@@ -88,6 +97,8 @@ builder.Services.AddSingleton<ILoginAttemptGuard, LoginAttemptGuard>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Policy "login" (usada no endpoint de Login): descobre o IP de origem e cria uma janela
+    // fixa por IP de 10 requisicoes por minuto, sem fila; o excedente recebe HTTP 429.
     options.AddPolicy("login", httpContext =>
     {
         var forwarded = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -104,6 +115,8 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 // APPs
+// Injecao de dependencia da camada de aplicacao (regras de negocio). AddScoped = uma instancia
+// por requisicao HTTP; os controllers recebem a interface e o .NET entrega a classe concreta.
 builder.Services.AddScoped<IAuthApp, AuthApp>();
 builder.Services.AddScoped<IPatientApp, PatientApp>();
 builder.Services.AddScoped<IResponsibleApp, ResponsibleApp>();
@@ -130,6 +143,7 @@ builder.Services.AddScoped<IAdminOverviewApp, AdminOverviewApp>();
 builder.Services.AddScoped<ICurrentUserServiceContext, CurrentUserServiceContext>();
 builder.Services.AddScoped<IInternalAssistantApp, InternalAssistantApp>();
 // Repositories
+// Injecao de dependencia da camada de acesso a dados (repositorios sobre o DbContext), tambem por requisicao.
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IResponsibleRepository, ResponsibleRepository>();
 builder.Services.AddScoped<IBloodTypeRepository, BloodTypeRepository>();
@@ -175,6 +189,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddControllers();
 
 // JWT Config
+// Le chave, emissor e audiencia da secao "Jwt"; se faltar qualquer um, a API nem sobe.
 var jwtSection = builder.Configuration.GetSection("Jwt");
 
 var jwtKey = jwtSection.GetValue<string>("Key");
@@ -203,6 +218,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
 
+        // Valida emissor, audiencia, assinatura (chave simetrica) e validade do token.
+        // ClockSkew zero: o token deixa de valer exatamente no horario de expiracao.
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -222,6 +239,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         options.Events = new JwtBearerEvents
         {
+            // Token invalido/expirado: apenas escreve o motivo no console (a resposta continua 401).
             OnAuthenticationFailed = context =>
             {
                 Console.WriteLine("JWT ERRO: " + context.Exception.Message);
@@ -235,6 +253,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (context.Principal == null || !await authApp.IsSessionValid(context.Principal))
                     context.Fail("Sessão inválida: a conta foi removida, desativada ou alterada.");
             },
+            // Requisicao barrada por falta de autenticacao (401): registra a descricao do erro no console.
             OnChallenge = context =>
             {
                 Console.WriteLine("JWT CHALLENGE: " + context.ErrorDescription);
@@ -255,6 +274,7 @@ if (adminRoles == null || adminRoles.Length == 0)
     adminRoles = new[] { "Administrador" };
 }
 
+// Policies de autorizacao: "SaasAdmin" e usada nos controllers com [Authorize(Policy = "SaasAdmin")].
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("SaasAdmin", policy =>
@@ -282,6 +302,7 @@ builder.Services.AddAuthorization(options =>
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 
+// Documentacao Swagger "v1" com o esquema Bearer, para testar endpoints protegidos colando o token JWT.
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -317,6 +338,8 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Pipeline
+// Ordem dos middlewares (importa): Swagger (so em desenvolvimento) -> redireciona HTTPS -> roteamento
+// -> CORS -> autenticacao (le o JWT) -> autorizacao ([Authorize]/policies) -> rate limit -> controllers.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -26,7 +26,7 @@ namespace SistemaDeCadastro.Infra.Repository
         /// <summary>Lista todos os tipos sanguineos (tabela comum a todas as instituicoes).</summary>
         public async Task<List<BloodType>> FindAll() 
         {
-            return await this.GetAll();
+            return await this.GetAllReadOnly();
         }
 
         /// <summary>Grava o tipo sanguineo e devolve a mesma entidade, ja com o id gerado pelo banco.</summary>

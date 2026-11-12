@@ -144,7 +144,7 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try
             {
-                var items = await _repo.GetAll();
+                var items = await _repo.GetAllReadOnly();
                 ret.Success = true;
                 ret.Data = items;
             }

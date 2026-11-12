@@ -30,7 +30,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os funcionarios visiveis para a instituicao do usuario.
         /// </summary>
-        public async Task<List<Employee>> GetAll() => await _employeeRepository.GetAll();
+        public async Task<List<Employee>> GetAll() => await _employeeRepository.GetAllReadOnly();
 
         /// <summary>
         /// Busca um funcionario pelo Id; devolve null se nao existir.

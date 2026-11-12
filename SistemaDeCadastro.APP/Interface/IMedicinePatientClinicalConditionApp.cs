@@ -19,6 +19,10 @@ namespace SistemaDeCadastro.APP.Interface
         /// <summary>Exclui o medicamento programado do Id informado.</summary>
         Task<ApiResponse> Delete(long id);
 
+        // Exclusao em massa (global) dos medicamentos programados e das administracoes
+        // ligadas a eles. Exclusiva do administrador da plataforma.
+        Task<ApiResponse> DeleteAllScheduledMedicinesGlobal();
+
         /// <summary>Devolve os medicamentos programados de um vinculo acolhido + condicao clinica.</summary>
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
       

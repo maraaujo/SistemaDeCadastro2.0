@@ -39,6 +39,18 @@ namespace SistemaDeCadastro.Infra.Repository
                                  .Where(a => a.UserId == userId)
                                  .ToListAsync();
         }
+        // Os registros mais recentes, limitados a "max". O log cresce a cada gravacao
+        // feita no sistema; devolver a tabela inteira de uma vez nao escala. Para
+        // navegar no historico completo existe o filtro paginado abaixo.
+        public async Task<List<AccessLog>> GetRecent(int max)
+        {
+            return await _context.AccessLogs
+                                 .AsNoTracking()
+                                 .OrderByDescending(a => a.Id)
+                                 .Take(max)
+                                 .ToListAsync();
+        }
+
         /// <summary>
         /// Lista paginada dos logs de acesso. Junta AccessLogs com LoginAccounts (pelo UserId) para trazer
         /// nome, e-mail e tipo do usuario. Filtros opcionais: UserId exato, e-mail e acao (contem, sem

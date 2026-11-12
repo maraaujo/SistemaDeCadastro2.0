@@ -25,6 +25,33 @@ namespace SistemaDeCadastro.Infra.Repository
             _context = context;
         }
       
+        // Apaga todos os medicamentos programados de todas as instituicoes.
+        // IgnoreQueryFilters garante o alcance global; ExecuteDeleteAsync emite um
+        // unico DELETE no banco. Chame APENAS depois de remover as administracoes
+        // dependentes (FK). Retorna a quantidade de linhas removidas.
+        public async Task<int> DeleteAllGlobal()
+        {
+            return await _context.MedicinePatientClinicalConditions
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync();
+        }
+
+        // Registra na trilha de auditoria (log_acesso) a limpeza global, ja que
+        // ExecuteDeleteAsync nao dispara a auditoria automatica do SaveChanges.
+        public async Task LogGlobalCleanup(long userId, string? ipAddress, int scheduledRemoved, int administrationsRemoved)
+        {
+            _context.AccessLogs.Add(new AccessLog
+            {
+                UserId = userId,
+                Action = "Excluiu todos os medicamentos programados (limpeza global)",
+                DateTime = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo(),
+                IpAddress = ipAddress ?? string.Empty,
+                Observation = $"{scheduledRemoved} medicamento(s) programado(s) e {administrationsRemoved} administração(ões) removidos de todas as instituições."
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
         /// <summary>
         /// Busca um medicamento programado (prescricao ligada a uma condicao clinica do acolhido) pelo id,
         /// ja carregando o medicamento, o funcionario responsavel, o acolhido e a condicao clinica.

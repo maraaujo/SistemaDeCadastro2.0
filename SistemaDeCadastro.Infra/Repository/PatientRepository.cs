@@ -27,7 +27,8 @@ namespace SistemaDeCadastro.Infra.Repository
         /// Responsibles, PatientClinicalConditions, Appointments, BloodTypes, ClinicalConditions,
         /// MedicinePatientClinicalConditions e Medicines; isso gera uma linha por combinacao, entao em
         /// memoria o metodo junta as listas e remove duplicados por id (descartando itens com id 0, que
-        /// representam "nao informado"). Devolve null se o acolhido nao existir (ou for de outra instituicao).
+        /// representam "nao informado"). Uma segunda consulta preenche ScheduledMedicines (cada prescricao com
+        /// o proprio id, usada na edicao). Devolve null se o acolhido nao existir (ou for de outra instituicao).
         /// Erros sao relancados com a mensagem "Erro ao buscar detalhes do paciente".
         /// </summary>
         public async Task<DetailsPatientDTO?> DetailsPatient(long id)
@@ -175,6 +176,40 @@ namespace SistemaDeCadastro.Infra.Repository
                     .ToList()
                             };
 
+                // Prescricoes com o id de cada uma. A lista "Medicines" acima agrupa pelo
+                // id do medicamento e nao traz horario/frequencia; a edicao precisa do
+                // registro completo para atualizar em vez de inserir de novo.
+                result.ScheduledMedicines = await (
+                    from mpcc in _context.MedicinePatientClinicalConditions.AsNoTracking()
+                    join pcc in _context.PatientClinicalConditions.AsNoTracking()
+                        on mpcc.PatientClinicalConditionId equals pcc.Id
+                    join cc in _context.ClinicalConditions.AsNoTracking()
+                        on pcc.ClinicalConditionId equals cc.Id
+                    join med in _context.Medicines.AsNoTracking()
+                        on mpcc.MedicineId equals med.Id
+                    join emp in _context.Employees.AsNoTracking()
+                        on mpcc.ResponsibleEmployeeId equals (long?)emp.Id into empGroup
+                    from emp in empGroup.DefaultIfEmpty()
+                    where pcc.PatientId == id
+                    orderby mpcc.Id
+                    select new PatientScheduledMedicineDTO
+                    {
+                        Id = mpcc.Id,
+                        MedicineId = mpcc.MedicineId,
+                        MedicineName = med.Name,
+                        PatientClinicalConditionId = pcc.Id,
+                        ClinicalConditionId = pcc.ClinicalConditionId,
+                        ClinicalConditionName = cc.Name,
+                        PrescribedDosage = mpcc.PrescribedDosage,
+                        Frequency = mpcc.Frequency,
+                        AdministrationTime = mpcc.AdministrationTime,
+                        ResponsibleEmployeeId = mpcc.ResponsibleEmployeeId,
+                        EmployeeName = emp != null ? emp.Name : null,
+                        StartDate = mpcc.StartDate,
+                        EndDate = mpcc.EndDate,
+                        Observations = mpcc.Observations
+                    }).ToListAsync();
+
                 return result;
 
             }
@@ -258,21 +293,88 @@ namespace SistemaDeCadastro.Infra.Repository
         }
 
         /// <summary>
-        /// Busca a entidade do acolhido pelo id carregando tipo sanguineo, responsaveis, condicoes clinicas
-        /// (com a condicao), funcionarios vinculados (com o funcionario), agendamentos e atendimentos.
+        /// Busca a entidade do acolhido pelo id carregando o que a edicao altera: responsaveis e condicoes
+        /// clinicas com os medicamentos programados de cada uma.
         /// </summary>
         public async Task<Patient?> GetByIdWithRelations(long id)
         {
+            // Carrega so o que a edicao do acolhido altera: responsaveis, condicoes
+            // clinicas e os medicamentos programados de cada condicao. Incluir
+            // agendamentos/atendimentos aqui multiplicava as linhas do resultado sem uso.
             return await _context.Patients
-                .Include(p => p.BloodType)
                 .Include(p => p.Responsibles)
                 .Include(p => p.PatientClinicalConditions)
-                    .ThenInclude(pcc => pcc.ClinicalCondition)
-                .Include(p => p.PatientEmployees)
-                    .ThenInclude(pe => pe.Employee)
-                .Include(p => p.Appointments)
-                .Include(p => p.CareServices)
+                    .ThenInclude(pcc => pcc.Medicines)
                 .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task ExecuteInTransaction(Func<Task> action)
+        {
+            // O provedor em memoria (testes) nao tem transacao; e se ja houver uma
+            // aberta, as gravacoes simplesmente participam dela.
+            if (!_context.Database.IsRelational() || _context.Database.CurrentTransaction != null)
+            {
+                await action();
+                return;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            await action();
+            await transaction.CommitAsync();
+            // Em caso de excecao o "await using" desfaz (rollback) tudo o que foi gravado.
+        }
+
+        public async Task DeletePatientWithDependencies(Patient patient)
+        {
+            var patientId = patient.Id;
+
+            await ExecuteInTransaction(async () =>
+            {
+                var conditions = await _context.PatientClinicalConditions
+                    .Where(c => c.PatientId == patientId)
+                    .ToListAsync();
+                var conditionIds = conditions.Select(c => c.Id).ToList();
+
+                var scheduledMedicines = await _context.MedicinePatientClinicalConditions
+                    .Where(m => conditionIds.Contains(m.PatientClinicalConditionId))
+                    .ToListAsync();
+                var scheduledIds = scheduledMedicines.Select(m => m.Id).ToList();
+
+                var administrations = await _context.MedicationAdministrations
+                    .Where(a => a.PatientId == patientId
+                             || scheduledIds.Contains(a.MedicinePatientClinicalConditionId))
+                    .ToListAsync();
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.PatientId == patientId)
+                    .ToListAsync();
+                var appointmentIds = appointments.Select(a => a.Id).ToList();
+
+                var payments = await _context.Payments
+                    .Where(p => appointmentIds.Contains(p.AppointmentId))
+                    .ToListAsync();
+
+                var patientEmployees = await _context.PatientEmployees
+                    .Where(pe => pe.PatientId == patientId)
+                    .ToListAsync();
+
+                var responsibles = await _context.Responsibles
+                    .Where(r => r.PatientId == patientId)
+                    .ToListAsync();
+
+                // Um unico SaveChanges: o EF ordena as exclusoes respeitando as chaves
+                // estrangeiras (filhos antes dos pais) e a auditoria registra tudo junto.
+                _context.MedicationAdministrations.RemoveRange(administrations);
+                _context.MedicinePatientClinicalConditions.RemoveRange(scheduledMedicines);
+                _context.PatientClinicalConditions.RemoveRange(conditions);
+                _context.Payments.RemoveRange(payments);
+                _context.Appointments.RemoveRange(appointments);
+                _context.PatientEmployees.RemoveRange(patientEmployees);
+                _context.Responsibles.RemoveRange(responsibles);
+                _context.Patients.Remove(patient);
+
+                await _context.SaveChangesAsync();
+            });
         }
         //vou ter que fazer um job para ficar chamando esse metodo de tempos
         //em tempos para ficar atualizando a tela de lembrete de medicamentos

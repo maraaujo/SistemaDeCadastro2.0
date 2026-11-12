@@ -82,6 +82,17 @@ namespace SistemaDeCadastro.Controller.V1
             return Ok(ret);
         }
 
+        // Limpeza global: apaga TODOS os medicamentos programados e as administracoes
+        // vinculadas, de TODAS as instituicoes. Restrito ao administrador da plataforma
+        // (policy SaasAdmin); o App reforca a mesma checagem.
+        [Authorize(Policy = "SaasAdmin")]
+        [HttpDelete("DeleteAll")]
+        public async Task<IActionResult> DeleteAll()
+        {
+            var ret = await _app.DeleteAllScheduledMedicinesGlobal();
+            return Ok(ret);
+        }
+
         /// <summary>
         /// GET api/MedicinePatientClinicalCondition/GetByPatientClinicalConditionId?patientClinicalConditionId= - usuario autenticado.
         /// Retorna os medicamentos programados de uma condicao clinica especifica de um acolhido.

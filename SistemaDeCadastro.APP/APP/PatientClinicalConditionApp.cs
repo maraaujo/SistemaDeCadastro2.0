@@ -36,7 +36,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os vinculos acolhido + condicao clinica visiveis para a instituicao.
         /// </summary>
-        public async Task<List<PatientClinicalCondition>> GetAll() => await _repo.GetAll();
+        public async Task<List<PatientClinicalCondition>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca um vinculo acolhido + condicao clinica pelo Id; devolve null se nao existir.
@@ -54,7 +54,7 @@ namespace SistemaDeCadastro.APP.APP
             {
                 if(entity.PatientId <= 0)
                 {
-                    ret.ErrorMessage = "Invalid patient ID";
+                    ret.ErrorMessage = "Id do acolhido inválido.";
                     ret.Success = false;
                     return ret;
                 }

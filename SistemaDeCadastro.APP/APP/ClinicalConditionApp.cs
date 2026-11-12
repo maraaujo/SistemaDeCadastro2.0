@@ -30,7 +30,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todas as condicoes clinicas cadastradas.
         /// </summary>
-        public async Task<List<ClinicalCondition>> GetAll() => await _clinicalConditionRepository.GetAll();
+        public async Task<List<ClinicalCondition>> GetAll() => await _clinicalConditionRepository.GetAllReadOnly();
 
         /// <summary>
         /// Busca uma condicao clinica pelo Id; devolve null se nao existir.
@@ -81,7 +81,7 @@ namespace SistemaDeCadastro.APP.APP
                 else
                 {
                     ret.Success = false;
-                    ret.ErrorMessage = "Clinical condition not found.";
+                    ret.ErrorMessage = "Condição clínica não encontrada.";
                 }
               
 

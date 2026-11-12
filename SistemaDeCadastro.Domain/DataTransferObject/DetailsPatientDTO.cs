@@ -14,6 +14,8 @@ namespace SistemaDeCadastro.Domain.DataTransferObject
         public List<ResponsibleListDTO> Responsibles { get; set; }
         public List<ClinicalConditionDTO> ClinicalConditions { get; set; }
         public List<MedicineDTO> Medicines { get; set; }
+        // Prescricoes do acolhido com o id de cada uma (usado na tela de edicao).
+        public List<PatientScheduledMedicineDTO> ScheduledMedicines { get; set; } = new();
         public List<AppointmentListDTO> Appointments { get; set; }
         public BloodTypeDTO BloodType { get; set; }
         public List<IllnessDTO> Illnesses { get; set; }

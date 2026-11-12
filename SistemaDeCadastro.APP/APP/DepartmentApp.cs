@@ -24,7 +24,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os departamentos visiveis para a instituicao do usuario.
         /// </summary>
-        public async Task<List<Department>> GetAll() => await _departmentRepository.GetAll();
+        public async Task<List<Department>> GetAll() => await _departmentRepository.GetAllReadOnly();
 
         /// <summary>
         /// Busca um departamento pelo Id; devolve null se nao existir.
@@ -83,7 +83,7 @@ namespace SistemaDeCadastro.APP.APP
                 else
                 {
                     ret.Success = false;
-                    ret.ErrorMessage = "Department not found.";
+                    ret.ErrorMessage = "Departamento não encontrado.";
                 }
             }
             catch (Exception ex)

@@ -29,6 +29,10 @@ namespace SistemaDeCadastro.Infra.Repository
         private static readonly string[] CancelingStatuses = { "canceling", "cancelando", "cancelado", "canceled", "cancelled", "encerrado", "encerrada" };
         private static readonly string[] PaidStatuses = { "paid", "pago", "aprovado", "approved" };
 
+        // Status de dose que nao foi dada: nunca conta como administrada/no prazo.
+        private static readonly string[] NotAdministeredStatuses =
+            SistemaDeCadastro.Domain.Utils.MedicationStatus.NotAdministered;
+
         private static readonly string[] MonthAbbr = { "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez" };
 
         /// <summary>Recebe o contexto do banco por injecao de dependencia e repassa ao BaseRepository.</summary>
@@ -98,28 +102,21 @@ namespace SistemaDeCadastro.Infra.Repository
                 : 0;
 
             // Doses administradas no mes corrente + % no prazo.
-            var monthDoses = await _context.MedicationAdministrations.AsNoTracking()
+            // As contagens sao feitas pelo banco (COUNT): nenhuma linha de administracao
+            // e trazida para a memoria da aplicacao.
+            var monthDoses = _context.MedicationAdministrations.AsNoTracking()
                 .IgnoreQueryFilters()
                 .Where(m => m.AdministeredDateTime != null
-                         && m.AdministeredDateTime >= monthStart && m.AdministeredDateTime < monthEnd)
-                .Select(m => new { m.ScheduledDateTime, m.AdministeredDateTime })
-                .ToListAsync();
+                         && m.AdministeredDateTime >= monthStart && m.AdministeredDateTime < monthEnd
+                         && (m.Status == null || !NotAdministeredStatuses.Contains(m.Status)));
 
-            var dosesValue = monthDoses.Count;
-            var dosesOnTime = monthDoses.Count(m => m.AdministeredDateTime!.Value <= m.ScheduledDateTime.AddMinutes(OnTimeToleranceMinutes));
+            var dosesValue = await monthDoses.CountAsync();
+            var dosesOnTime = await monthDoses.CountAsync(m =>
+                m.AdministeredDateTime <= m.ScheduledDateTime.AddMinutes(OnTimeToleranceMinutes));
             var onTimePct = dosesValue > 0 ? Math.Round((double)dosesOnTime / dosesValue * 100, 1) : 0;
 
             // Adesao media por instituicao (doses no prazo / doses previstas).
-            var adherenceRows = await _context.MedicationAdministrations.AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(m => m.Patient.InstitutionId != null)
-                .Select(m => new { InstitutionId = m.Patient.InstitutionId, m.ScheduledDateTime, m.AdministeredDateTime })
-                .ToListAsync();
-
-            var adherenceByInstitution = adherenceRows
-                .GroupBy(r => r.InstitutionId!)
-                .Select(g => AdherenceOf(g.Select(x => (x.ScheduledDateTime, x.AdministeredDateTime))))
-                .ToList();
+            var adherenceByInstitution = (await GetAdherenceByInstitution()).Values.ToList();
 
             var avgAdherence = adherenceByInstitution.Count > 0 ? Math.Round(adherenceByInstitution.Average(), 1) : 0;
 
@@ -324,14 +321,7 @@ namespace SistemaDeCadastro.Infra.Repository
                 .ToListAsync();
             var residentDict = residentCounts.ToDictionary(r => r.InstitutionId, r => r.Count);
 
-            var adherenceRows = await _context.MedicationAdministrations.AsNoTracking()
-                .IgnoreQueryFilters()
-                .Where(m => m.Patient.InstitutionId != null)
-                .Select(m => new { InstitutionId = m.Patient.InstitutionId, m.ScheduledDateTime, m.AdministeredDateTime })
-                .ToListAsync();
-            var adherenceDict = adherenceRows
-                .GroupBy(r => r.InstitutionId)
-                .ToDictionary(g => g.Key, g => AdherenceOf(g.Select(x => (x.ScheduledDateTime, x.AdministeredDateTime))));
+            var adherenceDict = await GetAdherenceByInstitution();
 
             var rows = institutions.Select(i =>
             {
@@ -405,16 +395,28 @@ namespace SistemaDeCadastro.Infra.Repository
 
         // ---------- Helpers ----------
 
-        /// <summary>
-        /// Percentual de adesao: doses administradas ate 60 min apos o horario previsto divididas pelo
-        /// total de doses da lista (inclusive as nao administradas). Lista vazia = 0.
-        /// </summary>
-        private static double AdherenceOf(IEnumerable<(DateTime Scheduled, DateTime? Administered)> doses)
+        // Adesao (%) por instituicao = doses dadas no prazo / doses registradas.
+        // O agrupamento e as contagens sao feitos pelo banco (GROUP BY + COUNT): volta
+        // uma linha por instituicao, e nao todas as administracoes de todos os tenants.
+        private async Task<Dictionary<long, double>> GetAdherenceByInstitution()
         {
-            var list = doses.ToList();
-            if (list.Count == 0) return 0;
-            var onTime = list.Count(d => d.Administered != null && d.Administered.Value <= d.Scheduled.AddMinutes(OnTimeToleranceMinutes));
-            return Math.Round((double)onTime / list.Count * 100, 1);
+            var rows = await _context.MedicationAdministrations.AsNoTracking()
+                .IgnoreQueryFilters()
+                .GroupBy(m => m.Patient.InstitutionId)
+                .Select(g => new
+                {
+                    InstitutionId = g.Key,
+                    Total = g.Count(),
+                    OnTime = g.Count(m =>
+                        m.AdministeredDateTime != null
+                        && m.AdministeredDateTime <= m.ScheduledDateTime.AddMinutes(OnTimeToleranceMinutes)
+                        && (m.Status == null || !NotAdministeredStatuses.Contains(m.Status)))
+                })
+                .ToListAsync();
+
+            return rows.ToDictionary(
+                r => r.InstitutionId,
+                r => r.Total > 0 ? Math.Round((double)r.OnTime / r.Total * 100, 1) : 0);
         }
 
         /// <summary>Ordena as linhas da tabela de instituicoes conforme o codigo de ordenacao; padrao = maior receita primeiro.</summary>

@@ -21,7 +21,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os pagamentos visiveis para a instituicao do usuario.
         /// </summary>
-        public async Task<List<Payment>> GetAll() => await _repo.GetAll();
+        public async Task<List<Payment>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca um pagamento pelo Id; devolve null se nao existir.
@@ -91,7 +91,7 @@ namespace SistemaDeCadastro.APP.APP
                 else
                 {
                     ret.Success = false;
-                    ret.ErrorMessage = "Payment not found.";
+                    ret.ErrorMessage = "Pagamento não encontrado.";
                 }
 
             }

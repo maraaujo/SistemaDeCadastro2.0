@@ -70,7 +70,7 @@ namespace SistemaDeCadastro.APP.APP
 
             if (IsPlatformAdmin)
             {
-                accounts = await _repo.GetAll();
+                accounts = await _repo.GetAllReadOnly();
             }
             else if (IsInstitutionAdmin)
             {
@@ -216,9 +216,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
         /// <summary>
-        /// Atualiza e-mail, nome e ultimo login de uma conta que o usuario pode ver ("Conta nao encontrada." caso contrario).
-        /// Papel (UserType) e status (Active, padrao true) so mudam se o usuario logado administra a conta.
-        /// Nao valida se o novo e-mail ja pertence a outra conta. Devolve o DTO atualizado (sem senha) em Data.
+        /// Atualiza e-mail e nome de uma conta que o usuario pode ver ("Conta nao encontrada." caso contrario); campo nao
+        /// enviado mantem o valor atual. Papel (UserType), status (Active) e nova senha so mudam se o usuario logado
+        /// administra a conta. Recusa e-mail que ja pertence a outra conta. Devolve o DTO atualizado (sem senha) em Data.
         /// </summary>
         public async Task<ApiResponse> Update(UpdateLoginAccountDTO entity)
         {
@@ -237,16 +237,48 @@ namespace SistemaDeCadastro.APP.APP
 
 
 
-                existing.Email = entity.Email;
-                existing.Name = entity.Name;
-                existing.LastLogin = entity.LastLogin;
+                // So altera o que foi enviado: campo ausente (nulo/vazio) mantem o valor
+                // atual. Antes, um envio sem nome gravava nome nulo, um envio sem
+                // "active" reativava a conta e o ultimo login era apagado.
+                if (!string.IsNullOrWhiteSpace(entity.Email) &&
+                    !string.Equals(entity.Email.Trim(), existing.Email, StringComparison.OrdinalIgnoreCase))
+                {
+                    var newEmail = entity.Email.Trim();
+                    if (await _repo.Any(l => l.Email == newEmail && l.Id != existing.Id))
+                    {
+                        ret.Success = false;
+                        ret.ErrorMessage = "Já existe uma conta com este email.";
+                        return ret;
+                    }
+                    existing.Email = newEmail;
+                }
 
-                // Papel e status so podem ser alterados por quem administra a conta;
-                // o proprio usuario (tela de perfil) mantem os valores atuais.
+                if (!string.IsNullOrWhiteSpace(entity.Name))
+                    existing.Name = entity.Name.Trim();
+
+                // O ultimo login e gravado pelo proprio login; nao vem do cliente.
+
+                // Papel, status e senha so podem ser alterados por quem administra a
+                // conta; o proprio usuario (tela de perfil) mantem os valores atuais.
                 if (CanManage(existing))
                 {
-                    existing.UserType = entity.UserType;
-                    existing.Active = entity.Active ?? true;
+                    if (!string.IsNullOrWhiteSpace(entity.UserType))
+                        existing.UserType = entity.UserType;
+
+                    if (entity.Active.HasValue)
+                        existing.Active = entity.Active.Value;
+
+                    // "Nova senha" da tela de contas: so troca se foi preenchida.
+                    if (!string.IsNullOrWhiteSpace(entity.Password))
+                    {
+                        if (!PasswordValidator.IsValid(entity.Password))
+                        {
+                            ret.Success = false;
+                            ret.ErrorMessage = PasswordValidator.MensagemInvalido;
+                            return ret;
+                        }
+                        existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(entity.Password);
+                    }
                 }
 
 

@@ -24,7 +24,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os responsaveis (familiares/contatos dos acolhidos) cadastrados.
         /// </summary>
-        public async Task<List<Responsible>> GetAll() => await _responsibleRepository.GetAll();
+        public async Task<List<Responsible>> GetAll() => await _responsibleRepository.GetAllReadOnly();
 
         /// <summary>
         /// Busca um responsavel pelo Id; devolve null se nao existir.
@@ -114,7 +114,7 @@ namespace SistemaDeCadastro.APP.APP
             else
             {
                 ret.Success = false;
-                ret.ErrorMessage = "Responsible not found.";
+                ret.ErrorMessage = "Responsável não encontrado.";
             }
             }
             catch (Exception ex)

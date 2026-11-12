@@ -78,7 +78,8 @@ namespace SistemaDeCadastro.APP.APP
         /// Valida se acolhido, medicamento programado e funcionario sao da instituicao; se o horario previsto
         /// nao vier, usa hoje + horario do medicamento programado. Bloqueia duplicado no mesmo minuto
         /// ("Ja existe esse medicamento cadastrado nesse horario.", IsBusinessExcpetion = true).
-        /// Horarios usam Sao Paulo; status padrao "Administered". Em excecao, so devolve uma Message generica (sem ErrorMessage).
+        /// Horarios usam Sao Paulo; status padrao "Administrado". Dose "Nao administrado"/"Cancelado" fica sem horario de
+        /// administracao. Em excecao, registra o erro no log e devolve a mensagem generica com codigo.
         /// </summary>
         public async Task<ApiResponse> Create(
      CreateMedicationAdministrationDTO medicationAdministration)
@@ -145,6 +146,12 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                // Status escolhido pelo usuario (Administrado, Não administrado, Atrasado,
+                // Cancelado); se nao vier nenhum, assume "Administrado".
+                var status = string.IsNullOrWhiteSpace(medicationAdministration.Status)
+                    ? "Administrado"
+                    : medicationAdministration.Status.Trim();
+
                 MedicationAdministration administration = new()
                 {
                     MedicinePatientClinicalConditionId =
@@ -159,17 +166,16 @@ namespace SistemaDeCadastro.APP.APP
                     // Horário previsto da dose.
                     ScheduledDateTime = scheduled,
 
-                    // Horário em que realmente foi administrado (usa o valor enviado
-                    // pelo usuário; se não vier, assume o momento atual).
+                    // Horário em que realmente foi administrado (valor enviado pelo usuário
+                    // ou, se não vier, o momento atual). Dose "Não administrada" ou
+                    // "Cancelada" não tem horário de administração: se tivesse, contaria
+                    // como dose dada nos lembretes, no relatório do dia e na adesão.
                     AdministeredDateTime =
-                        medicationAdministration.AdministeredDateTime ?? now,
+                        SistemaDeCadastro.Domain.Utils.MedicationStatus.IsNotAdministered(status)
+                            ? null
+                            : medicationAdministration.AdministeredDateTime ?? now,
 
-                    // Usa o status escolhido pelo usuário (Administrado, Não administrado,
-                    // Atrasado, Cancelado); se não vier nenhum, assume "Administered".
-                    Status =
-                        string.IsNullOrWhiteSpace(medicationAdministration.Status)
-                            ? "Administered"
-                            : medicationAdministration.Status,
+                    Status = status,
 
                     Observations =
                         medicationAdministration.Observations ?? string.Empty,
@@ -180,12 +186,14 @@ namespace SistemaDeCadastro.APP.APP
                 await _medicationAdministrationRepository.Create(administration);
 
                 ret.Success = true;
-                ret.Message = "Medication administration created successfully.";
+                ret.Message = "Administração de medicamento registrada com sucesso.";
             }
             catch (Exception ex)
             {
+                // Registra o erro no log (com codigo) em vez de descarta-lo.
                 ret.Success = false;
-                ret.Message = "An error occurred while creating the medication administration.";
+                ret.ErrorMessage = ApiErrors.From(ex);
+                ret.Message = ret.ErrorMessage;
             }
 
             return ret;
@@ -193,7 +201,8 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Atualiza uma administracao de medicamento existente ("Administracao de medicamento nao encontrada." se nao existir),
         /// validando acolhido, medicamento programado e funcionario da instituicao. Copia os campos do DTO como vierem,
-        /// sem checar duplicado de horario. Em excecao, so devolve uma Message generica (sem ErrorMessage).
+        /// sem checar duplicado de horario (dose "Nao administrado"/"Cancelado" fica sem horario de administracao).
+        /// Em excecao, registra o erro no log e devolve a mensagem generica com codigo.
         /// </summary>
         public async Task<ApiResponse> Update(UpdateMedicationAdministrationDTO medicationAdministration){
 
@@ -225,18 +234,23 @@ namespace SistemaDeCadastro.APP.APP
                 medicationAdministration1.PatientId = medicationAdministration.PatientId;
                 medicationAdministration1.EmployeeId = medicationAdministration.EmployeeId;
                 medicationAdministration1.ScheduledDateTime = medicationAdministration.ScheduledDateTime;
-                medicationAdministration1.AdministeredDateTime = medicationAdministration.AdministeredDateTime;
+                // Mesma regra do cadastro: dose nao administrada/cancelada fica sem horario.
+                medicationAdministration1.AdministeredDateTime =
+                    SistemaDeCadastro.Domain.Utils.MedicationStatus.IsNotAdministered(medicationAdministration.Status)
+                        ? null
+                        : medicationAdministration.AdministeredDateTime;
                 medicationAdministration1.Status = medicationAdministration.Status;
                 medicationAdministration1.Observations = medicationAdministration.Observations;
-              
+
                 await this._medicationAdministrationRepository.Update(medicationAdministration1);
                 ret.Success = true;
-                ret.Message = "Medication administration updated successfully.";
+                ret.Message = "Administração de medicamento atualizada com sucesso.";
             }
             catch (Exception ex)
             {
                 ret.Success = false;
-                ret.Message = "An error occurred while updating the medication administration.";
+                ret.ErrorMessage = ApiErrors.From(ex);
+                ret.Message = ret.ErrorMessage;
             }
             return ret;
         }

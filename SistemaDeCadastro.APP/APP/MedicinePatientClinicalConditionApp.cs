@@ -16,6 +16,7 @@ namespace SistemaDeCadastro.APP.APP
         private readonly IClinicalConditionRepository _clinicalConditionRepository;
         private readonly IPatientClinicalConditionRepository _patientClinicalConditionRepository;
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IMedicationAdministrationRepository _medicationAdministrationRepository;
         private readonly ICurrentUserServiceContext _currentUserService;
         /// <summary>
         /// Recebe por injecao de dependencia os repositorios envolvidos no medicamento programado e o usuario logado.
@@ -25,6 +26,7 @@ namespace SistemaDeCadastro.APP.APP
             medicineRepository,
             IClinicalConditionRepository clinicalConditionRepository, IPatientClinicalConditionRepository patientClinicalConditionRepository,
             IEmployeeRepository employeeRepository,
+            IMedicationAdministrationRepository medicationAdministrationRepository,
             ICurrentUserServiceContext currentUserService)
         {
             _repo = repo;
@@ -33,6 +35,7 @@ namespace SistemaDeCadastro.APP.APP
             _clinicalConditionRepository = clinicalConditionRepository;
             _patientClinicalConditionRepository = patientClinicalConditionRepository;
             _employeeRepository = employeeRepository;
+            _medicationAdministrationRepository = medicationAdministrationRepository;
             _currentUserService = currentUserService;
         }
 
@@ -58,7 +61,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os medicamentos programados (medicamento + condicao clinica do acolhido) visiveis para a instituicao.
         /// </summary>
-        public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAll();
+        public async Task<List<MedicinePatientClinicalCondition>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca um medicamento programado pelo Id; devolve null se nao existir.
@@ -312,6 +315,59 @@ namespace SistemaDeCadastro.APP.APP
             var ret = new ApiResponse();
             try { var e = (await _repo.FindBy(m => m.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
+            return ret;
+        }
+
+        // Limpeza global: remove TODAS as administracoes e TODOS os medicamentos
+        // programados de TODAS as instituicoes. Operacao destrutiva e irreversivel,
+        // exclusiva do administrador da plataforma.
+        public async Task<ApiResponse> DeleteAllScheduledMedicinesGlobal()
+        {
+            var ret = new ApiResponse();
+            try
+            {
+                // Defesa em profundidade: alem da policy SaasAdmin no controller,
+                // reforca aqui que so o admin da plataforma executa a limpeza global.
+                if (!_currentUserService.IsPlatformAdmin)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Apenas o administrador da plataforma pode executar esta operação.";
+                    return ret;
+                }
+
+                var administracoesRemovidas = 0;
+                var programadosRemovidos = 0;
+
+                // As duas exclusoes rodam na mesma transacao: se a segunda falhar, a
+                // primeira e desfeita (nao fica historico apagado com prescricao orfa).
+                // Ordem importa: as administracoes referenciam os medicamentos
+                // programados (FK Restrict), entao removemos as filhas primeiro.
+                await _patientRepository.ExecuteInTransaction(async () =>
+                {
+                    administracoesRemovidas = await _medicationAdministrationRepository.DeleteAllGlobal();
+                    programadosRemovidos = await _repo.DeleteAllGlobal();
+
+                    // ExecuteDelete nao passa pela auditoria automatica do SaveChanges:
+                    // registra explicitamente quem fez a limpeza e quanto foi apagado.
+                    if (_currentUserService.UserId.HasValue)
+                    {
+                        await _repo.LogGlobalCleanup(
+                            _currentUserService.UserId.Value,
+                            _currentUserService.IpAddress,
+                            programadosRemovidos,
+                            administracoesRemovidas);
+                    }
+                });
+
+                ret.Success = true;
+                ret.Message = $"Exclusão concluída: {programadosRemovidos} medicamento(s) programado(s) e {administracoesRemovidas} administração(ões) removida(s).";
+                ret.Data = new { programadosRemovidos, administracoesRemovidas };
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ApiErrors.From(ex);
+            }
             return ret;
         }
 

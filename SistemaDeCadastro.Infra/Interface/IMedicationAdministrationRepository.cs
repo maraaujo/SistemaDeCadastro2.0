@@ -17,5 +17,9 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<MedicineReminderDTO>> GetMedicineReminders();
         /// <summary>Relatorio do dia: todos os medicamentos programados para a data com status Administrado, Atrasado ou Pendente.</summary>
         Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId);
+
+        // Remove TODAS as administracoes de TODAS as instituicoes (ignora o filtro de
+        // tenant). Uso exclusivo do administrador da plataforma.
+        Task<int> DeleteAllGlobal();
     }
 }

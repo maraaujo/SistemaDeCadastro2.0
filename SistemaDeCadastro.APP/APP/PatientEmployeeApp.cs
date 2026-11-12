@@ -44,7 +44,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todos os vinculos acolhido-funcionario visiveis para a instituicao.
         /// </summary>
-        public async Task<List<PatientEmployee>> GetAll() => await _repo.GetAll();
+        public async Task<List<PatientEmployee>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca um vinculo acolhido-funcionario pelo Id; devolve null se nao existir.

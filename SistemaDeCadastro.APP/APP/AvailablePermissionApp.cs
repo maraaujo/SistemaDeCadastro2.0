@@ -20,7 +20,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todas as permissoes disponiveis cadastradas.
         /// </summary>
-        public async Task<List<AvailablePermission>> GetAll() => await _repo.GetAll();
+        public async Task<List<AvailablePermission>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca uma permissao disponivel pelo Id; devolve null se nao existir.

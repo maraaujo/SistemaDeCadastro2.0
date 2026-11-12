@@ -81,10 +81,15 @@ builder.Services.AddDbContext<SistemaDeCadastroContext>(options =>
         ServerVersion.Parse("8.4.8-mysql")
     );
 
-    options.LogTo(
-        Console.WriteLine,
-        LogLevel.Information
-    );
+    // O SQL de cada consulta so e escrito no console em desenvolvimento. Em producao
+    // isso gerava uma linha de log por comando executado (custo e ruido no Cloud Run).
+    if (builder.Environment.IsDevelopment())
+    {
+        options.LogTo(
+            Console.WriteLine,
+            LogLevel.Information
+        );
+    }
 });
 // Servicos de apoio: acesso ao HttpContext (para ler o usuario logado do token), cache em memoria
 // e o LoginAttemptGuard como singleton (guarda as tentativas de login entre requisicoes).
@@ -336,6 +341,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Os erros inesperados tratados nos Apps (ApiErrors.From) passam a sair pelo logger
+// da aplicacao: log estruturado, com nivel e stack trace, em vez de texto no stderr.
+SistemaDeCadastro.Domain.Models.Stage.ApiErrors.Logger = app.Services
+    .GetRequiredService<ILoggerFactory>()
+    .CreateLogger("SistemaDeCadastro.Erros");
 
 // Pipeline
 // Ordem dos middlewares (importa): Swagger (so em desenvolvimento) -> redireciona HTTPS -> roteamento

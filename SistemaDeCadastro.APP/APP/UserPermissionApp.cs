@@ -20,7 +20,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve todas as permissoes concedidas a usuarios.
         /// </summary>
-        public async Task<List<UserPermission>> GetAll() => await _repo.GetAll();
+        public async Task<List<UserPermission>> GetAll() => await _repo.GetAllReadOnly();
 
         /// <summary>
         /// Busca uma permissao de usuario pelo Id; devolve null se nao existir.
@@ -73,7 +73,7 @@ namespace SistemaDeCadastro.APP.APP
                 else
                 {
                     ret.Success = false;
-                    ret.ErrorMessage = "UserPermission not found.";
+                    ret.ErrorMessage = "Permissão do usuário não encontrada.";
                 }
 
             }

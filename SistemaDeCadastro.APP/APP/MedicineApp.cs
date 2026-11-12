@@ -25,7 +25,7 @@ namespace SistemaDeCadastro.APP.APP
         /// Devolve todos os medicamentos visiveis para a instituicao do usuario.
         /// </summary>
         public async Task<List<Medicine>> GetAll() =>
-            await this._medicineRepository.GetAll();
+            await this._medicineRepository.GetAllReadOnly();
         /// <summary>
         /// Devolve uma lista com o medicamento do Id informado (vazia se nao existir).
         /// </summary>

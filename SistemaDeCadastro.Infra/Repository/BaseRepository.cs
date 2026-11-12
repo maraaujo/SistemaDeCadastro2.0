@@ -42,6 +42,14 @@ namespace SistemaDeCadastro.Infra.Repository
             return await _context.Set<T>().ToListAsync();
         }
 
+        // Listagem somente leitura (telas e combos): sem rastreamento o EF nao guarda
+        // uma copia de cada linha no contexto, gastando menos memoria e CPU. Use GetAll
+        // ou FindBy quando a entidade for alterada e salva em seguida.
+        public async Task<List<T>> GetAllReadOnly()
+        {
+            return await _context.Set<T>().AsNoTracking().ToListAsync();
+        }
+
         /// <summary>Remove a entidade e chama SaveChanges na hora.</summary>
         public async Task Delete(T entity)
         {

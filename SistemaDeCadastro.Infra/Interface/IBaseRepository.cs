@@ -15,6 +15,7 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<T>> FindBy(Expression<Func<T, bool>> expression);
         /// <summary>Retorna todos os registros da tabela (respeitando o filtro por instituicao, quando houver).</summary>
         Task<List<T>> GetAll();
+        Task<List<T>> GetAllReadOnly();
         /// <summary>Indica se existe pelo menos um registro que atende a condicao.</summary>
         Task<bool> Any(Expression<Func<T, bool>> predicate);
         /// <summary>Remove a entidade do banco e salva imediatamente.</summary>

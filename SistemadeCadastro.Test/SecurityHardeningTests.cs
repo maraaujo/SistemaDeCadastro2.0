@@ -127,7 +127,7 @@ namespace SistemadeCadastro.Test
                 var app = new MedicinePatientClinicalConditionApp(
                     new MedicinePatientClinicalConditionRepository(ctx), new PatientRepository(ctx), new MedicineRepository(ctx),
                     new ClinicalConditionRepository(ctx), new PatientClinicalConditionRepository(ctx),
-                    new EmployeeRepository(ctx), user);
+                    new EmployeeRepository(ctx), new MedicationAdministrationRepository(ctx), user);
 
                 var ret = await app.Create(new CreateMedicinePatientClinicalConditionDTO
                 {

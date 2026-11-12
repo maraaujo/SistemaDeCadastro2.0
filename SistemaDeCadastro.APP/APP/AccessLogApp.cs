@@ -24,10 +24,14 @@ namespace SistemaDeCadastro.APP.APP
         {
             return await _repo.GetAccessLogsByFilter(filter);
         }
+        // Limite de registros devolvidos por GetAll (os mais recentes). O historico
+        // completo e consultado pelo filtro paginado (GetAccessLogsByFilter).
+        private const int MaxRecentLogs = 500;
+
         /// <summary>
-        /// Devolve todos os logs de acesso cadastrados (sem paginacao).
+        /// Devolve os logs de acesso mais recentes (ate MaxRecentLogs registros).
         /// </summary>
-        public async Task<List<AccessLog>> GetAll() => await _repo.GetAll();
+        public async Task<List<AccessLog>> GetAll() => await _repo.GetRecent(MaxRecentLogs);
 
         /// <summary>
         /// Busca um log de acesso pelo Id; devolve null se nao existir.

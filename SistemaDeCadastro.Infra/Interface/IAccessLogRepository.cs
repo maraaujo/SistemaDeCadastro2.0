@@ -12,6 +12,7 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<AccessLog?> GetById(long id);
         /// <summary>Lista todos os logs de acesso gerados por um usuario (UserId da conta de acesso).</summary>
         Task<List<AccessLog>> GetByUserId(long userId);
+        Task<List<AccessLog>> GetRecent(int max);
         /// <summary>Lista paginada dos logs de acesso com nome/e-mail do usuario, filtrando por usuario, e-mail, acao e dia.</summary>
         Task<PagedAcesseLog> GetAccessLogsByFilter(AccessLogFilterDTO filter);
     }

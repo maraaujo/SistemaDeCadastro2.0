@@ -23,6 +23,15 @@ namespace SistemaDeCadastro.Infra.Repository
         {
             return await this.FindBy(c => c.Id == ind);
         }
+
+        // Apaga todas as administracoes de todas as instituicoes (ignora o filtro de
+        // tenant). Retorna a quantidade de linhas removidas.
+        public async Task<int> DeleteAllGlobal()
+        {
+            return await _context.MedicationAdministrations
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync();
+        }
         /// <summary>Lista as administracoes de medicamento cujo Status e igual ao texto informado.</summary>
         public async Task<List<MedicationAdministration>> GetMedicationAdministrationByStatus(string status)
         {
@@ -34,8 +43,8 @@ namespace SistemaDeCadastro.Infra.Repository
 
         /// <summary>
         /// Historico paginado de administracoes de medicamento (tela de historico de medicacao).
-        /// Junta MedicationAdministrations com Patients e Employees (inner join: registros sem funcionario
-        /// nao aparecem) e faz left join com o medicamento programado e o medicamento. Filtros opcionais:
+        /// Junta MedicationAdministrations com Patients (inner join) e faz left join com Employees (registros
+        /// sem funcionario tambem aparecem), com o medicamento programado e com o medicamento. Filtros opcionais:
         /// id, status exato, acolhido, funcionario, medicamento, horario previsto e horario administrado
         /// (janela de 1 minuto) e observacoes (texto exato). Ordena do maior id para o menor, 15 por pagina.
         /// Depois, em memoria, calcula a "proxima medicacao" (hoje + horario planejado, fuso de Sao Paulo) e
@@ -48,7 +57,10 @@ namespace SistemaDeCadastro.Infra.Repository
 
             var query = from m in _context.MedicationAdministrations
                         join p in _context.Patients on m.PatientId equals p.Id
-                        join e in _context.Employees on m.EmployeeId equals e.Id
+                        // Funcionario e opcional no registro: LEFT JOIN para a administracao
+                        // sem funcionario nao sumir do historico.
+                        join e in _context.Employees on m.EmployeeId equals (long?)e.Id into eGroup
+                        from e in eGroup.DefaultIfEmpty()
                         join mpcc in _context.MedicinePatientClinicalConditions
                             on m.MedicinePatientClinicalConditionId equals mpcc.Id into mpccGroup
                         from mpcc in mpccGroup.DefaultIfEmpty()
@@ -65,7 +77,7 @@ namespace SistemaDeCadastro.Infra.Repository
                             MedicineName = med != null ? med.Name : null,
                             PrescribedDosage = mpcc != null ? mpcc.PrescribedDosage : null,
                             EmployeeId = m.EmployeeId,
-                            EmployeeName = e.Name,
+                            EmployeeName = e != null ? e.Name : null,
                             ScheduledDateTime = m.ScheduledDateTime,
                             AdministeredDateTime = m.AdministeredDateTime,
                             Status = m.Status,
@@ -149,7 +161,8 @@ namespace SistemaDeCadastro.Infra.Repository
         /// Monta os lembretes da tela "Proximos medicamentos" para hoje (fuso de Sao Paulo).
         /// 1) Carrega as administracoes ja registradas hoje. 2) Busca os medicamentos programados com
         /// horario definido e vigentes hoje (StartDate/EndDate), juntando medicamento, condicao do acolhido,
-        /// acolhido e responsavel (left join). 3) Em memoria, descarta os que ja foram administrados hoje
+        /// acolhido e responsavel (left join). 3) Em memoria, descarta os que ja tem registro hoje, seja dose
+        /// dada ou marcada como "Nao administrado"/"Cancelado"
         /// (mesmo medicamento programado + mesmo acolhido) e calcula minutos restantes/atraso e o texto
         /// do alerta. Ordena pelo menor tempo restante (atrasados primeiro). Restrito a instituicao logada.
         /// </summary>
@@ -160,6 +173,7 @@ namespace SistemaDeCadastro.Infra.Repository
             // Mantido como Unspecified (sem 'Z'/offset) para o front exibir a hora de parede.
             var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
             var today = now.Date;
+            var tomorrow = today.AddDays(1);
 
             /*
                 Busca as administrações registradas hoje.
@@ -167,13 +181,19 @@ namespace SistemaDeCadastro.Infra.Repository
                 Aqui usamos tanto ScheduledDateTime quanto AdministeredDateTime porque,
                 em alguns registros antigos, o ScheduledDateTime pode ter sido salvo como
                 00:00:00, mas o AdministeredDateTime está correto.
+
+                O filtro usa intervalo (>= hoje e < amanhã) em vez de ".Date == hoje":
+                assim o banco consegue usar índice nas colunas de data, sem varrer a
+                tabela inteira aplicando uma função em cada linha.
             */
             var administrationsToday = await _context.MedicationAdministrations
                 .AsNoTracking()
                 .Where(x =>
-                    x.ScheduledDateTime.Date == today ||
-                    (x.AdministeredDateTime != null && x.AdministeredDateTime.Value.Date == today)
+                    (x.ScheduledDateTime >= today && x.ScheduledDateTime < tomorrow) ||
+                    (x.AdministeredDateTime != null &&
+                     x.AdministeredDateTime >= today && x.AdministeredDateTime < tomorrow)
                 )
+                .Select(x => new { x.MedicinePatientClinicalConditionId, x.PatientId })
                 .ToListAsync();
 
             /*
@@ -201,8 +221,8 @@ namespace SistemaDeCadastro.Infra.Repository
                 from employee in employeeGroup.DefaultIfEmpty()
 
                 where mpcc.AdministrationTime != null
-                      && (mpcc.StartDate == null || mpcc.StartDate.Value.Date <= today)
-                      && (mpcc.EndDate == null || mpcc.EndDate.Value.Date >= today)
+                      && (mpcc.StartDate == null || mpcc.StartDate < tomorrow)
+                      && (mpcc.EndDate == null || mpcc.EndDate >= today)
 
                 select new
                 {
@@ -236,7 +256,8 @@ namespace SistemaDeCadastro.Infra.Repository
                                 var nextDoseDateTime = today.Add(item.AdministrationTime.Value);
 
                                 /*
-                                    Verifica se este medicamento programado já foi administrado hoje.
+                                    Verifica se a dose de hoje deste medicamento programado já foi
+                                    tratada, ou seja, se já existe um registro para ela hoje.
 
                                     item = medicamento programado que aparece em "Próximos Medicamentos"
                                     a = registro já salvo em "Administração de Medicamentos"
@@ -244,31 +265,18 @@ namespace SistemaDeCadastro.Infra.Repository
                                     Não vamos comparar o horário exato aqui, porque seus registros antigos
                                     salvaram ScheduledDateTime como 00:00:00.
 
-                                    Então a regra fica:
-                                    mesmo id_medicamento_acond + mesmo paciente + administrado hoje
-                                    → já foi administrado
+                                    Vale qualquer registro do dia: dose administrada OU registrada
+                                    como "Não administrado"/"Cancelado". Nos dois casos a equipe já
+                                    decidiu o que fazer com a dose, então o lembrete sai da lista.
+                                    Quem diferencia "dada" de "não dada" é o relatório do dia.
                                 */
                                 var alreadyAdministered = administrationsToday.Any(a =>
                                      a.MedicinePatientClinicalConditionId == item.MedicinePatientClinicalConditionId &&
-                                     a.PatientId == item.PatientId &&
-                                     (
-                                         a.AdministeredDateTime != null ||
-                                         (!string.IsNullOrWhiteSpace(a.Status) &&
-                                          (
-                                              a.Status.Equals("Administrado", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Administrada", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Realizado", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Realizada", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Ministrado", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Ministrada", StringComparison.OrdinalIgnoreCase) ||
-                                              a.Status.Equals("Administered", StringComparison.OrdinalIgnoreCase)
-                                          ))
-                                     )
-                                 );
+                                     a.PatientId == item.PatientId);
 
                                 /*
-                                    Se já foi administrado hoje, não deve aparecer mais na tela
-                                    de Próximos Medicamentos.
+                                    Se a dose de hoje já foi registrada, não deve aparecer mais
+                                    na tela de Próximos Medicamentos.
                                 */
                                 if (alreadyAdministered)
                         return null;
@@ -329,18 +337,22 @@ namespace SistemaDeCadastro.Infra.Repository
         }
 
         // Relatorio de medicamentos do dia: todos os medicamentos programados para a data de
-        // referencia (hoje, por padrao) com o status calculado (Administrado / Atrasado /
-        // Pendente). Opcionalmente filtra por um acolhido (paciente).
+        // referencia (hoje, por padrao) com o status calculado (Administrado / Nao administrado /
+        // Cancelado / Atrasado / Pendente). Opcionalmente filtra por um acolhido (paciente).
         public async Task<List<DailyMedicationReportItemDTO>> GetDailyMedicationReport(DateTime? referenceDate, long? patientId)
         {
             var now = SistemaDeCadastro.Domain.Utils.DateTimeUtils.NowSaoPaulo();
             var day = (referenceDate ?? now).Date;
+            var nextDay = day.AddDays(1);
 
+            // Intervalo (>= dia e < dia seguinte) em vez de ".Date == dia", para o
+            // banco poder usar indice nas colunas de data.
             var administrationsOnDay = await _context.MedicationAdministrations
                 .AsNoTracking()
                 .Where(x =>
-                    x.ScheduledDateTime.Date == day ||
-                    (x.AdministeredDateTime != null && x.AdministeredDateTime.Value.Date == day))
+                    (x.ScheduledDateTime >= day && x.ScheduledDateTime < nextDay) ||
+                    (x.AdministeredDateTime != null &&
+                     x.AdministeredDateTime >= day && x.AdministeredDateTime < nextDay))
                 .ToListAsync();
 
             var query =
@@ -355,8 +367,8 @@ namespace SistemaDeCadastro.Infra.Repository
                     on mpcc.ResponsibleEmployeeId equals (long?)employee.Id into employeeGroup
                 from employee in employeeGroup.DefaultIfEmpty()
                 where mpcc.AdministrationTime != null
-                      && (mpcc.StartDate == null || mpcc.StartDate.Value.Date <= day)
-                      && (mpcc.EndDate == null || mpcc.EndDate.Value.Date >= day)
+                      && (mpcc.StartDate == null || mpcc.StartDate < nextDay)
+                      && (mpcc.EndDate == null || mpcc.EndDate >= day)
                       && (patientId == null || patient.Id == patientId.Value)
                 select new
                 {
@@ -377,13 +389,22 @@ namespace SistemaDeCadastro.Infra.Repository
                 {
                     var scheduled = day.Add(item.AdministrationTime.Value);
 
-                    var administration = administrationsOnDay.FirstOrDefault(a =>
-                        a.MedicinePatientClinicalConditionId == item.MedicinePatientClinicalConditionId &&
-                        a.PatientId == item.PatientId &&
-                        (
-                            a.AdministeredDateTime != null ||
-                            (!string.IsNullOrWhiteSpace(a.Status) && IsAdministeredStatus(a.Status))
-                        ));
+                    var records = administrationsOnDay
+                        .Where(a =>
+                            a.MedicinePatientClinicalConditionId == item.MedicinePatientClinicalConditionId &&
+                            a.PatientId == item.PatientId)
+                        .ToList();
+
+                    // Dose efetivamente dada (o status decide; registro "Não administrado"
+                    // ou "Cancelado" nunca conta como dada, mesmo que tenha horario gravado).
+                    var administration = records.FirstOrDefault(a =>
+                        SistemaDeCadastro.Domain.Utils.MedicationStatus.WasGiven(a.Status, a.AdministeredDateTime));
+
+                    // Dose registrada como nao dada (recusa, cancelamento...).
+                    var notGiven = administration == null
+                        ? records.FirstOrDefault(a =>
+                            SistemaDeCadastro.Domain.Utils.MedicationStatus.IsNotAdministered(a.Status))
+                        : null;
 
                     string status;
                     DateTimeOffset? administeredAt = null;
@@ -396,6 +417,13 @@ namespace SistemaDeCadastro.Infra.Repository
                         if (administration.AdministeredDateTime != null)
                             administeredAt = SistemaDeCadastro.Domain.Utils.DateTimeUtils
                                 .ToSaoPauloOffset(administration.AdministeredDateTime.Value);
+                    }
+                    else if (notGiven != null)
+                    {
+                        status = notGiven.Status!.Trim().StartsWith("Cancel", StringComparison.OrdinalIgnoreCase)
+                            ? "Cancelado"
+                            : "Não administrado";
+                        observations = notGiven.Observations ?? string.Empty;
                     }
                     else
                     {
@@ -424,15 +452,5 @@ namespace SistemaDeCadastro.Infra.Repository
 
             return result;
         }
-
-        // Status (em pt-BR ou en) que indicam que a dose foi efetivamente administrada.
-        private static bool IsAdministeredStatus(string status) =>
-            status.Equals("Administrado", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Administrada", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Realizado", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Realizada", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Ministrado", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Ministrada", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("Administered", StringComparison.OrdinalIgnoreCase);
     }
 }

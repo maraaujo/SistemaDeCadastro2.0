@@ -27,9 +27,13 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<PagedPatientDTO> FilterPatient(PatientFilterDTO filter);
         /// <summary>Ficha completa do acolhido: dados, tipo sanguineo, responsaveis, condicoes, medicamentos e agendamentos.</summary>
         Task<DetailsPatientDTO?> DetailsPatient(long id);
-        /// <summary>Busca a entidade do acolhido carregando todas as relacoes (tipo sanguineo, responsaveis, condicoes, funcionarios, agendamentos, atendimentos).</summary>
+        /// <summary>Busca a entidade do acolhido carregando responsaveis e condicoes clinicas com seus medicamentos programados.</summary>
         Task<Patient?> GetByIdWithRelations(long id);
 
-        
+        // Executa as gravacoes de "action" numa unica transacao: ou tudo e salvo, ou nada.
+        Task ExecuteInTransaction(Func<Task> action);
+
+        // Exclui o acolhido e todos os registros que dependem dele, de forma atomica.
+        Task DeletePatientWithDependencies(Patient patient);
     }
 }

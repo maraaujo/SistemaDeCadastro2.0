@@ -73,7 +73,7 @@ namespace SistemaDeCadastro.APP.APP
         /// Devolve todos os acolhidos visiveis para a instituicao do usuario.
         /// </summary>
         public async Task<List<Patient>> GetAllPatients()
-            => await _patientRepository.GetAll();
+            => await _patientRepository.GetAllReadOnly();
 
         /// <summary>
         /// Devolve uma lista com o acolhido do Id informado (vazia se nao existir).
@@ -271,8 +271,9 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Atualiza o acolhido e seus dependentes ("Paciente nao encontrado." se nao existir). So altera os campos
         /// preenchidos no DTO; valida telefones, CPF e se medicamentos/funcionarios sao da instituicao. Responsaveis,
-        /// condicoes e medicamentos com Id existente sao atualizados, os demais sao criados (medicamento novo vai para a
-        /// primeira condicao do acolhido). Nada e removido aqui e nao checa CPF duplicado na edicao.
+        /// condicoes e medicamentos com Id existente sao atualizados, os demais sao criados (medicamento sem Id igual a
+        /// um ja existente, mesmo medicamento e horario, e atualizado em vez de duplicado; o novo vai para a condicao
+        /// informada). Tudo e gravado em uma unica transacao. Nada e removido aqui e nao checa CPF duplicado na edicao.
         /// </summary>
         public async Task<ApiResponse> UpdatePatient(PatientDTO patient)
         {
@@ -348,197 +349,245 @@ namespace SistemaDeCadastro.APP.APP
                 if (!string.IsNullOrWhiteSpace(patient.Observations))
                     updatePatient.Observations = patient.Observations;
 
-                await _patientRepository.Update(updatePatient);
+                // Condicoes e medicamentos que o acolhido ja tem (os criados nesta
+                // requisicao sao acrescentados a estas listas conforme sao gravados).
+                var patientConditions = updatePatient.PatientClinicalConditions.ToList();
+                var patientMedicines = patientConditions
+                    .SelectMany(x => x.Medicines ?? Enumerable.Empty<MedicinePatientClinicalCondition>())
+                    .ToList();
 
-
-                // ============================
-                // RESPONSÁVEIS
-                // ============================
-
-                if (patient.Responsibles != null)
+                // Valida os medicamentos ANTES de gravar qualquer coisa.
+                if (patient.ScheduledMedicines != null && patient.ScheduledMedicines.Any())
                 {
-                    foreach (var responsibleDto in patient.Responsibles)
+                    if (patient.ScheduledMedicines.Any(m =>
+                            m.Id != 0 && patientMedicines.All(x => x.Id != m.Id)))
                     {
-                        var existingResponsible =
-                            updatePatient.Responsibles
-                                .FirstOrDefault(r => r.Id == responsibleDto.Id);
+                        ret.Success = false;
+                        ret.ErrorMessage = "Medicamento programado não encontrado para este acolhido.";
+                        return ret;
+                    }
 
-                        if (existingResponsible != null)
-                        {
-                            if (!string.IsNullOrWhiteSpace(responsibleDto.Name))
-                                existingResponsible.Name = responsibleDto.Name;
-
-                            if (!string.IsNullOrWhiteSpace(responsibleDto.Phone))
-                                existingResponsible.Phone = PhoneValidator.Normalize(responsibleDto.Phone);
-
-                            if (!string.IsNullOrWhiteSpace(responsibleDto.Relationship))
-                                existingResponsible.Relationship = responsibleDto.Relationship;
-
-                            if (!string.IsNullOrWhiteSpace(responsibleDto.Address))
-                                existingResponsible.Address = responsibleDto.Address;
-
-                            await _responsibleRepository.Update(existingResponsible);
-                        }
-                        else
-                        {
-                            var newResponsible = new Responsible
-                            {
-                                PatientId = updatePatient.Id,
-                                Name = responsibleDto.Name,
-                                Phone = string.IsNullOrWhiteSpace(responsibleDto.Phone)
-                                    ? responsibleDto.Phone
-                                    : PhoneValidator.Normalize(responsibleDto.Phone),
-                                Relationship = responsibleDto.Relationship,
-                                Address = responsibleDto.Address
-                            };
-
-                            await _responsibleRepository.Create(newResponsible);
-                        }
+                    var hasCondition = patientConditions.Any()
+                        || (patient.ClinicalConditions != null && patient.ClinicalConditions.Any());
+                    if (!hasCondition)
+                    {
+                        ret.Success = false;
+                        ret.ErrorMessage = "Não é possível cadastrar medicamento sem uma condição clínica associada.";
+                        return ret;
                     }
                 }
 
-
-                // ============================
-                // CONDIÇÕES CLÍNICAS
-                // ============================
-
-                if (patient.ClinicalConditions != null)
+                // Dados do acolhido, responsaveis, condicoes e medicamentos sao gravados
+                // numa unica transacao: se uma etapa falhar, nenhuma alteracao permanece.
+                await _patientRepository.ExecuteInTransaction(async () =>
                 {
-                    foreach (var conditionDto in patient.ClinicalConditions)
+                    await _patientRepository.Update(updatePatient);
+
+
+                    // ============================
+                    // RESPONSÁVEIS
+                    // ============================
+
+                    if (patient.Responsibles != null)
                     {
-                        var existingCondition =
-                            updatePatient.PatientClinicalConditions
-                                .FirstOrDefault(x => x.Id == conditionDto.Id);
-
-                        if (existingCondition != null)
+                        foreach (var responsibleDto in patient.Responsibles)
                         {
-                            if (conditionDto.ClinicalConditionId != 0)
-                                existingCondition.ClinicalConditionId =
-                                    conditionDto.ClinicalConditionId;
+                            var existingResponsible =
+                                updatePatient.Responsibles
+                                    .FirstOrDefault(r => r.Id == responsibleDto.Id);
 
-                            if (conditionDto.DiagnosisDate.HasValue)
-                                existingCondition.DiagnosisDate =
-                                    conditionDto.DiagnosisDate.Value;
-
-                            if (conditionDto.Observations != null)
-                                existingCondition.Observations =
-                                    conditionDto.Observations;
-
-                            await _patientClinicalConditionRepository
-                                .Update(existingCondition);
-                        }
-                        else
-                        {
-                            var newCondition = new PatientClinicalCondition
+                            if (existingResponsible != null)
                             {
-                                PatientId = updatePatient.Id,
-                                ClinicalConditionId =
-                                    conditionDto.ClinicalConditionId,
+                                if (!string.IsNullOrWhiteSpace(responsibleDto.Name))
+                                    existingResponsible.Name = responsibleDto.Name;
 
-                                DiagnosisDate =
-                                    conditionDto.DiagnosisDate,
+                                if (!string.IsNullOrWhiteSpace(responsibleDto.Phone))
+                                    existingResponsible.Phone = PhoneValidator.Normalize(responsibleDto.Phone);
 
-                                Observations =
-                                    conditionDto.Observations
-                            };
+                                if (!string.IsNullOrWhiteSpace(responsibleDto.Relationship))
+                                    existingResponsible.Relationship = responsibleDto.Relationship;
 
-                            await _patientClinicalConditionRepository
-                                .Create(newCondition);
-                        }
-                    }
-                }
+                                if (!string.IsNullOrWhiteSpace(responsibleDto.Address))
+                                    existingResponsible.Address = responsibleDto.Address;
 
-
-                // ============================
-                // MEDICAMENTOS
-                // ============================
-
-                if (patient.ScheduledMedicines != null)
-                {
-                    foreach (var medicineDto in patient.ScheduledMedicines)
-                    {
-                        var existingMedicine =
-                            updatePatient.PatientClinicalConditions
-                                .SelectMany(x => x.Medicines)
-                                .FirstOrDefault(x => x.Id == medicineDto.Id);
-
-                        if (existingMedicine != null)
-                        {
-                            if (medicineDto.MedicineId != 0)
-                                existingMedicine.MedicineId =
-                                    medicineDto.MedicineId;
-
-                            if (medicineDto.ResponsibleEmployeeId != 0)
-                                existingMedicine.ResponsibleEmployeeId =
-                                    medicineDto.ResponsibleEmployeeId;
-
-                            if (medicineDto.Frequency != null)
-                                existingMedicine.Frequency =
-                                    medicineDto.Frequency;
-
-                            if (medicineDto.StartDate.HasValue)
-                                existingMedicine.StartDate =
-                                    medicineDto.StartDate.Value;
-
-                            if (medicineDto.EndDate.HasValue)
-                                existingMedicine.EndDate =
-                                    medicineDto.EndDate.Value;
-
-                            if (medicineDto.Observations != null)
-                                existingMedicine.Observations =
-                                    medicineDto.Observations;
-
-                            if (medicineDto.AdministrationTime != null)
-                                existingMedicine.AdministrationTime =
-                                    medicineDto.AdministrationTime;
-
-                            if (medicineDto.PrescribedDosage != null)
-                                existingMedicine.PrescribedDosage =
-                                    medicineDto.PrescribedDosage;
-
-                            await _medicinePatientClinicalConditionRepository
-                                .Update(existingMedicine);
-                        }
-                        else
-                        {
-                            var newMedicine =
-                                new MedicinePatientClinicalCondition
+                                await _responsibleRepository.Update(existingResponsible);
+                            }
+                            else
+                            {
+                                var newResponsible = new Responsible
                                 {
-                                    PatientClinicalConditionId =
-                                        updatePatient
-                                            .PatientClinicalConditions
-                                            .FirstOrDefault()?.Id ?? 0,
-
-                                    MedicineId =
-                                        medicineDto.MedicineId,
-
-                                    ResponsibleEmployeeId =
-                                        medicineDto.ResponsibleEmployeeId,
-
-                                    Frequency =
-                                        medicineDto.Frequency,
-
-                                    StartDate =
-                                        medicineDto.StartDate,
-
-                                    EndDate =
-                                        medicineDto.EndDate,
-
-                                    Observations =
-                                        medicineDto.Observations,
-
-                                    AdministrationTime =
-                                        medicineDto.AdministrationTime,
-
-                                    PrescribedDosage =
-                                        medicineDto.PrescribedDosage
+                                    PatientId = updatePatient.Id,
+                                    Name = responsibleDto.Name,
+                                    Phone = string.IsNullOrWhiteSpace(responsibleDto.Phone)
+                                        ? responsibleDto.Phone
+                                        : PhoneValidator.Normalize(responsibleDto.Phone),
+                                    Relationship = responsibleDto.Relationship,
+                                    Address = responsibleDto.Address
                                 };
 
-                            await _medicinePatientClinicalConditionRepository
-                                .Create(newMedicine);
+                                await _responsibleRepository.Create(newResponsible);
+                            }
                         }
                     }
-                }
+
+
+                    // ============================
+                    // CONDIÇÕES CLÍNICAS
+                    // ============================
+
+                    if (patient.ClinicalConditions != null)
+                    {
+                        foreach (var conditionDto in patient.ClinicalConditions)
+                        {
+                            var existingCondition =
+                                updatePatient.PatientClinicalConditions
+                                    .FirstOrDefault(x => x.Id == conditionDto.Id);
+
+                            if (existingCondition != null)
+                            {
+                                if (conditionDto.ClinicalConditionId != 0)
+                                    existingCondition.ClinicalConditionId =
+                                        conditionDto.ClinicalConditionId;
+
+                                if (conditionDto.DiagnosisDate.HasValue)
+                                    existingCondition.DiagnosisDate =
+                                        conditionDto.DiagnosisDate.Value;
+
+                                if (conditionDto.Observations != null)
+                                    existingCondition.Observations =
+                                        conditionDto.Observations;
+
+                                await _patientClinicalConditionRepository
+                                    .Update(existingCondition);
+                            }
+                            else
+                            {
+                                var newCondition = new PatientClinicalCondition
+                                {
+                                    PatientId = updatePatient.Id,
+                                    ClinicalConditionId =
+                                        conditionDto.ClinicalConditionId,
+
+                                    DiagnosisDate =
+                                        conditionDto.DiagnosisDate,
+
+                                    Observations =
+                                        conditionDto.Observations
+                                };
+
+                                await _patientClinicalConditionRepository
+                                    .Create(newCondition);
+                                patientConditions.Add(newCondition);
+                            }
+                        }
+                    }
+
+
+                    // ============================
+                    // MEDICAMENTOS
+                    // ============================
+
+                    if (patient.ScheduledMedicines != null)
+                    {
+                        foreach (var medicineDto in patient.ScheduledMedicines)
+                        {
+                            // Com id: e a prescricao que ja existe (validada acima). Sem id:
+                            // se o acolhido ja tem o mesmo medicamento no mesmo horario,
+                            // atualiza esse registro em vez de criar uma prescricao duplicada.
+                            var existingMedicine = medicineDto.Id != 0
+                                ? patientMedicines.FirstOrDefault(x => x.Id == medicineDto.Id)
+                                : patientMedicines.FirstOrDefault(x =>
+                                    x.MedicineId == medicineDto.MedicineId &&
+                                    x.AdministrationTime == medicineDto.AdministrationTime);
+
+                            if (existingMedicine != null)
+                            {
+                                if (medicineDto.MedicineId != 0)
+                                    existingMedicine.MedicineId =
+                                        medicineDto.MedicineId;
+
+                                if (medicineDto.ResponsibleEmployeeId != 0)
+                                    existingMedicine.ResponsibleEmployeeId =
+                                        medicineDto.ResponsibleEmployeeId;
+
+                                if (medicineDto.Frequency != null)
+                                    existingMedicine.Frequency =
+                                        medicineDto.Frequency;
+
+                                if (medicineDto.StartDate.HasValue)
+                                    existingMedicine.StartDate =
+                                        medicineDto.StartDate.Value;
+
+                                if (medicineDto.EndDate.HasValue)
+                                    existingMedicine.EndDate =
+                                        medicineDto.EndDate.Value;
+
+                                if (medicineDto.Observations != null)
+                                    existingMedicine.Observations =
+                                        medicineDto.Observations;
+
+                                if (medicineDto.AdministrationTime != null)
+                                    existingMedicine.AdministrationTime =
+                                        medicineDto.AdministrationTime;
+
+                                if (medicineDto.PrescribedDosage != null)
+                                    existingMedicine.PrescribedDosage =
+                                        medicineDto.PrescribedDosage;
+
+                                await _medicinePatientClinicalConditionRepository
+                                    .Update(existingMedicine);
+                            }
+                            else
+                            {
+                                // Condicao clinica da nova prescricao: a informada pelo
+                                // cliente (id do vinculo ou da condicao); se nao bater com
+                                // nenhuma do acolhido, usa a primeira (ha ao menos uma,
+                                // garantido pela validacao no inicio do metodo).
+                                var targetCondition =
+                                    patientConditions.FirstOrDefault(c =>
+                                        medicineDto.PatientClinicalConditionId != 0 &&
+                                        c.Id == medicineDto.PatientClinicalConditionId)
+                                    ?? patientConditions.FirstOrDefault(c =>
+                                        c.ClinicalConditionId == medicineDto.ClinicalConditionId)
+                                    ?? patientConditions.First();
+
+                                var newMedicine =
+                                    new MedicinePatientClinicalCondition
+                                    {
+                                        PatientClinicalConditionId = targetCondition.Id,
+
+                                        MedicineId =
+                                            medicineDto.MedicineId,
+
+                                        ResponsibleEmployeeId =
+                                            medicineDto.ResponsibleEmployeeId,
+
+                                        Frequency =
+                                            medicineDto.Frequency,
+
+                                        StartDate =
+                                            medicineDto.StartDate,
+
+                                        EndDate =
+                                            medicineDto.EndDate,
+
+                                        Observations =
+                                            medicineDto.Observations,
+
+                                        AdministrationTime =
+                                            medicineDto.AdministrationTime,
+
+                                        PrescribedDosage =
+                                            medicineDto.PrescribedDosage
+                                    };
+
+                                await _medicinePatientClinicalConditionRepository
+                                    .Create(newMedicine);
+                                patientMedicines.Add(newMedicine);
+                            }
+                        }
+                    }
+                });
 
                 ret.Success = true;
             }
@@ -551,8 +600,9 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
         /// <summary>
-        /// Exclui o acolhido e seus dependentes: agendamentos (e pagamentos ligados a eles), condicoes clinicas
-        /// e responsaveis, e por fim o proprio acolhido. Retorna "Acolhido nao encontrado." se ele nao for da instituicao.
+        /// Exclui o acolhido e seus dependentes em uma unica transacao: administracoes, medicamentos programados,
+        /// condicoes clinicas, agendamentos (e pagamentos ligados a eles), vinculos com funcionarios e
+        /// responsaveis, e por fim o proprio acolhido. Retorna "Acolhido nao encontrado." se ele nao for da instituicao.
         /// </summary>
         public async Task<ApiResponse> DeletePatient(long id)
         {
@@ -570,37 +620,10 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
-                // Find appointments for patient and delete related payments and care services
-                var appointments = await _appointmentRepository.FindBy(a => a.PatientId == id);
-                foreach (var ap in appointments)
-                {
-                    var payments = await _paymentRepository.FindBy(p => p.AppointmentId == ap.Id);
-                    if (payments.Any()) await _paymentRepository.DeleteRange(payments);
-
-                }
-                if (appointments.Any()) await _appointmentRepository.DeleteRange(appointments);
-
-                // Delete patient employees
-                //var patientEmployees = await _patient_employeeRepository.FindBy(pe => pe.PatientId == id);
-                //if (patientEmployees.Any()) await _patient_employeeRepository.DeleteRange(patientEmployees);
-
-                // Delete patient clinical conditions and related medicine entries
-                var patientClinicalConditions = await _patientClinicalConditionRepository.FindBy(pcc => pcc.PatientId == id);
-                //foreach (var pcc in patientClinicalConditions)
-                //{
-                //    var meds = await _medicinePatientClinicalConditionRepository.FindBy(m => m.PatientClinicalConditionId == pcc.Id);
-                //    if (meds.Any()) await _medicinePatientClinicalConditionRepository.DeleteRange(meds);
-                //}
-                if (patientClinicalConditions.Any()) await _patientClinicalConditionRepository.DeleteRange(patientClinicalConditions);
-
-
-
-                // Delete responsibles
-                var responsibles = await _responsibleRepository.FindBy(r => r.PatientId == id);
-                if (responsibles.Any()) await _responsibleRepository.DeleteRange(responsibles);
-
-                // Finally delete patient
-                await _patientRepository.DeletePatient(deletePatient);
+                // Apaga o acolhido e tudo o que depende dele (administracoes, medicamentos
+                // programados, condicoes clinicas, pagamentos, agendamentos, vinculos e
+                // responsaveis) numa unica transacao: se algo falhar, nada e apagado.
+                await _patientRepository.DeletePatientWithDependencies(deletePatient);
                 ret.Success = true;
 
             }

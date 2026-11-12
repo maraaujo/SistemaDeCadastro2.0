@@ -15,6 +15,10 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<MedicinePatientClinicalCondition>> GetByPatientClinicalConditionId(long patientClinicalConditionId);
         /// <summary>Lista paginada de medicamentos programados com nomes de acolhido, medicamento, condicao e responsavel, aplicando os filtros.</summary>
         Task<PagedMedicinePatientClinicalConditionDTO> GetMedicinePatientClinicalConditionByFilter(MedicinePatientClinicalConditionFilterDTO filter);
-        
+
+        // Remove TODOS os medicamentos programados de TODAS as instituicoes
+        // (ignora o filtro de tenant). Uso exclusivo do administrador da plataforma.
+        Task<int> DeleteAllGlobal();
+        Task LogGlobalCleanup(long userId, string? ipAddress, int scheduledRemoved, int administrationsRemoved);
     }
 }

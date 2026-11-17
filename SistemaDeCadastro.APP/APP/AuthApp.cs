@@ -3,11 +3,13 @@ using Microsoft.Extensions.Configuration;
 using SistemaDeCadastro.APP.Interface;
 using SistemaDeCadastro.Domain.DataTransferObject;
 using SistemaDeCadastro.Domain.Models.Stage;
+using SistemaDeCadastro.Domain.Validators;
 using SistemaDeCadastro.Infra.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,8 +20,17 @@ namespace SistemaDeCadastro.APP.APP
         private readonly ILoginAccountRepository _loginAccountRepository;
         private readonly IConfiguration _configuration;
         private readonly ILoginAttemptGuard _attemptGuard;
+        private readonly IEmailSender _emailSender;
 
         private const string InvalidCredentials = "E-mail ou senha inválidos.";
+
+        // Resposta neutra do "esqueci minha senha": e sempre a mesma, exista a conta ou
+        // nao, para nao revelar quais e-mails estao cadastrados.
+        private const string ForgotPasswordNeutralMessage =
+            "Se o e-mail estiver cadastrado, você receberá um código para redefinir a senha.";
+
+        // Tempo de validade do codigo enviado por e-mail.
+        private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
         // Hash usado quando o e-mail nao existe, para a resposta levar o mesmo tempo
         // de uma senha errada e nao revelar quais e-mails tem conta.
@@ -28,11 +39,12 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Recebe por injecao de dependencia o repositorio de contas, a configuracao (secao Jwt) e o controle de tentativas de login.
         /// </summary>
-        public AuthApp(ILoginAccountRepository loginAccountRepository, IConfiguration configuration, ILoginAttemptGuard attemptGuard)
+        public AuthApp(ILoginAccountRepository loginAccountRepository, IConfiguration configuration, ILoginAttemptGuard attemptGuard, IEmailSender emailSender)
         {
             _loginAccountRepository = loginAccountRepository;
             _configuration = configuration;
             _attemptGuard = attemptGuard;
+            _emailSender = emailSender;
         }
 
         /// <summary>
@@ -136,6 +148,142 @@ namespace SistemaDeCadastro.APP.APP
                 response.Message = ApiErrors.From(ex);
                 return response;
             }
+        }
+
+        // Passo 1 do "esqueci minha senha": gera um codigo, guarda so o hash + expiracao
+        // na conta e envia o codigo por e-mail. A resposta e sempre neutra (nao revela se
+        // o e-mail existe) e nunca devolve o codigo ao cliente.
+        public async Task<ApiResponse> RequestPasswordReset(ForgotPasswordRequestDTO request)
+        {
+            ApiResponse response = new ApiResponse();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request?.Email))
+                {
+                    response.Success = true;
+                    response.Message = ForgotPasswordNeutralMessage;
+                    return response;
+                }
+
+                var user = await _loginAccountRepository.GetByEmail(request.Email.Trim());
+
+                // So gera/envia codigo para conta existente e ativa. Em qualquer outro
+                // caso a resposta e a mesma, para nao revelar a existencia da conta.
+                if (user != null && user.Active)
+                {
+                    var code = GenerateResetCode();
+                    user.PasswordResetTokenHash = HashCode(code);
+                    user.PasswordResetTokenExpiresAt = DateTime.UtcNow.Add(ResetTokenLifetime);
+                    await _loginAccountRepository.Update(user);
+
+                    await _emailSender.SendAsync(
+                        user.Email,
+                        "Redefinição de senha",
+                        BuildResetEmailBody(user.Name, code));
+                }
+
+                response.Success = true;
+                response.Message = ForgotPasswordNeutralMessage;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ApiErrors.From(ex);
+                return response;
+            }
+        }
+
+        // Passo 2 do "esqueci minha senha": confere o codigo (hash + validade), aplica a
+        // nova senha e invalida o codigo (uso unico).
+        public async Task<ApiResponse> ResetPassword(ResetPasswordRequestDTO request)
+        {
+            ApiResponse response = new ApiResponse();
+            try
+            {
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.Email) ||
+                    string.IsNullOrWhiteSpace(request.Code) ||
+                    string.IsNullOrEmpty(request.NewPassword))
+                {
+                    response.Success = false;
+                    response.Message = "Código ou nova senha inválidos.";
+                    return response;
+                }
+
+                if (!PasswordValidator.IsValid(request.NewPassword))
+                {
+                    response.Success = false;
+                    response.Message = PasswordValidator.MensagemInvalido;
+                    return response;
+                }
+
+                var user = await _loginAccountRepository.GetByEmail(request.Email.Trim());
+
+                var providedHash = HashCode(request.Code.Trim());
+                var tokenMatches =
+                    user?.PasswordResetTokenHash != null &&
+                    CryptographicOperations.FixedTimeEquals(
+                        Encoding.UTF8.GetBytes(user.PasswordResetTokenHash),
+                        Encoding.UTF8.GetBytes(providedHash));
+
+                var tokenValid =
+                    tokenMatches &&
+                    user!.PasswordResetTokenExpiresAt != null &&
+                    user.PasswordResetTokenExpiresAt.Value > DateTime.UtcNow;
+
+                if (user == null || !user.Active || !tokenValid)
+                {
+                    response.Success = false;
+                    response.Message = "Código inválido ou expirado. Solicite um novo.";
+                    return response;
+                }
+
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                // Codigo e de uso unico: invalida apos redefinir.
+                user.PasswordResetTokenHash = null;
+                user.PasswordResetTokenExpiresAt = null;
+                await _loginAccountRepository.Update(user);
+
+                // Libera eventual bloqueio por tentativas de login desta conta.
+                _attemptGuard.Reset(user.Email);
+
+                response.Success = true;
+                response.Message = "Senha redefinida com sucesso. Faça login com a nova senha.";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ApiErrors.From(ex);
+                return response;
+            }
+        }
+
+        // Codigo numerico de 6 digitos, gerado com fonte criptografica.
+        private static string GenerateResetCode()
+        {
+            return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        }
+
+        // Guardamos apenas o hash do codigo (nunca o codigo em texto).
+        private static string HashCode(string code)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(code));
+            return Convert.ToHexString(bytes);
+        }
+
+        private static string BuildResetEmailBody(string? name, string code)
+        {
+            var saudacao = string.IsNullOrWhiteSpace(name) ? "Olá" : $"Olá, {name}";
+            return $@"
+<div style=""font-family:Arial,Helvetica,sans-serif;color:#1f2933;line-height:1.5"">
+  <p>{saudacao},</p>
+  <p>Recebemos um pedido para redefinir a senha da sua conta no Sistema de Gestão Assistencial.</p>
+  <p>Use o código abaixo para criar uma nova senha:</p>
+  <p style=""font-size:28px;font-weight:bold;letter-spacing:4px;margin:16px 0"">{code}</p>
+  <p>O código é válido por {ResetTokenLifetime.TotalMinutes:0} minutos. Se você não solicitou a redefinição, ignore este e-mail.</p>
+</div>";
         }
 
         /// <summary>

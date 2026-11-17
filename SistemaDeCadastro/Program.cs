@@ -97,6 +97,18 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ILoginAttemptGuard, LoginAttemptGuard>();
 
+// Envio de e-mail (SMTP) usado no "esqueci minha senha". As configuracoes vem da secao
+// "Email"; a senha pode vir da variavel de ambiente SMTP_PASSWORD (como a do banco).
+// Sem SMTP configurado o sistema continua funcionando, apenas nao dispara o e-mail.
+var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
+var smtpPasswordEnv = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+if (!string.IsNullOrWhiteSpace(smtpPasswordEnv))
+{
+    emailSettings.Password = smtpPasswordEnv;
+}
+builder.Services.AddSingleton(emailSettings);
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
 // Limite de requisicoes no login por IP de origem (complementa o bloqueio por
 // e-mail do LoginAttemptGuard). Atras do Cloud Run o IP vem do X-Forwarded-For.
 builder.Services.AddRateLimiter(options =>
@@ -145,6 +157,7 @@ builder.Services.AddScoped<IPlanApp, PlanApp>();
 builder.Services.AddScoped<IInstitutionApp, InstitutionApp>();
 builder.Services.AddScoped<IMedicationAdministrationApp, MedicationAdministrationApp>();
 builder.Services.AddScoped<IAdminOverviewApp, AdminOverviewApp>();
+builder.Services.AddScoped<IMaintenanceApp, MaintenanceApp>();
 builder.Services.AddScoped<ICurrentUserServiceContext, CurrentUserServiceContext>();
 builder.Services.AddScoped<IInternalAssistantApp, InternalAssistantApp>();
 // Repositories
@@ -172,6 +185,7 @@ builder.Services.AddScoped<IInstitutionRepository, InstitutionRepository>();
 builder.Services.AddScoped<IMedicationAdministrationRepository, MedicationAdministrationRepository>();
 builder.Services.AddScoped<IInternalAssistantRepository, InternalAssistantRepository>();
 builder.Services.AddScoped<IAdminOverviewRepository, AdminOverviewRepository>();
+builder.Services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
 
 // Base Repository gen�rico
 builder.Services.AddScoped(

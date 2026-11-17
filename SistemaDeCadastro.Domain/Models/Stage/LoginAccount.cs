@@ -20,6 +20,13 @@ namespace SistemaDeCadastro.Domain.Models.Stage
         public string UserType { get; set; }
 
         public DateTime? LastLogin { get; set; }
+
+        // Recuperacao de senha: guardamos apenas o HASH do codigo enviado por e-mail
+        // (nunca o codigo em texto) e a data de expiracao. Ao usar ou expirar, ambos
+        // voltam a null.
+        public string? PasswordResetTokenHash { get; set; }
+        public DateTime? PasswordResetTokenExpiresAt { get; set; }
+
         public long? InstitutionId { get; set; }
         public virtual Institution Institution { get; set; }
         public bool Active { get; set; } = true;

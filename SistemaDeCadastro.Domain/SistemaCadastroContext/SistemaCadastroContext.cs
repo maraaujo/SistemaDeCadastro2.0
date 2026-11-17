@@ -811,6 +811,14 @@ public partial class SistemaDeCadastroContext : DbContext
                 .HasColumnName("ultimo_login")
                 .HasColumnType("datetime");
 
+            entity.Property(e => e.PasswordResetTokenHash)
+                .HasColumnName("token_reset_hash")
+                .HasMaxLength(255);
+
+            entity.Property(e => e.PasswordResetTokenExpiresAt)
+                .HasColumnName("token_reset_expira")
+                .HasColumnType("datetime");
+
             entity.Property(e => e.Active)
                 .HasColumnName("ativo")
                 .HasDefaultValue(true)

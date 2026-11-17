@@ -40,6 +40,24 @@ namespace SistemaDeCadastro.Controller.V1
             
             return Ok(ret);
         }
+        [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDTO request)
+        {
+            var ret = await _authApp.RequestPasswordReset(request);
+            return Ok(ret);
+        }
+
+        [HttpPost("ResetPassword")]
+        [AllowAnonymous]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
+        {
+            var ret = await _authApp.ResetPassword(request);
+            return Ok(ret);
+        }
+
         /// <summary>
         /// GET api/LoginAccount/GetLoginAccountById/{id} - qualquer usuario autenticado.
         /// Retorna a conta (sem hash de senha) se o usuario puder ve-la (quem administra a conta ou o proprio dono);

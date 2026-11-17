@@ -35,7 +35,7 @@ namespace SistemadeCadastro.Test
             })
             .Build();
 
-        private static async Task<(SistemaDeCadastroContext ctx, AuthApp app)> Setup(bool active = true)
+        private static async Task<(SistemaDeCadastroContext ctx, AuthApp app, CapturingEmailSender email)> Setup(bool active = true)
         {
             var ctx = CreateContext("login_" + Guid.NewGuid());
             ctx.LoginAccounts.Add(new LoginAccount
@@ -46,7 +46,30 @@ namespace SistemadeCadastro.Test
             await ctx.SaveChangesAsync();
 
             var guard = new LoginAttemptGuard(new MemoryCache(new MemoryCacheOptions()));
-            return (ctx, new AuthApp(new LoginAccountRepository(ctx), JwtConfig(), guard));
+            var email = new CapturingEmailSender();
+            return (ctx, new AuthApp(new LoginAccountRepository(ctx), JwtConfig(), guard, email), email);
+        }
+
+        // Fake de e-mail: nao envia nada, apenas guarda o ultimo corpo para os testes
+        // extrairem o codigo de 6 digitos.
+        private sealed class CapturingEmailSender : SistemaDeCadastro.Infra.Interface.IEmailSender
+        {
+            public string? LastBody { get; private set; }
+            public int SendCount { get; private set; }
+
+            public Task<bool> SendAsync(string toEmail, string subject, string htmlBody, System.Threading.CancellationToken cancellationToken = default)
+            {
+                LastBody = htmlBody;
+                SendCount++;
+                return Task.FromResult(true);
+            }
+
+            public string? ExtractCode()
+            {
+                if (LastBody == null) return null;
+                var match = System.Text.RegularExpressions.Regex.Match(LastBody, @"\b\d{6}\b");
+                return match.Success ? match.Value : null;
+            }
         }
 
         private static Task<ApiResponse> Login(AuthApp app, string email, string password) =>
@@ -55,8 +78,8 @@ namespace SistemadeCadastro.Test
         [Fact]
         public async Task Login_BlocksEmail_AfterFiveWrongPasswords_EvenWithRightPassword()
         {
-            var (ctx, app) = await Setup();
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
 
             for (var i = 0; i < LoginAttemptGuard.MaxFailedAttempts; i++)
                 Assert.False((await Login(app, Email, "errada123")).Success);
@@ -69,8 +92,8 @@ namespace SistemadeCadastro.Test
         [Fact]
         public async Task Login_Success_ResetsFailureCount()
         {
-            var (ctx, app) = await Setup();
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
 
             for (var i = 0; i < LoginAttemptGuard.MaxFailedAttempts - 1; i++)
                 await Login(app, Email, "errada123");
@@ -84,8 +107,8 @@ namespace SistemadeCadastro.Test
         [Fact]
         public async Task Login_UnknownEmail_SameMessage_AndAlsoGetsBlocked()
         {
-            var (ctx, app) = await Setup();
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
 
             var wrongPassword = await Login(app, Email, "errada123");
             var unknownEmail = await Login(app, "ninguem@a.com", "errada123");
@@ -99,11 +122,109 @@ namespace SistemadeCadastro.Test
         [Fact]
         public async Task Login_InactiveAccount_IsOnlyRevealedWithRightPassword()
         {
-            var (ctx, app) = await Setup(active: false);
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup(active: false);
+            using var _ctx = ctx;
 
             Assert.Equal("E-mail ou senha inválidos.", (await Login(app, Email, "errada123")).Message);
             Assert.Equal("Usuário inativo.", (await Login(app, Email, Password)).Message);
+        }
+
+        // ---------------- esqueci minha senha ----------------
+
+        [Fact]
+        public async Task ForgotPassword_ThenReset_WithCorrectCode_AllowsLoginWithNewPassword()
+        {
+            var (ctx, app, email) = await Setup();
+            using var _ctx = ctx;
+
+            var forgot = await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = Email });
+            Assert.True(forgot.Success);
+            Assert.Equal(1, email.SendCount);
+
+            var code = email.ExtractCode();
+            Assert.NotNull(code);
+
+            const string NewPassword = "NovaSenha123";
+            var reset = await app.ResetPassword(new ResetPasswordRequestDTO
+            {
+                Email = Email, Code = code!, NewPassword = NewPassword
+            });
+            Assert.True(reset.Success);
+
+            // Senha antiga nao vale mais; a nova funciona.
+            Assert.False((await Login(app, Email, Password)).Success);
+            Assert.True((await Login(app, Email, NewPassword)).Success);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_UnknownEmail_SameNeutralMessage_AndSendsNothing()
+        {
+            var (ctx, app, email) = await Setup();
+            using var _ctx = ctx;
+
+            var known = await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = Email });
+            var unknown = await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = "ninguem@a.com" });
+
+            Assert.Equal(known.Message, unknown.Message);
+            // So houve envio para a conta que existe.
+            Assert.Equal(1, email.SendCount);
+        }
+
+        [Fact]
+        public async Task ResetPassword_WithWrongCode_IsRejected()
+        {
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
+
+            await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = Email });
+
+            var reset = await app.ResetPassword(new ResetPasswordRequestDTO
+            {
+                Email = Email, Code = "000000", NewPassword = "NovaSenha123"
+            });
+
+            Assert.False(reset.Success);
+            // A senha original continua valendo.
+            Assert.True((await Login(app, Email, Password)).Success);
+        }
+
+        [Fact]
+        public async Task ResetPassword_CodeIsSingleUse()
+        {
+            var (ctx, app, email) = await Setup();
+            using var _ctx = ctx;
+
+            await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = Email });
+            var code = email.ExtractCode()!;
+
+            Assert.True((await app.ResetPassword(new ResetPasswordRequestDTO
+            {
+                Email = Email, Code = code, NewPassword = "NovaSenha123"
+            })).Success);
+
+            // Mesmo codigo nao pode ser reutilizado.
+            Assert.False((await app.ResetPassword(new ResetPasswordRequestDTO
+            {
+                Email = Email, Code = code, NewPassword = "OutraSenha123"
+            })).Success);
+        }
+
+        [Fact]
+        public async Task ResetPassword_WithWeakPassword_IsRejected()
+        {
+            var (ctx, app, email) = await Setup();
+            using var _ctx = ctx;
+
+            await app.RequestPasswordReset(new ForgotPasswordRequestDTO { Email = Email });
+            var code = email.ExtractCode()!;
+
+            var reset = await app.ResetPassword(new ResetPasswordRequestDTO
+            {
+                Email = Email, Code = code, NewPassword = "123456"
+            });
+
+            Assert.False(reset.Success);
+            Assert.Equal(PasswordValidator.MensagemInvalido, reset.Message);
         }
 
         [Theory]
@@ -152,16 +273,16 @@ namespace SistemadeCadastro.Test
         [Fact]
         public async Task Session_IsValid_WhileAccountUnchanged()
         {
-            var (ctx, app) = await Setup();
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
             Assert.True(await app.IsSessionValid(Token(10, "Colaborador", 1)));
         }
 
         [Fact]
         public async Task Session_IsRevoked_WhenAccountDeactivatedDeletedOrChanged()
         {
-            var (ctx, app) = await Setup();
-            using var _ = ctx;
+            var (ctx, app, _) = await Setup();
+            using var _ctx = ctx;
             var account = await ctx.LoginAccounts.SingleAsync();
 
             // Papel alterado (ex.: promovido ou rebaixado) depois de emitir o token.

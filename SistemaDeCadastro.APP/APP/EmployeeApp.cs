@@ -162,12 +162,33 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o funcionario com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o funcionario com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var entity = (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault(); if (entity != null) await _employeeRepository.Delete(entity); ret.Success = true; }
+            try
+            {
+                var entity = (await _employeeRepository.FindBy(e => e.Id == id)).FirstOrDefault();
+                if (entity == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Funcionário não encontrado.";
+                    return ret;
+                }
+
+                // Vinculos, prescricoes e administracoes guardam o funcionario (FK Restrict): sem
+                // esta checagem o MySQL bloqueia e a tela so mostraria um erro generico.
+                if (await _employeeRepository.HasDependencies(id))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não é possível excluir o funcionário: ele está vinculado a acolhidos, medicamentos programados ou administrações de medicamento.";
+                    return ret;
+                }
+
+                await _employeeRepository.Delete(entity);
+                ret.Success = true;
+            }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }

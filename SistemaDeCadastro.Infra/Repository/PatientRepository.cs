@@ -376,6 +376,36 @@ namespace SistemaDeCadastro.Infra.Repository
                 await _context.SaveChangesAsync();
             });
         }
+
+        /// <summary>
+        /// Remove os itens que o usuario tirou na edicao do acolhido: as administracoes dos medicamentos
+        /// removidos, os proprios medicamentos programados, as condicoes clinicas e os responsaveis.
+        /// Um unico SaveChanges (o EF ordena filhos antes dos pais); roda dentro da transacao do UpdatePatient.
+        /// </summary>
+        public async Task RemovePatientItems(
+            IEnumerable<Responsible> responsibles,
+            IEnumerable<PatientClinicalCondition> conditions,
+            IEnumerable<MedicinePatientClinicalCondition> medicines)
+        {
+            var medicineList = medicines.ToList();
+            var conditionList = conditions.ToList();
+            var responsibleList = responsibles.ToList();
+
+            if (!medicineList.Any() && !conditionList.Any() && !responsibleList.Any())
+                return;
+
+            var medicineIds = medicineList.Select(m => m.Id).ToList();
+            var administrations = await _context.MedicationAdministrations
+                .Where(a => medicineIds.Contains(a.MedicinePatientClinicalConditionId))
+                .ToListAsync();
+
+            _context.MedicationAdministrations.RemoveRange(administrations);
+            _context.MedicinePatientClinicalConditions.RemoveRange(medicineList);
+            _context.PatientClinicalConditions.RemoveRange(conditionList);
+            _context.Responsibles.RemoveRange(responsibleList);
+
+            await _context.SaveChangesAsync();
+        }
         //vou ter que fazer um job para ficar chamando esse metodo de tempos
         //em tempos para ficar atualizando a tela de lembrete de medicamentos
 

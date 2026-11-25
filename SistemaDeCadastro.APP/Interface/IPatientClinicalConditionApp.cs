@@ -20,6 +20,6 @@ namespace SistemaDeCadastro.APP.Interface
         /// <summary>Devolve a lista paginada de condicoes clinicas dos acolhidos conforme o filtro.</summary>
         Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter);
         /// <summary>Devolve as condicoes clinicas do acolhido informado.</summary>
-        Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id);
+        Task<List<PatientClinicalConditionDTO>> GetPatientClinicalConditionByPatientId(long id);
     }
 }

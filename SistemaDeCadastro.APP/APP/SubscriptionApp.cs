@@ -22,16 +22,14 @@ namespace SistemaDeCadastro.APP.APP
             _repo = repo;
         }
         /// <summary>
-        /// Busca a assinatura ativa da instituicao informada e coloca em Data.
-        /// Observacao: a chamada ao repositorio nao e aguardada (sem await), entao Data recebe a Task e nao a assinatura,
-        /// e erros da consulta nao caem no catch.
+        /// Busca a assinatura ativa da instituicao informada e coloca em Data (null se nao houver).
         /// </summary>
-        public Task<ApiResponse> GetActiveByInstitutionId(long institutionId)
+        public async Task<ApiResponse> GetActiveByInstitutionId(long institutionId)
         {
             var ret = new ApiResponse();
             try
             {
-                var item = _repo.GetActiveByInstitutionId(institutionId);
+                var item = await _repo.GetActiveByInstitutionId(institutionId);
                 ret.Success = true;
                 ret.Data = item;
             }
@@ -40,7 +38,7 @@ namespace SistemaDeCadastro.APP.APP
                 ret.Success = false;
                 ret.ErrorMessage = ApiErrors.From(ex);
             }
-            return Task.FromResult(ret);
+            return ret;
         }
         /// <summary>
         /// Cria uma assinatura da instituicao em um plano, com inicio agora (relogio do servidor), sem data de fim
@@ -76,7 +74,7 @@ namespace SistemaDeCadastro.APP.APP
 
         /// <summary>
         /// Atualiza instituicao, plano, data de fim, status e Id externo de uma assinatura existente e devolve-a em Data.
-        /// A data de inicio e sempre sobrescrita com a data/hora atual. Se nao existir, retorna "Pagamento nao encontrado.".
+        /// A data de inicio vem do DTO (se nao vier, mantem a atual). Se nao existir, retorna "Pagamento nao encontrado.".
         /// </summary>
         public async Task<ApiResponse> Update(UpdateSubscriptionDTO entity)
         {
@@ -93,7 +91,8 @@ namespace SistemaDeCadastro.APP.APP
 
                 existing.InstitutionId = entity.InstitutionId;
                 existing.PlanId = entity.PlanId;
-                existing.StartDate = DateTime.Now;
+                if (entity.StartDate != default)
+                    existing.StartDate = entity.StartDate;
                 existing.EndDate =  entity.EndDate;
                 existing.Status = entity.Status;
                 existing.ExternalSubscriptionId = entity.ExternalSubscriptionId;

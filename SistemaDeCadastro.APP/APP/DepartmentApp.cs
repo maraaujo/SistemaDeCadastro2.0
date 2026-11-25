@@ -95,12 +95,12 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o departamento com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o departamento com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var entity = (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault(); if (entity != null) await _departmentRepository.Delete(entity); ret.Success = true; }
+            try { var entity = (await _departmentRepository.FindBy(d => d.Id == id)).FirstOrDefault(); if (entity == null) { ret.Success = false; ret.ErrorMessage = "Departamento não encontrado."; return ret; } await _departmentRepository.Delete(entity); ret.Success = true; }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }

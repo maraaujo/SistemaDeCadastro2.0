@@ -68,7 +68,7 @@ namespace SistemaDeCadastro.APP.APP
 
         /// <summary>
         /// Atualiza os dados de um log de acesso existente (busca pelo Id do DTO).
-        /// Se o Id nao for encontrado, nada e gravado e o retorno fica com Success = false sem mensagem de erro.
+        /// Se o Id nao for encontrado, nada e gravado e o retorno traz "Log de acesso nao encontrado.".
         /// </summary>
         public async Task<ApiResponse> Update(UpdateAccessLogDTO entity)
         {
@@ -86,6 +86,11 @@ namespace SistemaDeCadastro.APP.APP
                     await _repo.Update(existingEntity);
                     ret.Success = true;
                 }
+                else
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Log de acesso não encontrado.";
+                }
             }
             catch (Exception ex)
             {
@@ -96,12 +101,12 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o log de acesso com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o log de acesso com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var e = (await _repo.FindBy(a => a.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
+            try { var e = (await _repo.FindBy(a => a.Id == id)).FirstOrDefault(); if (e == null) { ret.Success = false; ret.ErrorMessage = "Log de acesso não encontrado."; return ret; } await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
     }

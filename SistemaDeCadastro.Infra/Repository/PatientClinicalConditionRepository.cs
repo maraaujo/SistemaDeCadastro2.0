@@ -25,11 +25,10 @@ namespace SistemaDeCadastro.Infra.Repository
             return await _context.PatientClinicalConditions.FirstOrDefaultAsync(pcc => pcc.Id == id);
         }
         /// <summary>
-        /// Recebe o id do ACOLHIDO e devolve so a primeira condicao clinica encontrada para ele
-        /// (sem ordenacao definida), com o nome da condicao. Usa FirstAsync, entao lanca
-        /// InvalidOperationException se o acolhido nao tiver nenhuma condicao cadastrada.
+        /// Recebe o id do ACOLHIDO e devolve todas as condicoes clinicas dele, com o nome da
+        /// condicao (lista vazia se o acolhido nao tiver nenhuma).
         /// </summary>
-        public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
+        public async Task<List<PatientClinicalConditionDTO>> GetPatientClinicalConditionByPatientId(long id)
         {
            
             var dto = await _context.PatientClinicalConditions
@@ -45,7 +44,7 @@ namespace SistemaDeCadastro.Infra.Repository
                     Observations = pcc.Observations
              
                 })
-                .FirstAsync();
+                .ToListAsync();
 
             return dto;
 

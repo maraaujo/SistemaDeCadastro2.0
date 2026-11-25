@@ -19,5 +19,8 @@ namespace SistemaDeCadastro.Infra.Interface
         Task DeleteMedicine(Medicine medicine);
         /// <summary>Lista paginada de medicamentos filtrando por id, nome, descricao, dosagem e via de administracao.</summary>
         Task<PagedMedicineDTO> GetMedicineByFilter(MedicineFilterDTO filter);
+        /// <summary>Diz se o medicamento ainda e usado por algum medicamento programado de acolhido.</summary>
+        Task<bool> IsInUse(long medicineId);
     }
 }
+

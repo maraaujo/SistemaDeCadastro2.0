@@ -104,5 +104,15 @@ namespace SistemaDeCadastro.Infra.Repository
 
             return ret;
         }
+
+        /// <summary>
+        /// Diz se o funcionario ainda e usado por vinculos com acolhidos, medicamentos programados (como responsavel)
+        /// ou administracoes de medicamento. Essas chaves estrangeiras sao Restrict: com uso, o MySQL bloqueia a exclusao.
+        /// </summary>
+        public async Task<bool> HasDependencies(long employeeId) =>
+            await _context.PatientEmployees.AnyAsync(pe => pe.EmployeeId == employeeId)
+            || await _context.MedicinePatientClinicalConditions.AnyAsync(m => m.ResponsibleEmployeeId == employeeId)
+            || await _context.MedicationAdministrations.AnyAsync(a => a.EmployeeId == employeeId);
     }
 }
+

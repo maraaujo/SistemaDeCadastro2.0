@@ -94,12 +94,12 @@ namespace SistemaDeCadastro.APP.APP
             return ret;
         }
         /// <summary>
-        /// Exclui a condicao clinica com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui a condicao clinica com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var entity = (await _clinicalConditionRepository.FindBy(c => c.Id == id)).FirstOrDefault(); if (entity != null) await _clinicalConditionRepository.Delete(entity); ret.Success = true; }
+            try { var entity = (await _clinicalConditionRepository.FindBy(c => c.Id == id)).FirstOrDefault(); if (entity == null) { ret.Success = false; ret.ErrorMessage = "Condição clínica não encontrada."; return ret; } await _clinicalConditionRepository.Delete(entity); ret.Success = true; }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }

@@ -34,7 +34,7 @@ namespace SistemadeCadastro.Test
             await context.SaveChangesAsync();
 
             var repo = new PatientClinicalConditionRepository(context);
-            var dto = await repo.GetPatientClinicalConditionByPatientId(pcc.Id);
+            var dto = Assert.Single(await repo.GetPatientClinicalConditionByPatientId(patient.Id));
 
             Assert.NotNull(dto);
             Assert.Equal(cc.Name, dto.ClinicalCondition);

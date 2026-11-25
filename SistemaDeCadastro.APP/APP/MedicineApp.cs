@@ -126,6 +126,15 @@ namespace SistemaDeCadastro.APP.APP
                     return ret;
                 }
 
+                // Medicamento usado em prescricao de acolhido (FK Restrict): o MySQL bloquearia a
+                // exclusao com um erro generico, entao avisa com uma mensagem clara.
+                if (await this._medicineRepository.IsInUse(idToDelete.Id))
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Não é possível excluir o medicamento: ele está programado para um ou mais acolhidos.";
+                    return ret;
+                }
+
                 await this._medicineRepository.DeleteMedicine(idToDelete);
                 ret.Success = true;
             }

@@ -34,10 +34,9 @@ namespace SistemaDeCadastro.Infra.Repository
         }
         /// <summary>
         /// Lista paginada dos vinculos acolhido x funcionario. Junta PatientEmployees com Patients e Employees
-        /// para trazer os nomes e o cargo do funcionario (exibido como funcao de responsabilidade). Filtros
-        /// opcionais: id e trecho do nome do acolhido, id e trecho do nome do funcionario, trecho da funcao,
-        /// dia de inicio e dia de fim. Ordena do maior id para o menor, 15 por pagina.
-        /// Obs.: o EmployeeId nao e preenchido na projecao, entao o filtro por EmployeeId pode nao funcionar.
+        /// para trazer os nomes e a funcao de responsabilidade do vinculo (ou o cargo do funcionario, se o vinculo
+        /// nao tiver funcao). Filtros opcionais: id e trecho do nome do acolhido, id e trecho do nome do funcionario,
+        /// trecho da funcao, dia de inicio e dia de fim. Ordena do maior id para o menor, 15 por pagina.
         /// </summary>
         public async Task<PagedPatientEmployeeDTO> GetPagedPatientEmployeeByFilter(PatientEmployeeFilterDTO filter)
         {
@@ -51,8 +50,12 @@ namespace SistemaDeCadastro.Infra.Repository
                             Id = pe.Id,
                             PatientId = p.Id,
                             PatientName = p.Name,
+                            EmployeeId = pe.EmployeeId,
                             EmployeeName = e.Name,
-                            ResponsibilityFunction = e.Position,
+                            // Funcao gravada no vinculo; sem ela, mostra o cargo do funcionario.
+                            ResponsibilityFunction = string.IsNullOrEmpty(pe.ResponsibilityFunction)
+                                ? e.Position
+                                : pe.ResponsibilityFunction,
                             StartDate = pe.StartDate,
                             EndDate = pe.EndDate
                         };

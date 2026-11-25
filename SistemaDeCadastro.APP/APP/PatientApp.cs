@@ -236,7 +236,7 @@ namespace SistemaDeCadastro.APP.APP
                             {
                                 PatientClinicalConditionId = patientClinicalConditionId,
                                 MedicineId = medicineDto.MedicineId,
-                                ResponsibleEmployeeId = medicineDto.ResponsibleEmployeeId,
+                                ResponsibleEmployeeId = medicineDto.ResponsibleEmployeeId is > 0 ? medicineDto.ResponsibleEmployeeId : null,
                                 Frequency = medicineDto.Frequency,
                                 StartDate = medicineDto.StartDate,
                                 EndDate = medicineDto.EndDate,
@@ -273,7 +273,9 @@ namespace SistemaDeCadastro.APP.APP
         /// preenchidos no DTO; valida telefones, CPF e se medicamentos/funcionarios sao da instituicao. Responsaveis,
         /// condicoes e medicamentos com Id existente sao atualizados, os demais sao criados (medicamento sem Id igual a
         /// um ja existente, mesmo medicamento e horario, e atualizado em vez de duplicado; o novo vai para a condicao
-        /// informada). Tudo e gravado em uma unica transacao. Nada e removido aqui e nao checa CPF duplicado na edicao.
+        /// informada). Responsaveis, condicoes e medicamentos que o acolhido tem e nao vieram na lista (removidos na tela) sao
+        /// excluidos, com as administracoes dos medicamentos excluidos. Tudo e gravado em uma unica transacao.
+        /// Nao checa CPF duplicado na edicao.
         /// </summary>
         public async Task<ApiResponse> UpdatePatient(PatientDTO patient)
         {
@@ -355,6 +357,49 @@ namespace SistemaDeCadastro.APP.APP
                 var patientMedicines = patientConditions
                     .SelectMany(x => x.Medicines ?? Enumerable.Empty<MedicinePatientClinicalCondition>())
                     .ToList();
+
+                // O front sempre envia as listas completas: o que o acolhido tem no banco e
+                // nao veio na requisicao foi removido na tela. Lista null = nao mexe no grupo.
+                var responsiblesToRemove = patient.Responsibles == null
+                    ? new List<Responsible>()
+                    : updatePatient.Responsibles
+                        .Where(r => patient.Responsibles.All(d => d.Id != r.Id))
+                        .ToList();
+
+                var conditionsToRemove = patient.ClinicalConditions == null
+                    ? new List<PatientClinicalCondition>()
+                    : patientConditions
+                        .Where(c => patient.ClinicalConditions.All(d => d.Id != c.Id))
+                        .ToList();
+
+                // Medicamento sem id que bate com um existente (mesmo medicamento e horario)
+                // e tratado como esse existente no laco abaixo, entao nao e removido.
+                var medicinesToRemove = patient.ScheduledMedicines == null
+                    ? new List<MedicinePatientClinicalCondition>()
+                    : patientMedicines
+                        .Where(m => patient.ScheduledMedicines.All(d =>
+                            d.Id != m.Id &&
+                            !(d.Id == 0 && d.MedicineId == m.MedicineId && d.AdministrationTime == m.AdministrationTime)))
+                        .ToList();
+
+                var removedConditionIds = conditionsToRemove.Select(c => c.Id).ToHashSet();
+                var keptMedicinesOfRemovedConditions = patientMedicines
+                    .Where(m => removedConditionIds.Contains(m.PatientClinicalConditionId) && !medicinesToRemove.Contains(m))
+                    .ToList();
+
+                if (patient.ScheduledMedicines != null && keptMedicinesOfRemovedConditions.Any())
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Remova os medicamentos programados da condição clínica antes de removê-la.";
+                    return ret;
+                }
+
+                // Sem lista de medicamentos na requisicao, os da condicao removida saem junto com ela.
+                medicinesToRemove.AddRange(keptMedicinesOfRemovedConditions);
+
+                // Daqui em diante so contam as condicoes e medicamentos que continuam.
+                patientConditions.RemoveAll(c => removedConditionIds.Contains(c.Id));
+                patientMedicines.RemoveAll(m => medicinesToRemove.Contains(m));
 
                 // Valida os medicamentos ANTES de gravar qualquer coisa.
                 if (patient.ScheduledMedicines != null && patient.ScheduledMedicines.Any())
@@ -506,9 +551,9 @@ namespace SistemaDeCadastro.APP.APP
                                     existingMedicine.MedicineId =
                                         medicineDto.MedicineId;
 
-                                if (medicineDto.ResponsibleEmployeeId != 0)
+                                // O front sempre manda o estado completo: 0 ou vazio = sem funcionario responsavel.
                                     existingMedicine.ResponsibleEmployeeId =
-                                        medicineDto.ResponsibleEmployeeId;
+                                        medicineDto.ResponsibleEmployeeId is > 0 ? medicineDto.ResponsibleEmployeeId : null;
 
                                 if (medicineDto.Frequency != null)
                                     existingMedicine.Frequency =
@@ -560,7 +605,7 @@ namespace SistemaDeCadastro.APP.APP
                                             medicineDto.MedicineId,
 
                                         ResponsibleEmployeeId =
-                                            medicineDto.ResponsibleEmployeeId,
+                                            medicineDto.ResponsibleEmployeeId is > 0 ? medicineDto.ResponsibleEmployeeId : null,
 
                                         Frequency =
                                             medicineDto.Frequency,
@@ -587,6 +632,8 @@ namespace SistemaDeCadastro.APP.APP
                             }
                         }
                     }
+                    // Por ultimo, exclui o que foi removido na tela (e as administracoes dos medicamentos).
+                    await _patientRepository.RemovePatientItems(responsiblesToRemove, conditionsToRemove, medicinesToRemove);
                 });
 
                 ret.Success = true;

@@ -14,8 +14,8 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<PatientClinicalCondition?> GetWithPatientConditionAndMedicines(long id);
         /// <summary>Lista paginada das condicoes clinicas dos acolhidos com nomes de acolhido e condicao, aplicando os filtros.</summary>
         Task<PagedPatientClinicalConditionDTO> GetPatientClinicalConditionByFilter(PatientClinicalConditionFilterDTO filter);
-        /// <summary>Retorna a primeira condicao clinica encontrada do acolhido (lanca excecao se ele nao tiver nenhuma).</summary>
-        Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id);
+        /// <summary>Retorna todas as condicoes clinicas do acolhido (lista vazia se nao tiver nenhuma).</summary>
+        Task<List<PatientClinicalConditionDTO>> GetPatientClinicalConditionByPatientId(long id);
 
        }
 }

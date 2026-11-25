@@ -109,5 +109,13 @@ namespace SistemaDeCadastro.Infra.Repository
 
             return ret;
         }
+
+        /// <summary>
+        /// Diz se o medicamento ainda e usado por algum medicamento programado de acolhido
+        /// (chave estrangeira Restrict: com uso, o MySQL bloqueia a exclusao).
+        /// </summary>
+        public async Task<bool> IsInUse(long medicineId) =>
+            await _context.MedicinePatientClinicalConditions.AnyAsync(m => m.MedicineId == medicineId);
     }
 }
+

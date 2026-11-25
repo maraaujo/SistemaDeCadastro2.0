@@ -126,7 +126,7 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o responsavel com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o responsavel com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
@@ -134,7 +134,8 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 var entity = (await _responsibleRepository.FindBy(r => r.Id == id)).FirstOrDefault();
-                if (entity != null) await _responsibleRepository.Delete(entity);
+                if (entity == null) { ret.Success = false; ret.ErrorMessage = "Responsável não encontrado."; return ret; }
+                await _responsibleRepository.Delete(entity);
                 ret.Success = true;
             }
             catch (Exception ex)

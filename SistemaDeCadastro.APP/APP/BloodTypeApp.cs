@@ -45,7 +45,6 @@ namespace SistemaDeCadastro.APP.APP
         }
         /// <summary>
         /// Cadastra um tipo sanguineo com o Id e o nome vindos do DTO.
-        /// Observacao: mesmo quando grava, o retorno nao marca Success = true (fica false sem mensagem).
         /// </summary>
         public async Task<ApiResponse> CreateBloodType(BloodTypeDTO bloodType)
         {
@@ -55,6 +54,7 @@ namespace SistemaDeCadastro.APP.APP
                 newBloodType.Id = bloodType.Id;
                 newBloodType.Name = bloodType.Name;
                 await this._bloodTypeRepository.CreateBooldType(newBloodType);
+                ret.Success = true;
             }
             catch (Exception err)
             {
@@ -66,15 +66,23 @@ namespace SistemaDeCadastro.APP.APP
         }
         /// <summary>
         /// Exclui o tipo sanguineo cujo Id vem no DTO (apesar do nome "Illness").
-        /// Observacao: nao marca Success = true ao excluir e, se o Id nao existir, repassa null ao repositorio.
+        /// Retorna "Tipo sanguineo nao encontrado." se o Id nao existir.
         /// </summary>
         public async Task<ApiResponse> DeleteIllness(BloodTypeDTO bloodType)
         {
             ApiResponse ret = new();
             try
             {
-                BloodType deletebloodType = (await _bloodTypeRepository.GetBloodTypeById(bloodType.Id)).FirstOrDefault();
+                BloodType? deletebloodType = (await _bloodTypeRepository.GetBloodTypeById(bloodType.Id)).FirstOrDefault();
+                if (deletebloodType == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Tipo sanguíneo não encontrado.";
+                    return ret;
+                }
+
                 await this._bloodTypeRepository.DeleteBloodtype(deletebloodType);
+                ret.Success = true;
             }
 
             catch (Exception err)

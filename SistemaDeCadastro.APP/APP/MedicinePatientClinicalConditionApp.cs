@@ -308,12 +308,35 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o medicamento programado com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o medicamento programado com o Id informado e o historico de administracoes dele, numa transacao.
+        /// Retorna "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var e = (await _repo.FindBy(m => m.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; }
+            try
+            {
+                var e = (await _repo.FindBy(m => m.Id == id)).FirstOrDefault();
+                if (e == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Medicamento programado não encontrado.";
+                    return ret;
+                }
+
+                // As administracoes referenciam o medicamento programado (FK Restrict): apaga
+                // as administracoes e depois a prescricao, na mesma transacao.
+                await _patientRepository.ExecuteInTransaction(async () =>
+                {
+                    var administrations = await _medicationAdministrationRepository
+                        .FindBy(a => a.MedicinePatientClinicalConditionId == id);
+                    if (administrations.Any())
+                        await _medicationAdministrationRepository.DeleteRange(administrations);
+
+                    await _repo.Delete(e);
+                });
+                ret.Success = true;
+            }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }

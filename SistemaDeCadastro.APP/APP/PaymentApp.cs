@@ -29,13 +29,20 @@ namespace SistemaDeCadastro.APP.APP
         public async Task<Payment?> GetById(long id) => (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
 
         /// <summary>
-        /// Monta um pagamento a partir do DTO e o devolve em Data com Success = true.
-        /// Observacao: o pagamento NAO e gravado no banco (nao chama o repositorio) e o agendamento nao e validado.
+        /// Grava um pagamento a partir do DTO e o devolve em Data. O agendamento precisa ser da instituicao do usuario.
         /// </summary>
         public async Task<ApiResponse> Create(CreatePaymentDTO entity)
         {
             var ret = new ApiResponse();
             try {
+            // O agendamento vem do cliente: precisa ser da instituicao do usuario.
+            if (!await _appointmentRepository.Any(a => a.Id == entity.AppointmentId))
+            {
+                ret.Success = false;
+                ret.ErrorMessage = "Agendamento não encontrado para a instituição do usuário logado.";
+                return ret;
+            }
+
             var newPayment = new Payment
             {
                 AppointmentId = entity.AppointmentId,
@@ -46,6 +53,7 @@ namespace SistemaDeCadastro.APP.APP
                 Status = entity.Status,
                 ExternalTransactionId = entity.ExternalTransactionId
             };
+            await _repo.Create(newPayment);
             ret.Data = newPayment;
             ret.Success = true;
             }
@@ -104,12 +112,29 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o pagamento com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o pagamento com o Id informado ("Pagamento nao encontrado." se nao existir).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
+            try
+            {
+                var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
+                if (e == null)
+                {
+                    ret.Success = false;
+                    ret.ErrorMessage = "Pagamento não encontrado.";
+                    return ret;
+                }
+
+                await _repo.Delete(e);
+                ret.Success = true;
+            }
+            catch (Exception ex)
+            {
+                ret.Success = false;
+                ret.ErrorMessage = ApiErrors.From(ex);
+            }
             return ret;
         }
     }

@@ -127,12 +127,12 @@ namespace SistemaDeCadastro.APP.APP
         }
 
         /// <summary>
-        /// Exclui o vinculo acolhido-funcionario com o Id informado. Retorna Success = true mesmo se o Id nao existir.
+        /// Exclui o vinculo acolhido-funcionario com o Id informado. Retorna Success = false com mensagem de "nao encontrado" se o Id nao existir (ou for de outra instituicao).
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
             var ret = new ApiResponse();
-            try { var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault(); if (e != null) await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
+            try { var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault(); if (e == null) { ret.Success = false; ret.ErrorMessage = "Vínculo entre acolhido e funcionário não encontrado."; return ret; } await _repo.Delete(e); ret.Success = true; } catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }
             return ret;
         }
     }

@@ -31,7 +31,7 @@ namespace SistemaDeCadastro.APP.APP
         /// <summary>
         /// Devolve as condicoes clinicas vinculadas ao acolhido informado (montadas no repositorio).
         /// </summary>
-        public async Task<PatientClinicalConditionDTO> GetPatientClinicalConditionByPatientId(long id)
+        public async Task<List<PatientClinicalConditionDTO>> GetPatientClinicalConditionByPatientId(long id)
         => await _repo.GetPatientClinicalConditionByPatientId(id);
         /// <summary>
         /// Devolve todos os vinculos acolhido + condicao clinica visiveis para a instituicao.
@@ -126,7 +126,7 @@ namespace SistemaDeCadastro.APP.APP
 
         /// <summary>
         /// Exclui o vinculo acolhido + condicao clinica, apagando antes os medicamentos programados dele e as
-        /// administracoes desses medicamentos. Retorna Success = true mesmo se o Id nao existir.
+        /// administracoes desses medicamentos. Retorna "nao encontrada" se o Id nao existir.
         /// </summary>
         public async Task<ApiResponse> Delete(long id)
         {
@@ -134,24 +134,28 @@ namespace SistemaDeCadastro.APP.APP
             try
             {
                 var e = (await _repo.FindBy(p => p.Id == id)).FirstOrDefault();
-                if (e != null)
+                if (e == null)
                 {
-                    // Remove os dependentes antes, senão as FKs bloqueiam a exclusão:
-                    // condição clínica <- medicamentos <- administrações de medicamento.
-                    var medicines = await _medicineRepo.FindBy(m => m.PatientClinicalConditionId == id);
-                    if (medicines.Any())
-                    {
-                        var medicineIds = medicines.Select(m => m.Id).ToList();
-                        var administrations = await _medicationAdministrationRepo
-                            .FindBy(a => medicineIds.Contains(a.MedicinePatientClinicalConditionId));
-                        if (administrations.Any())
-                            await _medicationAdministrationRepo.DeleteRange(administrations);
-
-                        await _medicineRepo.DeleteRange(medicines);
-                    }
-
-                    await _repo.Delete(e);
+                    ret.Success = false;
+                    ret.ErrorMessage = "Condição clínica do acolhido não encontrada.";
+                    return ret;
                 }
+
+                // Remove os dependentes antes, senão as FKs bloqueiam a exclusão:
+                // condição clínica <- medicamentos <- administrações de medicamento.
+                var medicines = await _medicineRepo.FindBy(m => m.PatientClinicalConditionId == id);
+                if (medicines.Any())
+                {
+                    var medicineIds = medicines.Select(m => m.Id).ToList();
+                    var administrations = await _medicationAdministrationRepo
+                        .FindBy(a => medicineIds.Contains(a.MedicinePatientClinicalConditionId));
+                    if (administrations.Any())
+                        await _medicationAdministrationRepo.DeleteRange(administrations);
+
+                    await _medicineRepo.DeleteRange(medicines);
+                }
+
+                await _repo.Delete(e);
                 ret.Success = true;
             }
             catch (Exception ex) { ret.Success = false; ret.ErrorMessage = ApiErrors.From(ex); }

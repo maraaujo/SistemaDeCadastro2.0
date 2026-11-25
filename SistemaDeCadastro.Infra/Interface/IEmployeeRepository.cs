@@ -14,5 +14,8 @@ namespace SistemaDeCadastro.Infra.Interface
         Task<List<Employee>> GetByDepartmentId(long departmentId);
         /// <summary>Lista paginada de funcionarios com o nome do departamento, aplicando os filtros informados.</summary>
         Task<PagedEmployeeDTO> GetEmployeeByFilter(EmployeeFilterDTO filter);
+        /// <summary>Diz se o funcionario ainda e usado por vinculos com acolhidos, medicamentos programados ou administracoes.</summary>
+        Task<bool> HasDependencies(long employeeId);
     }
 }
+

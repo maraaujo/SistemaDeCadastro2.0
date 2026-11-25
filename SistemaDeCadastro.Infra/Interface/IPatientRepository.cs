@@ -35,5 +35,12 @@ namespace SistemaDeCadastro.Infra.Interface
 
         // Exclui o acolhido e todos os registros que dependem dele, de forma atomica.
         Task DeletePatientWithDependencies(Patient patient);
+
+        // Remove responsaveis, condicoes clinicas e medicamentos programados tirados na edicao
+        // do acolhido, junto com as administracoes desses medicamentos.
+        Task RemovePatientItems(
+            IEnumerable<Responsible> responsibles,
+            IEnumerable<PatientClinicalCondition> conditions,
+            IEnumerable<MedicinePatientClinicalCondition> medicines);
     }
 }

@@ -25,14 +25,19 @@ namespace SistemaDeCadastro.Infra.Repository
         }
 
         /// <summary>
-        /// Busca a primeira assinatura da instituicao com Status exatamente "Active", carregando o plano.
-        /// Devolve null se nao houver. Nao considera variacoes como "ativo"/"active" em minusculas.
+        /// Busca a assinatura ativa mais recente da instituicao, carregando o plano. Aceita os status
+        /// "Active", "Ativo" e "Ativa" em qualquer caixa (o Create grava "Ativo"; o painel admin aceita os tres).
+        /// Devolve null se nao houver.
         /// </summary>
         public async Task<Subscription> GetActiveByInstitutionId(long institutionId)
         {
+            var activeStatuses = new[] { "active", "ativo", "ativa" };
+
             return await _context.Set<Subscription>()
                 .Include(s => s.Plan)
-                .FirstOrDefaultAsync(s => s.InstitutionId == institutionId && s.Status == "Active");
+                .Where(s => s.InstitutionId == institutionId && activeStatuses.Contains(s.Status.ToLower()))
+                .OrderByDescending(s => s.StartDate)
+                .FirstOrDefaultAsync();
         }
     }
 }
